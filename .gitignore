@@ -11,6 +11,9 @@ venv/
 # Databricks
 .databricks/
 
+# Databricks agent notebooks (large, externally maintained)
+notebooks/dbx_vibe_modelling_agent.py
+
 # IDE
 .idea/
 .vscode/
