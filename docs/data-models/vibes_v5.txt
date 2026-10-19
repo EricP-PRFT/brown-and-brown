@@ -1,0 +1,15 @@
+RE-APPLY ALL MISSED VIBES FROM V4. Additionally:
+
+ADD FKs: rx_claim->company.subscriber(subscriber_id). drug.equivalence->drug.ndc(ndc_id). claim.rebate_record->drug.ndc(ndc_id). div.formulary_drug_placement->drug.ndc(ndc_id). drug.mac_list->company.company_pbm(company_pbm_id). div.rebate_contract->company.company_pbm(company_pbm_id). client.consulting_fee_invoice->company.company_pbm(company_pbm_id). claim.cob->company.member(member_id). company.company_pbm->company.organization(organization_id). claim.adjustment->claim.rx_claim(original_rx_claim_id) for reversal lineage. Confirm rx_claim has ndc_id and claim_prescriber_id FKs.
+
+WIRE UNLINKED FKs: Add foreign_key_to on: claim_pbm_source_id in rx_claim/pbm_feed_batch/rebate_record/client_pbm_contract; ncpdp_id in drug.pharmacy/pharmacy_network; pharmacy_ncpdp_id/tertiary_pharmacy_id/primary_mac_list_id in pharmacy_network; benefit_group cross-ref IDs after SSOT designated; div.division_benefit_group.benefit_plan_id.
+
+BENEFIT_GROUP SSOT: Choose ONE of claim/client/division benefit_group as SSOT owner; others FK to it.
+
+RENAMES: claim.claim_pbm->claim_pbm_source. member.pbm_member_id->source_member_id. subscriber.pbm_subscriber_id->source_subscriber_id. subscriber_client_fk->client_fk. member_360_key->360_key.
+
+FK NAMING: All FKs MUST end with target PK suffix. Fix mac_list_fk, data_assignment_fk, client_division_fk, pbm_period_fk. Drop residual ndc_labeler_code_fk. Multiple FKs to same table MUST use business-role names.
+
+DATA TYPES: ndc.awp/wac NUMERIC->DECIMAL. pharmacy.pharmacy_network_id STRING->BIGINT. Type mismatches: rx_claim.ndc_id, drug_prescriber.ndc_id, formulary_drug_placement.secondary_ndc_id must be BIGINT. Add types on client_benefit_group.claim_benefit_group_id and div.division_benefit_group.claim_benefit_group_id.
+
+FIXES: rx_claim.claim_prescriber_id desc says 'claim' but FK targets drug—align. tenant_change_log.rolled_back_from_log_id self-ref FK must differ from PK name.

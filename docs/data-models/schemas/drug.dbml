@@ -1,0 +1,639 @@
+// DBML Schema for Business: Pillarrx
+// Version: 1
+// Generated on: 2026-10-16 20:55:45
+
+Project {
+  database_type: 'Databricks Unity Catalog'
+  Note: 'Lakehouse data model for Pillarrx - Version 1'
+}
+
+// --- Tables ---
+
+Table drug.ndc {
+  ndc_id varchar [pk, note: 'Surrogate primary key for the NDC dimension record. Supports Type-2 SCD versioning so each historical snapshot of an NDC has a unique row.']
+  manufacturer_id varchar [note: 'FK to drug.manufacturer.manufacturer_id — manufacturer is keyed on labeler code (first 5 digits of NDC); the NDC master must FK to its manufacturer for rebate, 340B, and manufacturer-spend reporting. Day-1 critical for manufacturer program ma']
+  ndc_labeler_code varchar [note: 'FK to drug.manufacturer.manufacturer_id — ndc declares labeler_code as FK to manufacturer in prose for 6 iterations but it is not verifiably wired. Manufacturer spend, rebate reconciliation, and 340B joins all depend on this FK. Must be mater']
+  ndc_labeler_code_fk varchar [note: 'FK to drug.manufacturer.manufacturer_id — The ndc description states labeler code is an FK to manufacturer; this join is production-critical for manufacturer spend, rebate reconciliation, and 340B/copay-card program management. Must be physic']
+  ndc_labeler_fk varchar [note: 'FK to drug.manufacturer.manufacturer_id — ndc carries labeler_code which is manufacturer\'s business key; manufacturer spend/rebate/340B joins require this FK. Declared in prose across iterations but must be verifiably wired by the linker befo']
+  ndc_manufacturer_id varchar [note: 'Foreign key linking to drug.manufacturer. Business justification: Each NDC is produced by exactly one manufacturer (labeler). ndc currently has labeler_code and labeler_name strings which should be normalized to FK to manufacturer master.']
+  application_number varchar [note: 'FDA New Drug Application (NDA), Abbreviated NDA (ANDA), or Biologics License Application (BLA) number. Links the NDC to its regulatory approval for biosimilar and generic analysis.']
+  awp_effective_date date [note: 'Date on which the current AWP pricing became effective. Critical for point-in-time pricing lookups during PBM audit and claims repricing.']
+  awp_package_price decimal(12,4) [note: 'Average Wholesale Price for the full package (AWP per unit × package size). Used in ingredient cost benchmarking and PBM audit comparisons.']
+  awp_unit_price decimal(12,4) [note: 'Average Wholesale Price per dispensing unit as published by Medi-Span or FDB. Basis for AWP discount calculations in PBM contract audits and guarantee reconciliation.']
+  biosimilar_indicator boolean [note: 'True if the drug is an FDA-approved biosimilar. Used in biosimilar substitution opportunity analysis and specialty spend optimization consulting.']
+  brand_name varchar [note: 'Manufacturer-assigned brand/trade name for the drug product (e.g., LIPITOR). Null for generic-only products. Used in brand vs. generic spend analytics.']
+  dea_schedule varchar [note: 'DEA controlled substance schedule (CI–CV) or \'unscheduled\'. Drives DUR alerts, quantity limit rules, and regulatory compliance reporting for controlled substance utilization.']
+  discontinuation_date date [note: 'Date the drug product was discontinued from the U.S. market. Null for active products. Used to identify claims dispensed after market withdrawal.']
+  dosage_form varchar [note: 'Physical form of the drug product (e.g., tablet, capsule, solution, injection). Sourced from FDA labeling and drug reference files. Used in formulary and utilization analysis.']
+  drug_name varchar [note: 'Full proprietary or established drug product name as published by the labeler and sourced from Medi-Span or FDB (e.g., LIPITOR, atorvastatin calcium).']
+  drug_reference_source varchar [note: 'Identifies the authoritative external source that populated this NDC record (Medi-Span or FDB). Supports data lineage and source reconciliation in the lakehouse.']
+  drug_status varchar [note: 'Current FDA market status of the NDC (active, discontinued, recalled, pending, obsolete). Drives formulary maintenance and claim adjudication validity checks.']
+  fdb_drug_code varchar [note: 'First DataBank internal drug identifier for this NDC. Enables cross-reference between Medi-Span and FDB sourcing and supports dual-source validation in the drug reference pipeline.']
+  generic_indicator varchar [note: 'Classifies the drug as brand, generic, brand-generic (authorized generic), or OTC. Drives Generic Dispensing Rate (GDR) calculations and brand/generic spend split reporting.']
+  generic_name varchar [note: 'International Nonproprietary Name (INN) or USAN generic name of the active ingredient(s) (e.g., atorvastatin calcium). Used for generic substitution analysis and GDR reporting.']
+  gpi14 varchar [note: 'Medi-Span 14-digit Generic Product Identifier classifying the drug by therapeutic category, drug group, drug class, drug name, dosage form, route, and strength. Core to therapeutic class analysis.']
+  is_current boolean [note: 'True if this row is the current active version of the NDC record in the Type-2 SCD. Simplifies queries that need only the latest drug attributes without date-range filtering.']
+  ldd_indicator boolean [note: 'True if the drug is a Limited Distribution Drug available only through select specialty pharmacies. Used in specialty pharmacy network compliance and affordability analysis.']
+  maintenance_drug_indicator boolean [note: 'True if the drug is classified as a maintenance medication (chronic, long-term use). Used in 90-day supply program analysis and mail-order vs. retail dispensing analytics.']
+  market_date date [note: 'Date the drug product was first commercially available in the U.S. market. Used in new-to-market drug trend analysis and formulary addition timing.']
+  medi_span_drug_code varchar [note: 'Medi-Span internal drug identifier for this NDC. Supports cross-reference and reconciliation between Medi-Span and FDB drug reference feeds in the lakehouse.']
+  multi_source_indicator boolean [note: 'True if a generic equivalent is available from multiple manufacturers, enabling MAC pricing. Used in PBM audit and MAC pricing analysis.']
+  ndc11 varchar [note: 'The FDA-assigned 11-digit National Drug Code in 5-4-2 format (labeler-product-package). Primary natural key for drug identification across all PBM claim feeds.']
+  ndc11_formatted varchar [note: 'NDC-11 displayed in hyphenated 5-4-2 format for human-readable reporting and EOB presentation (e.g., 12345-6789-01).']
+  orange_book_code varchar [note: 'FDA Orange Book therapeutic equivalence code (e.g., AB, AA, BX). Determines generic substitutability for DAW code validation and GDR analysis.']
+  otc_indicator boolean [note: 'True if the drug is available over-the-counter without a prescription. Used to flag OTC claims for benefit exclusion review and formulary compliance.']
+  package_size decimal(10,4) [note: 'Number of units (tablets, mL, grams, etc.) in the dispensed package as defined by the NDC. Used in days-supply validation and unit-cost calculations.']
+  package_size_unit varchar [note: 'Unit of measure for the package size (e.g., EA, ML, GM, TAB). Required to correctly interpret package_size in cost and utilization calculations.']
+  reference_source_update_date date [note: 'Date the drug reference source (Medi-Span or FDB) last updated this NDC record. Used to track currency of drug reference data and trigger SCD version creation.']
+  rems_indicator boolean [note: 'True if the FDA requires a Risk Evaluation and Mitigation Strategy (REMS) for this drug. Flags drugs with mandatory safety protocols for prior authorization and utilization management.']
+  route_of_administration varchar [note: 'How the drug is administered (e.g., oral, intravenous, topical, subcutaneous). Used in specialty drug identification and medical vs. pharmacy benefit determination.']
+  scd_effective_date date [note: 'Start date of this Type-2 SCD version row. Combined with scd_expiration_date to define the validity window for point-in-time pricing and classification lookups.']
+  scd_expiration_date date [note: 'End date of this Type-2 SCD version row (9999-12-31 for the current active record). Enables point-in-time joins for historical claims repricing and PBM audit.']
+  specialty_drug_indicator boolean [note: 'True if the drug is classified as a specialty medication requiring special handling, storage, or distribution. Drives specialty pharmacy spend monitoring and trend reporting.']
+  strength varchar [note: 'Active ingredient strength and unit (e.g., 10 mg, 500 mg/5 mL). Used in clinical equivalence matching, step therapy analysis, and quantity limit validation.']
+  therapeutic_class_code varchar [note: 'Drug therapeutic class code derived from the GPI hierarchy (first 6 digits of GPI-14). Used for formulary tier analysis, utilization management, and benchmarking.']
+  therapeutic_class_name varchar [note: 'Human-readable description of the therapeutic class (e.g., HMG-CoA Reductase Inhibitors). Supports consulting reports and client-facing trend analysis.']
+  wac_effective_date date [note: 'Date on which the current WAC pricing became effective. Used for point-in-time WAC lookups in pass-through pricing audits.']
+  wac_unit_price decimal(12,4) [note: 'Wholesale Acquisition Cost per dispensing unit as published by Medi-Span or FDB. Used as an alternative pricing benchmark in pass-through PBM models and 340B analysis.']
+
+  Note: 'Authoritative SSOT master for every 11-digit National Drug Code (NDC) dispensed or referenced across PillarRx client claims, sourced from Wolters Kluwer Medi-Span and First DataBank.'
+}
+
+Table drug.ndc_price {
+  ndc_price_id varchar [pk, note: 'Unique surrogate key for each time-versioned NDC pricing record in the Pillarrx drug reference domain.']
+  mac_list_id varchar [note: 'FK to drug.mac_list.mac_list_id — ndc_price stores MAC values that belong to a specific MAC list; FK to mac_list enables under-reimbursement appeals analysis and MAC benchmarking (iteration-1 request).']
+  ndc_mac_fk varchar [note: 'FK to drug.mac_list.mac_list_id — ndc_price MAC entries reference a mac_list; FK required for under-reimbursement appeals and MAC benchmarking.']
+  ndc_mac_list_id varchar [note: 'Foreign key linking to drug.mac_list. Business justification: ndc_price can reference a MAC list when the price is MAC-based. Currently has mac_list_name (STRING) but needs proper FK to mac_list master. The mac_list_name string becomes redundant.']
+  primary_ndc_id varchar [note: 'Foreign key linking to drug.ndc. Business justification: ndc_price is time-versioned pricing for each NDC. Currently has ndc11 (STRING) but needs proper FK to ndc master.']
+  awp_discount_pct decimal(7,4) [note: 'The contracted AWP discount percentage applied to this NDC for ingredient cost reimbursement. Expressed as a positive decimal (e.g., 16.00 = 16% off AWP). Used in PBM contract guarantee auditing.']
+  awp_package_price decimal(12,4) [note: 'Average Wholesale Price for the full package size as published by Medi-Span or FDB. Used in package-level cost analysis and PBM audit reconciliation.']
+  awp_unit_price decimal(12,4) [note: 'Average Wholesale Price per dispensing unit as published by Medi-Span or FDB. AWP is the benchmark price used in PBM contract discount calculations and ingredient cost benchmarking.']
+  currency_code varchar [note: 'ISO 4217 three-letter currency code for all monetary price fields in this record. Pillarrx operates in USD; this field supports multi-currency extensibility.']
+  dea_schedule varchar [note: 'DEA controlled substance schedule for this NDC. CI = Schedule I through CV = Schedule V. Unscheduled = not a controlled substance. Required for controlled substance utilization reporting.']
+  dosage_form varchar [note: 'Physical form of the drug product (e.g., TABLET, CAPSULE, SOLUTION, INJECTION, PATCH). Sourced from Medi-Span or FDB. Used in drug utilization and formulary analysis.']
+  drug_name varchar [note: 'Brand or generic drug name for this NDC as published by Medi-Span or FDB. Denormalized onto the pricing record to support reporting without joining to the drug dimension.']
+  effective_date date [note: 'The calendar date on which this pricing record becomes effective. Used with expiration_date to define the valid window for AWP, WAC, and MAC values. Supports Type-2 SCD history.']
+  expiration_date date [note: 'The calendar date on which this pricing record expires and is superseded by a newer version. NULL indicates the record is currently active. Supports Type-2 SCD history.']
+  formulary_tier varchar [note: 'Formulary cost-sharing tier associated with this NDC at the time of this pricing record (e.g., Tier 1 Generic, Tier 2 Preferred Brand). Supports formulary and benefit analysis.']
+  generic_indicator varchar [note: 'Classifies the NDC as brand, generic, over-the-counter, or biosimilar. Drives Generic Dispensing Rate (GDR) calculations and brand/generic cost benchmarking in PBM audits.']
+  gpi_code varchar [note: '14-digit Generic Product Identifier from Wolters Kluwer Medi-Span providing a hierarchical drug classification (drug group, class, subclass, name, name extension, dosage form, strength).']
+  is_340b_eligible boolean [note: 'Indicates whether this NDC is eligible for the federal 340B drug discount program. Used in 340B program management and manufacturer discount reconciliation for covered entities.']
+  is_current boolean [note: 'Flag indicating whether this is the currently active pricing record for the NDC. TRUE = current active row; FALSE = historical row. Supports efficient Type-2 SCD current-row filtering.']
+  is_limited_distribution boolean [note: 'Indicates whether this NDC is a Limited Distribution Drug (LDD) available only through select specialty pharmacies. Affects reimbursement benchmarking and network adequacy analysis.']
+  is_specialty_drug boolean [note: 'Indicates whether this NDC is classified as a specialty medication (SMN) requiring special handling, prior authorization, or specialty pharmacy dispensing. Critical for specialty spend monitoring.']
+  labeler_name varchar [note: 'Name of the drug manufacturer or labeler as registered with the FDA for this NDC. Used in manufacturer program management, rebate tracking, and 340B analysis.']
+  mac_price decimal(12,4) [note: 'Maximum Allowable Cost price for this NDC, representing the maximum reimbursement a PBM will pay for a generic or multi-source drug. Central to PBM contract MAC list auditing.']
+  multisource_code varchar [note: 'Medi-Span/FDB multisource code indicating generic availability: O = originator brand, M = multisource brand, N = no generic available, Y = generic available. Drives MAC applicability.']
+  obsolete_date date [note: 'Date on which the FDA or drug reference source marked this NDC as obsolete or discontinued. NULL if still active. Used to prevent claims matching to discontinued NDCs in audit workflows.']
+  package_size decimal(10,4) [note: 'Numeric quantity of dispensing units contained in the package for which package-level pricing (AWP, WAC) is expressed. Used to derive per-unit pricing from package pricing.']
+  package_size_uom varchar [note: 'Unit of measure for the package size quantity (e.g., TAB for 30-tablet bottle, ML for 100mL vial). Distinct from unit_of_measure which applies to per-unit pricing.']
+  price_change_type varchar [note: 'Describes the nature of the pricing change that triggered this new SCD Type-2 row. Used in drug price trend analysis and manufacturer price increase monitoring for employer clients.']
+  price_source varchar [note: 'Identifies the authoritative external source that published this pricing record. Medi-Span (Wolters Kluwer) and First DataBank (FDB) are the primary drug reference feeds used by Pillarrx.']
+  price_status varchar [note: 'Lifecycle status of this pricing record. ACTIVE = currently in effect; EXPIRED = past expiration_date; SUPERSEDED = replaced by a newer SCD row; PENDING = future-dated not yet effective.']
+  price_type_code varchar [note: 'Classifies the primary pricing basis of this record. AWP = Average Wholesale Price, WAC = Wholesale Acquisition Cost, MAC = Maximum Allowable Cost, DP = Direct Price, SP = Suggested Price.']
+  prior_awp_unit_price decimal(12,4) [note: 'The AWP per unit from the immediately preceding pricing record for this NDC. Retained on the new row to enable direct price change calculations without joining to the prior SCD row.']
+  prior_wac_unit_price decimal(12,4) [note: 'The WAC per unit from the immediately preceding pricing record for this NDC. Enables direct WAC change calculations for manufacturer price increase monitoring.']
+  record_created_timestamp timestamp [note: 'Timestamp when this pricing record row was first inserted into the Pillarrx Silver layer. Supports audit trail and SCD Type-2 row lineage.']
+  record_updated_timestamp timestamp [note: 'Timestamp when this pricing record row was last modified in the Pillarrx Silver layer. Tracks corrections or restatements to a pricing row after initial load.']
+  repackaged_indicator boolean [note: 'Indicates whether this NDC belongs to a repackager rather than the original manufacturer. Repackaged NDCs may have different AWP/WAC values and require special handling in PBM audits.']
+  route_of_administration varchar [note: 'The route by which the drug is administered (e.g., ORAL, INJECTABLE). Sourced from Medi-Span or FDB. Used in specialty drug identification and clinical utilization analysis.']
+  source_file_name varchar [note: 'Name of the Medi-Span or FDB source file from which this pricing record was loaded. Supports data lineage tracing and audit of pricing feed ingestion.']
+  source_load_date date [note: 'The date on which this pricing record was loaded from the external source feed (Medi-Span or FDB) into the Pillarrx lakehouse. Supports feed timeliness monitoring.']
+  strength varchar [note: 'Strength of the active ingredient(s) for this NDC as labeled (e.g., 10MG, 500MG/5ML). Sourced from Medi-Span or FDB. Used in clinical and formulary analysis.']
+  therapeutic_class_code varchar [note: 'Drug therapeutic class code from Medi-Span GPI or FDB therapeutic classification hierarchy. Used in drug utilization review (DUR), formulary analysis, and therapeutic category spend reporting.']
+  therapeutic_class_name varchar [note: 'Human-readable name of the therapeutic class corresponding to therapeutic_class_code. Supports reporting and analytics without requiring a join to a separate classification table.']
+  unit_of_measure varchar [note: 'The dispensing unit of measure for which per-unit pricing (AWP, WAC) is expressed. Examples: EA (each), ML (milliliter), GM (gram), TAB (tablet), CAP (capsule).']
+  wac_package_price decimal(12,4) [note: 'Wholesale Acquisition Cost for the full package size. Used in package-level manufacturer pricing analysis and 340B ceiling price calculations.']
+  wac_unit_price decimal(12,4) [note: 'Wholesale Acquisition Cost per dispensing unit as published by Medi-Span or FDB. WAC is the manufacturer list price before discounts and is used in 340B and rebate analytics.']
+
+  Note: 'Time-versioned pricing record for each NDC, capturing AWP (Average Wholesale Price), WAC (Wholesale Acquisition Cost), and MAC (Maximum Allowable Cost) values sourced from Medi-Span and FDB.'
+}
+
+Table drug.classification {
+  classification_id varchar [pk, note: 'Unique surrogate identifier for each drug therapeutic classification record. Primary key for the classification data product.']
+  classification_ndc_id varchar [note: 'Surrogate FK reference to the NDC master record. Links classification attributes to the specific 11-digit drug product being classified.']
+  ndc_id varchar [note: 'FK to drug.ndc.ndc_id — Classification attributes (GPI, therapeutic class, generic indicator) are per-NDC. An engineer would never ship classification without the NDC FK.']
+  ahfs_therapeutic_class_code varchar [note: 'AHFS pharmacologic-therapeutic classification code. Used as a supplemental classification standard in clinical drug utilization review (DUR) and formulary analysis.']
+  biologic_flag boolean [note: 'Indicates whether the drug is a biologic product (large-molecule, derived from living organisms). Biologics are subject to distinct formulary management, biosimilar substitution policies, and rebate structures.']
+  biosimilar_flag boolean [note: 'Indicates whether the drug is an FDA-approved biosimilar to a reference biologic. Supports biosimilar substitution analysis and step therapy (ST) protocol design for employer clients.']
+  created_timestamp timestamp [note: 'Timestamp when this classification record was first created in the PillarRx data platform. Supports data lineage, audit trail, and SCD Type-2 history management for the drug classification dimension.']
+  dea_schedule_code varchar [note: 'DEA controlled substance schedule (CI–CV) or NCS for non-controlled. Drives dispensing restrictions, days-supply limits, and prior authorization requirements in PBM benefit design analysis.']
+  drug_340b_eligible_flag boolean [note: 'Indicates whether the drug is eligible for the federal 340B drug discount program. Used in 340B program management and manufacturer program analysis for covered entity clients.']
+  effective_date date [note: 'Date on which this classification record became effective for the associated NDC. Supports Type-2 slowly changing dimension (SCD) history tracking for drug classification changes over time.']
+  expiration_date date [note: 'Date on which this classification record expired or was superseded. NULL indicates the record is currently active. Supports Type-2 SCD history and point-in-time classification lookups for historical claim analysis.']
+  fdb_therapeutic_class_code varchar [note: 'First DataBank therapeutic class code for the drug. Provides an alternative classification hierarchy to Medi-Span GPI, used for cross-source validation and FDB-sourced client reporting.']
+  fdb_therapeutic_class_name varchar [note: 'Human-readable label for the FDB therapeutic class. Supports dual-source classification reporting where clients require FDB-aligned terminology.']
+  formulary_tier_typical varchar [note: 'Typical formulary tier placement for this drug class/NDC based on standard PBM formulary structures. Used as a reference benchmark in formulary analysis and PBM contract consulting.']
+  generic_indicator varchar [note: 'Indicates whether the drug is a brand, generic, brand-generic (authorized generic), or over-the-counter product. Core driver of Generic Dispensing Rate (GDR) calculations and formulary tier assignment.']
+  gpi14 varchar [note: 'Wolters Kluwer Medi-Span 14-digit Generic Product Identifier. Encodes the full therapeutic hierarchy: drug group, class, subclass, name, name extension, dosage form, and strength.']
+  gpi2_drug_group_code varchar [note: 'First 2 digits of the Medi-Span GPI representing the top-level drug group (e.g., cardiovascular, anti-infective). Used for high-level therapeutic spend aggregation.']
+  gpi2_drug_group_name varchar [note: 'Human-readable label for the 2-digit Medi-Span GPI drug group (e.g., \'Cardiovascular Agents\'). Used in consulting reports and benchmarking dashboards.']
+  gpi4_drug_class_code varchar [note: 'First 4 digits of the Medi-Span GPI representing the drug class within the group (e.g., ACE inhibitors within cardiovascular). Supports mid-level therapeutic trend analysis.']
+  gpi4_drug_class_name varchar [note: 'Human-readable label for the 4-digit Medi-Span GPI drug class (e.g., \'ACE Inhibitors\'). Used in PBM audit and formulary tier analysis reports.']
+  gpi6_drug_subclass_code varchar [note: 'First 6 digits of the Medi-Span GPI representing the drug subclass. Provides granular therapeutic segmentation for formulary analysis and rebate program identification.']
+  gpi6_drug_subclass_name varchar [note: 'Human-readable label for the 6-digit Medi-Span GPI drug subclass. Used in specialty spend monitoring and therapeutic category benchmarking.']
+  is_current boolean [note: 'Boolean flag indicating whether this is the currently active classification record for the NDC. Simplifies current-state queries in the Type-2 SCD drug classification dimension without requiring date range filtering.']
+  limited_distribution_flag boolean [note: 'Indicates whether the drug is a Limited Distribution Drug (LDD) available only through select specialty pharmacies. Impacts network adequacy analysis and specialty pharmacy spend monitoring.']
+  maintenance_drug_flag boolean [note: 'Indicates whether the drug is classified as a maintenance medication (chronic, long-term use). Used in mail-order incentive analysis and 90-day supply benefit design consulting.']
+  multisource_code varchar [note: 'Medi-Span multisource code indicating generic availability: M=multisource (generic available), O=originator brand, N=no generic available, Y=generic product. Used in GDR auditing and MAC pricing applicability.']
+  ndc11 varchar [note: 'The 11-digit National Drug Code uniquely identifying the drug product. Carried here for denormalized lookup convenience alongside the FK to the NDC master.']
+  ndc_status varchar [note: 'Lifecycle status of this classification record for the associated NDC. Indicates whether the classification is currently active, inactive, discontinued, or pending validation.']
+  orphan_drug_flag boolean [note: 'Indicates whether the drug has FDA orphan drug designation for rare disease treatment. Orphan drugs typically carry high costs and are relevant to specialty spend monitoring and affordability intelligence.']
+  otc_flag boolean [note: 'Indicates whether the drug is available over-the-counter without a prescription. OTC drugs are typically excluded from PBM formulary coverage and require separate benefit design consideration.']
+  prior_auth_typical_flag boolean [note: 'Indicates whether prior authorization (PA) is typically required for this drug class based on standard PBM formulary management practices. Used as a benchmark in PA analysis and benefit design consulting.']
+  quantity_limit_typical_flag boolean [note: 'Indicates whether quantity limits (QL) are typically applied to this drug class in standard PBM formulary management. Used in benefit design analysis and PBM audit services.']
+  rems_flag boolean [note: 'Indicates whether the drug has an FDA-mandated Risk Evaluation and Mitigation Strategy (REMS) program. REMS drugs require special dispensing controls and are relevant to specialty pharmacy network analysis.']
+  rx_otc_indicator varchar [note: 'Medi-Span indicator for whether the drug requires a prescription (Rx), is available OTC, or has dual Rx/OTC status. Complements the OTC flag with the source-system coded value.']
+  source_version varchar [note: 'Version or release identifier of the source drug reference file from which this classification was loaded (e.g., Medi-Span quarterly release label). Supports audit and reproducibility of historical analyses.']
+  specialty_drug_flag boolean [note: 'Indicates whether the drug is classified as a specialty medication (SMN) requiring special handling, cold chain, or limited distribution. Key driver of specialty pharmacy spend monitoring and trend reporting.']
+  step_therapy_typical_flag boolean [note: 'Indicates whether step therapy (ST) is typically required for this drug class. Used as a benchmark in step therapy protocol analysis and PBM formulary consulting for employer clients.']
+  therapeutic_equivalent_code varchar [note: 'FDA Orange Book therapeutic equivalence code (e.g., AB, AA, BX). Indicates whether the drug has been evaluated and rated as therapeutically equivalent to a reference listed drug. Used in generic substitution and DAW code analysis.']
+  updated_timestamp timestamp [note: 'Timestamp when this classification record was last updated in the PillarRx data platform. Used to detect classification changes from source drug reference feeds and trigger SCD Type-2 versioning.']
+
+  Note: 'Therapeutic and clinical classification attributes for each NDC, sourced from Medi-Span GPI and FDB therapeutic class hierarchies, maintained at the NDC grain and FK-linked to the ndc master.'
+}
+
+Table drug.drug_formulary {
+  drug_formulary_id varchar [pk, note: 'Unique surrogate identifier for each formulary record in the PillarRx data lakehouse. Primary key for the drug_formulary dimension.']
+  primary_drug_division_formulary_id varchar [note: 'The PBM\'s own internal identifier for this formulary as received in claims feeds or formulary files from CVS Caremark, Optum Rx, Express Scripts, Navitus, and other PBM partners.']
+  brand_drug_count varchar [note: 'Number of brand-name drug products listed on this formulary. Used in formulary composition analysis and brand-versus-generic benchmarking for PBM audit engagements.']
+  daw_policy varchar [note: 'The formulary-level policy governing how DAW codes are handled. Defines whether brand dispensing is allowed, penalized with higher cost-share, or whether generic substitution is mandated.']
+  drug_count varchar [note: 'Total number of National Drug Codes (NDCs) or drug products listed on this formulary at the time of the effective date. Supports formulary breadth benchmarking across PBMs.']
+  effective_date date [note: 'The date on which this formulary version becomes effective for adjudication and benefit administration. Supports Type-2 slowly changing dimension history tracking.']
+  formulary_code varchar [note: 'Externally-known alphanumeric code assigned by the PBM or plan sponsor to uniquely identify this formulary (covered drug list). Used in claims routing and benefit configuration.']
+  formulary_description varchar [note: 'Free-text description of the formulary, including its intended population, design philosophy, or notable features. Used in consulting deliverables and client-facing reporting.']
+  formulary_name varchar [note: 'Human-readable name of the formulary as defined by the PBM or plan sponsor (e.g., \'Standard 4-Tier Formulary\', \'Specialty Preferred Formulary\'). Used in reporting and client communications.']
+  formulary_source varchar [note: 'The originating data source for this formulary record. Identifies whether the formulary was received via PBM claims feed, manually entered, provided by the client, or sourced from FDB or Medi-Span reference data.']
+  formulary_status varchar [note: 'Current lifecycle state of the formulary. Active formularies are in use for adjudication; retired formularies are historical; pending formularies are approved but not yet effective.']
+  formulary_type varchar [note: 'Classification of the formulary structure. Open formularies cover most drugs; closed formularies restrict to listed drugs only; incentive formularies apply differential cost-sharing to drive preferred drug use.']
+  generic_drug_count varchar [note: 'Number of generic drug products listed on this formulary. Used to calculate the Generic Dispensing Rate (GDR) potential and benchmark formulary generic utilization incentives.']
+  generic_tier_label varchar [note: 'The label assigned to the generic drug tier in this formulary (e.g., \'Tier 1\', \'Generic\'). Used in member communications, EOB displays, and formulary comparison reporting.']
+  has_preventive_tier boolean [note: 'Indicates whether this formulary includes a zero-cost-share preventive drug tier as required under ACA Section 2713 for preventive care mandates.']
+  has_specialty_tier boolean [note: 'Indicates whether this formulary includes a dedicated specialty drug tier. True when a specialty tier exists; False for formularies that do not separately classify specialty medications.']
+  is_current_record boolean [note: 'Type-2 SCD flag indicating whether this row is the currently active version of the formulary record. True for the current version; False for historical versions superseded by a later update.']
+  list_type varchar [note: 'Indicates whether this is a national PBM standard formulary, a custom formulary negotiated for a specific client, or a client-specific formulary. Drives consulting analysis segmentation.']
+  loaded_timestamp timestamp [note: 'The timestamp when this formulary record was first loaded into the PillarRx data lakehouse Silver layer. Supports data freshness monitoring and ETL audit trail.']
+  lob varchar [note: 'The line of business for which this formulary is designed. Determines applicable regulatory requirements (e.g., CMS Part D formulary rules for Medicare, ACA rules for exchange plans).']
+  mail_order_supported boolean [note: 'Indicates whether this formulary supports mail-order pharmacy dispensing with differentiated cost-sharing. Mail order typically offers 90-day supply at reduced copay to encourage adherence.']
+  non_preferred_brand_tier_label varchar [note: 'The label assigned to the non-preferred brand drug tier in this formulary (e.g., \'Tier 3\', \'Non-Preferred Brand\'). Used in formulary benchmarking and member cost-share analysis.']
+  pass_through_model boolean [note: 'Indicates whether this formulary operates under a pass-through (transparent) PBM pricing model where rebates and spread are passed directly to the plan sponsor rather than retained by the PBM.']
+  pbm_name varchar [note: 'Name of the PBM that administers this formulary (e.g., CVS Caremark, Optum Rx, Express Scripts, Navitus, EmpiRx Health). Supports multi-PBM formulary benchmarking.']
+  plan_year varchar [note: 'The benefit plan year (e.g., 2024) to which this formulary applies. Formularies are typically updated annually; plan year scopes the formulary for trend and audit analysis.']
+  preferred_brand_tier_label varchar [note: 'The label assigned to the preferred brand drug tier in this formulary (e.g., \'Tier 2\', \'Preferred Brand\'). Supports formulary tier structure documentation and PBM audit.']
+  prior_auth_required boolean [note: 'Indicates whether prior authorization (PA) utilization management is applied to any drugs on this formulary. True when PA programs are active; used in PA analysis and audit reporting.']
+  quantity_limit_applied boolean [note: 'Indicates whether quantity limit (QL) utilization management controls are applied to any drugs on this formulary. Quantity limits cap the dispensed amount per fill or per period.']
+  rebate_eligible boolean [note: 'Indicates whether drugs on this formulary are eligible for manufacturer rebate programs. Rebate eligibility is a key factor in PBM contract guarantee reconciliation and DIR analysis.']
+  scd_end_date date [note: 'The date on which this Type-2 SCD row was superseded by a newer version. Null for the currently active record. Used with scd_start_date for point-in-time formulary history reconstruction.']
+  scd_start_date date [note: 'The date on which this Type-2 SCD row became the active version in the data lakehouse. Used with scd_end_date to reconstruct point-in-time formulary snapshots for audit and trend analysis.']
+  source_file_name varchar [note: 'Name of the source file or feed from which this formulary record was ingested (e.g., PBM formulary extract filename). Supports data lineage tracking and ETL audit within the lakehouse.']
+  specialty_drug_count varchar [note: 'Number of specialty medications (SMN) listed on this formulary. Specialty drug count is a key metric for specialty spend monitoring and copay assistance program (CAP) scoping.']
+  specialty_pharmacy_required boolean [note: 'Indicates whether specialty medications on this formulary must be dispensed through a designated specialty pharmacy network. Relevant for limited distribution drug (LDD) management.']
+  specialty_tier_label varchar [note: 'The label assigned to the specialty drug tier in this formulary (e.g., \'Tier 4\', \'Specialty\'). Specialty tier tracking is critical for high-cost drug spend monitoring and CAP program management.']
+  step_therapy_required boolean [note: 'Indicates whether step therapy (ST) utilization management protocols are applied to any drugs on this formulary. Step therapy requires trial of preferred drugs before coverage of non-preferred alternatives.']
+  termination_date date [note: 'The date on which this formulary version is no longer effective. Null indicates the record is currently active. Used with effective_date to implement Type-2 SCD history.']
+  tier_count varchar [note: 'Total number of cost-sharing tiers defined in this formulary (e.g., 3-tier, 4-tier, 5-tier). Drives tier structure analysis and member cost-share benchmarking across PBMs.']
+  updated_timestamp timestamp [note: 'The timestamp when this formulary record was last modified in the PillarRx data lakehouse. Used for change detection, SCD processing, and data quality monitoring.']
+  version varchar [note: 'Version identifier for this formulary as assigned by the PBM or plan sponsor (e.g., \'v2024.1\', \'Q1-2024\'). Supports tracking of mid-year formulary updates and change management.']
+
+  Note: 'Master record for each formulary (covered drug list) managed or analyzed by PillarRx on behalf of employer clients. A formulary is the PBM-administered list of covered drugs with associated tier structures and utilization management rules.'
+}
+
+Table drug.drug_formulary_tier {
+  drug_formulary_tier_id varchar [pk, note: 'Unique surrogate identifier for a formulary tier record. Primary key for the drug_formulary_tier dimension supporting Type-2 slowly changing history.']
+  company_pbm_id varchar [note: 'Foreign key linking to company.pbm. Business justification: Tier structures (copay amounts, coinsurance rates, PA requirements) vary by PBM. PillarRx compares tier definitions across PBMs for client benchmarking and contract negotiations.']
+  division_formulary_id varchar [note: 'Reference to the parent formulary (covered drug list) to which this tier belongs. Links the tier to its sponsoring benefit plan formulary.']
+  drug_formulary_id varchar [note: 'FK to drug.drug_formulary.drug_formulary_id — Tiers belong to a formulary (header->structure). Required for any tier benchmarking join.']
+  drug_formulary_tier_formulary_fk varchar [note: 'FK to drug.drug_formulary.drug_formulary_id — Tier structure belongs to a parent formulary; FK required for formulary tier benchmarking.']
+  primary_drug_formulary_id varchar [note: 'FK to drug.drug_formulary.drug_formulary_id — tiers belong to a formulary; parent FK required for tier structure analysis.']
+  cap_eligible boolean [note: 'Indicates whether drugs on this tier are eligible for copay assistance program (CAP) enrollment via the PAX application. Drives CAP program management and manufacturer coupon reconciliation.']
+  coinsurance_rate decimal(5,4) [note: 'Member coinsurance percentage (stored as decimal, e.g., 0.20 = 20%) applied to drug cost at this tier when the benefit design uses percentage cost-share instead of flat copay.']
+  copay_mail_90 decimal(10,2) [note: 'Fixed member copay amount for a 90-day mail-order pharmacy fill at this tier. Mail-order cost-share is typically lower to incentivize channel migration.']
+  copay_retail_30 decimal(10,2) [note: 'Fixed member copay amount for a 30-day retail pharmacy fill at this tier. Represents the member\'s flat-dollar cost-share obligation at point of sale.']
+  copay_retail_90 decimal(10,2) [note: 'Fixed member copay amount for a 90-day retail pharmacy fill at this tier. Supports extended-supply benefit design analysis and member OOP optimization.']
+  cost_share_type varchar [note: 'Indicates the member cost-share mechanism for this tier: flat copay, percentage coinsurance, copay until deductible then coinsurance, or waived (e.g., preventive). Drives adjudication logic.']
+  created_timestamp timestamp [note: 'Timestamp when this formulary tier record was first created in the data platform. Supports audit trail and SCD history management.']
+  deductible_applies boolean [note: 'Indicates whether the plan deductible must be satisfied before plan benefits apply for drugs on this tier. Critical for member OOP calculation and benefit design auditing.']
+  effective_date date [note: 'Date on which this formulary tier definition becomes effective for benefit adjudication. Required for Type-2 SCD history tracking and plan year alignment.']
+  formulary_source varchar [note: 'Identifies the originating data source for this formulary tier record (e.g., pbm_feed, manual, medi_span, fdb, client_upload). Supports data lineage and ETL audit traceability.']
+  formulary_year varchar [note: 'The benefit plan year (e.g., 2024) to which this formulary tier definition applies. Enables year-over-year formulary change analysis and trend reporting.']
+  is_current boolean [note: 'Indicates whether this is the current active version of the formulary tier record (True) or a historical version (False). Standard Type-2 SCD current-row flag.']
+  mail_order_allowed boolean [note: 'Indicates whether drugs on this tier are eligible for mail-order dispensing. Relevant for channel optimization analysis and member benefit communication.']
+  max_copay decimal(10,2) [note: 'Maximum member copay ceiling applied when coinsurance is used, capping the member\'s cost-share per fill. Protects members from catastrophic per-fill costs on high-cost specialty drugs.']
+  min_copay decimal(10,2) [note: 'Minimum member copay floor applied when coinsurance is used, ensuring the member pays at least this amount per fill regardless of drug cost. Common in specialty tier designs.']
+  oop_applies boolean [note: 'Indicates whether member cost-share at this tier accumulates toward the plan maximum out-of-pocket (MOOP). Relevant for CAP program management and affordability analysis.']
+  preferred_network_only boolean [note: 'Indicates whether this tier\'s cost-share applies only at preferred network pharmacies. Non-preferred pharmacy fills may incur higher cost-share or be excluded.']
+  prior_auth_required boolean [note: 'Indicates whether prior authorization (PA) is required for drugs placed on this tier. Supports PA analysis and PBM audit workflows.']
+  quantity_limit_applies boolean [note: 'Indicates whether quantity limits (QL) are applied to drugs on this tier, restricting the dispensed quantity per fill or per period.']
+  rebate_eligible boolean [note: 'Indicates whether drugs placed on this tier are eligible for manufacturer rebates. Supports PBM rebate guarantee auditing and DIR (Direct and Indirect Remuneration) analysis.']
+  scd_version varchar [note: 'Sequential version number for this formulary tier record under Type-2 SCD history management. Version 1 is the original record; increments with each change event.']
+  specialty_pharmacy_required boolean [note: 'Indicates whether drugs on this tier must be dispensed through a designated specialty pharmacy. Supports limited distribution drug (LDD) and specialty spend monitoring.']
+  specialty_tier boolean [note: 'Indicates whether this tier is designated as a specialty medication (SMN) tier, typically carrying the highest cost-share. Drives specialty pharmacy spend monitoring and reporting.']
+  step_therapy_required boolean [note: 'Indicates whether step therapy (ST) protocols apply to drugs on this tier, requiring trial of lower-cost alternatives before coverage at this tier level.']
+  termination_date date [note: 'Date on which this formulary tier definition expires or is superseded. NULL indicates the record is currently active. Required for Type-2 SCD history tracking.']
+  tier_code varchar [note: 'Short alphanumeric code uniquely identifying the tier within a formulary (e.g., T1, T2, T3, T4, SPEC). Used as the operational key in claims adjudication and benefit configuration.']
+  tier_description varchar [note: 'Free-text description of the formulary tier, including benefit design nuances, coverage conditions, or member-facing explanatory notes used in EOB and consulting deliverables.']
+  tier_name varchar [note: 'Human-readable name for the formulary tier (e.g., Tier 1 Generic, Tier 2 Preferred Brand, Tier 3 Non-Preferred Brand, Tier 4 Specialty). Displayed in member EOBs and consulting reports.']
+  tier_number varchar [note: 'Numeric rank of the tier within the formulary (1 = lowest cost-share, ascending). Enables ordered reporting and cost-share comparison across tiers.']
+  tier_status varchar [note: 'Current lifecycle status of the formulary tier record. Supports Type-2 SCD history management and controls whether the tier is available for claims adjudication.']
+  tier_type varchar [note: 'Categorical classification of the tier by drug class or benefit design (e.g., generic, preferred_brand, non_preferred_brand, specialty, preventive, custom). Drives formulary analytics and benchmarking.']
+  updated_timestamp timestamp [note: 'Timestamp when this formulary tier record was last modified in the data platform. Supports incremental ETL processing and SCD change detection.']
+
+  Note: 'Defines the cost-sharing tier structure within a formulary. Each tier represents a benefit level (e.g., Tier 1 Generic, Tier 2 Preferred Brand, Tier 3 Non-Preferred Brand, Tier 4 Specialty) with associated member cost-share parameters.'
+}
+
+Table drug.formulary_drug {
+  formulary_drug_id varchar [pk, note: 'Unique surrogate identifier for the formulary drug association record. Primary key for the formulary_drug entity.']
+  drug_formulary_tier_id varchar [note: 'FK to drug.drug_formulary_tier.drug_formulary_tier_id — The association entity assigns an NDC/GPI to a tier within a formulary; FK to tier is mandatory for coverage and tier-placement analysis.']
+  drug_prescriber_id varchar [note: 'FK to drug.drug_prescriber.drug_prescriber_id — auto-injected by v1.1.0 silo-last-resort-inbound-fk-injection to break silo on drug.drug_prescriber']
+  formulary_ndc_id varchar [note: 'Foreign key linking to drug.ndc. Business justification: formulary_drug associates specific NDCs with formulary tiers. Currently has ndc (STRING) but needs proper FK to ndc master. The string ndc column becomes redundant once FK is established.']
+  ndc_id varchar [note: 'FK to drug.ndc.ndc_id — Formulary drug entries reference an NDC (or GPI); the NDC FK is required for drug coverage verification and formulary compliance auditing.']
+  primary_drug_formulary_id varchar [note: 'Reference to the parent formulary to which this drug entry belongs. Links the drug placement to a specific plan formulary.']
+  primary_drug_formulary_tier_id varchar [note: 'Reference to the formulary tier (e.g., Tier 1 Generic, Tier 2 Preferred Brand) assigned to this drug within the formulary.']
+  age_restriction_max varchar [note: 'Maximum member age (in years) for formulary coverage of this drug. Null indicates no maximum age restriction. Used in pediatric or geriatric formulary management.']
+  age_restriction_min varchar [note: 'Minimum member age (in years) required for formulary coverage of this drug. Null indicates no minimum age restriction. Used in utilization management and PA criteria.']
+  coinsurance_rate decimal(5,4) [note: 'Member coinsurance percentage applied to this drug\'s cost at the assigned tier, expressed as a decimal (e.g., 0.20 = 20%). Used when benefit design uses percentage cost-sharing.']
+  copay_amount decimal(10,2) [note: 'Fixed member copay dollar amount for this drug at the assigned formulary tier. Represents the member\'s out-of-pocket cost share per fill under the plan benefit design.']
+  coverage_level varchar [note: 'Indicates whether formulary coverage is applied at the specific NDC level, the GPI drug class level, or a broader GPI group. Determines how claims are matched to this formulary entry.']
+  deductible_applies boolean [note: 'Indicates whether the plan deductible must be satisfied before cost-sharing applies for this drug. Relevant for high-deductible health plan (HDHP) benefit designs.']
+  dosage_form varchar [note: 'Physical form of the drug product (e.g., tablet, capsule, solution, injection). Sourced from Medi-Span or FDB. Relevant for formulary management and specialty drug identification.']
+  drug_strength varchar [note: 'Strength of the drug product as listed on the formulary (e.g., \'10mg\', \'500mg/5mL\'). Sourced from Medi-Span or FDB drug reference data.']
+  effective_date date [note: 'Date on which this drug\'s formulary placement becomes effective. Supports Type-2 slowly changing dimension history and point-in-time formulary lookups for claims adjudication.']
+  formulary_alternative_available boolean [note: 'Indicates whether a preferred formulary alternative exists for this drug. Used in member communications and PBM audit analysis to identify substitution opportunities.']
+  formulary_drug_name varchar [note: 'Drug name as it appears on the formulary (may be brand or generic name). Used in member-facing formulary lookups, EOB communications, and consulting reports.']
+  formulary_note varchar [note: 'Free-text note or clinical criteria associated with this drug\'s formulary placement. May include PA criteria summaries, step therapy requirements, or coverage conditions.']
+  formulary_status varchar [note: 'Coverage status of the drug on the formulary. Indicates whether the drug is covered, excluded, or subject to utilization management restrictions. [ENUM-REF-CANDIDATE']
+  formulary_version varchar [note: 'Version identifier of the formulary in which this drug placement was defined. Used to track formulary changes across plan years and support PBM contract audit comparisons.']
+  gender_restriction varchar [note: 'Gender restriction for formulary coverage of this drug (M=Male only, F=Female only, none=no restriction). Used in utilization management and formulary audit validation.']
+  generic_indicator varchar [note: 'Classifies the drug as brand, generic, biosimilar, or branded generic. Sourced from Medi-Span or FDB drug reference. Drives Generic Dispensing Rate (GDR) analytics.']
+  gpi varchar [note: '14-digit Medi-Span Generic Product Identifier classifying the drug at the therapeutic class and ingredient level. Used for formulary grouping when coverage applies at the GPI level rather than specific NDC.']
+  is_current boolean [note: 'Type-2 SCD current record indicator. True when this row represents the active formulary drug placement. False for historical rows superseded by a newer version.']
+  limited_distribution boolean [note: 'Indicates whether this drug is a Limited Distribution Drug (LDD), available only through select specialty pharmacies designated by the manufacturer.']
+  mail_order_coinsurance_rate decimal(5,4) [note: 'Member coinsurance percentage for this drug when dispensed via mail order, expressed as a decimal. Applies when the benefit design uses percentage cost-sharing for mail channel.']
+  mail_order_copay_amount decimal(10,2) [note: 'Fixed member copay dollar amount for this drug when dispensed via mail order pharmacy. Typically lower than retail copay to incentivize mail order utilization.']
+  oop_exempt boolean [note: 'Indicates whether member cost-sharing for this drug is excluded from accumulation toward the plan\'s Maximum Out-of-Pocket (MOOP). Relevant for preventive drug exemptions.']
+  plan_year varchar [note: 'Calendar or benefit plan year (e.g., 2024) to which this formulary drug placement applies. Used for year-over-year formulary change analysis and client reporting.']
+  preferred_alternative_ndc varchar [note: 'NDC of the preferred formulary alternative drug when formulary_alternative_available is true. Supports member cost-saving recommendations and PBM audit reporting.']
+  prior_auth_required boolean [note: 'Indicates whether a Prior Authorization (PA) is required before the plan will cover this drug. True triggers PA workflow at point of dispensing.']
+  quantity_limit_amount decimal(10,3) [note: 'Maximum quantity allowed per fill or per defined period when a Quantity Limit applies. Expressed in the drug\'s dispensing unit (e.g., tablets, mL).']
+  quantity_limit_days varchar [note: 'Number of days supply over which the quantity limit applies. Used in conjunction with quantity_limit_amount to define the full QL restriction (e.g., 30 tablets per 30 days).']
+  quantity_limit_required boolean [note: 'Indicates whether a Quantity Limit (QL) restriction applies to this drug on the formulary, capping the dispensable quantity per fill or per period.']
+  rebate_eligible boolean [note: 'Indicates whether this formulary drug placement is eligible for manufacturer rebates. Used in PBM rebate guarantee auditing and DIR (Direct and Indirect Remuneration) analysis.']
+  source_formulary_code varchar [note: 'Formulary identifier as provided by the originating PBM source system (e.g., CVS Caremark, Optum Rx, Express Scripts). Used for PBM audit reconciliation and cross-PBM formulary comparison.']
+  source_pbm varchar [note: 'Name of the PBM that provided this formulary data (e.g., CVS Caremark, Optum Rx, Express Scripts). Supports multi-PBM formulary benchmarking and audit workflows.']
+  specialty_drug boolean [note: 'Indicates whether this drug is classified as a specialty medication (SMN) on the formulary, typically requiring specialty pharmacy dispensing and additional management.']
+  step_therapy_required boolean [note: 'Indicates whether Step Therapy (ST) applies, requiring the member to try a preferred drug before coverage of this drug is approved.']
+  step_therapy_step_number varchar [note: 'Numeric step in the Step Therapy (ST) protocol at which this drug is positioned (e.g., 1=first-line, 2=second-line). Null when step_therapy_required is false.']
+  termination_date date [note: 'Date on which this drug\'s formulary placement ends. Null indicates the record is currently active. Supports Type-2 SCD history for point-in-time formulary analysis.']
+  therapeutic_class_code varchar [note: 'GPI-based therapeutic class code from Medi-Span classifying the drug by its pharmacological action and clinical use. Used for formulary tier grouping and trend analysis.']
+  therapeutic_class_name varchar [note: 'Human-readable name of the therapeutic class corresponding to the therapeutic_class_code. Used in formulary reporting, benchmarking, and consulting deliverables.']
+  tier_label varchar [note: 'Human-readable label for the formulary tier (e.g., \'Tier 1 - Generic\', \'Tier 2 - Preferred Brand\', \'Specialty\'). Used in member-facing communications and reporting.']
+  tier_number varchar [note: 'Numeric tier level assigned to this drug on the formulary (e.g., 1=Generic, 2=Preferred Brand, 3=Non-Preferred Brand). Drives member cost-sharing calculations.']
+
+  Note: 'Association entity linking a specific NDC (or GPI drug group) to a formulary tier within a formulary, representing the covered drug list at the drug-formulary-tier grain. FK-linked to drug_formulary, drug_formulary_tier, and the ndc master.'
+}
+
+Table drug.pharmacy {
+  pharmacy_id varchar [pk, note: 'Surrogate primary key uniquely identifying each pharmacy record in the Pillarrx lakehouse. BIGINT sequence-generated; not exposed externally.']
+  accreditation_code varchar [note: 'Accreditation body code for the pharmacy (e.g., URAC, ACHC, JCAHO, PCAB). Specialty pharmacies require accreditation for network participation. Used in network credentialing audits.']
+  address_line1 varchar [note: 'Primary street address of the dispensing pharmacy location. Used for geographic analysis, network adequacy reporting, and member proximity analytics.']
+  address_line2 varchar [note: 'Secondary address detail (suite, floor, unit) for the pharmacy location. Supplements address_line1 for complete mailing and geolocation purposes.']
+  chain_code varchar [note: 'NCPDP-assigned chain code identifying the pharmacy chain affiliation (e.g., CVS, Walgreens, Rite Aid). Null for independent pharmacies. Used for chain vs. independent benchmarking.']
+  chain_name varchar [note: 'Name of the pharmacy chain associated with chain_code (e.g., CVS Pharmacy, Walgreens). Null for independent pharmacies. Used in network analysis and client benchmarking reports.']
+  city varchar [note: 'City in which the pharmacy is physically located. Used for geographic segmentation, network analysis, and state-level regulatory reporting.']
+  country_code varchar [note: 'ISO 3166-1 alpha-3 country code for the pharmacy location (e.g., USA). Supports cross-border dispensing scenarios and international specialty pharmacy tracking.']
+  created_timestamp timestamp [note: 'Timestamp when this pharmacy record was first loaded into the Pillarrx lakehouse. Supports data lineage, audit trails, and SCD Type-2 version management.']
+  dba_name varchar [note: 'Trade or doing-business-as name of the pharmacy when it differs from the legal name (e.g., a chain banner name). Used for consumer-facing reporting and benchmarking.']
+  dea_number varchar [note: 'DEA registration number authorizing the pharmacy to dispense controlled substances. Required for Schedule II-V drug dispensing compliance and audit. Format: 2 letters + 7 digits.']
+  dispensing_languages varchar [note: 'Comma-separated list of languages in which the pharmacy provides counseling and dispensing services (e.g., English, Spanish, Mandarin). Supports member access and health equity reporting.']
+  dispensing_state_license varchar [note: 'State board of pharmacy license number authorizing the pharmacy to dispense medications in its operating state. Required for regulatory compliance and PBM network credentialing.']
+  drive_through boolean [note: 'Indicates whether the pharmacy offers drive-through dispensing service (True). Used in member-facing network directory and access reporting for employer clients.']
+  effective_date date [note: 'Start date of this Type-2 SCD record version, representing when this set of pharmacy attributes became effective. Used for point-in-time historical lookups on pharmacy claims.']
+  expiration_date date [note: 'End date of this Type-2 SCD record version. Null indicates the current active version. When a pharmacy attribute changes, the prior row is closed with this date and a new row is opened.']
+  fax varchar [note: 'Fax number for the pharmacy. Used for prior authorization transmissions and prescriber-to-pharmacy communications in PBM workflows.']
+  is_340b boolean [note: 'Indicates whether the pharmacy participates in the federal 340B drug discount program (True). Critical for identifying 340B-eligible dispensing events and manufacturer program compliance.']
+  is_chain boolean [note: 'Indicates whether the pharmacy is part of a chain (True) or is an independent pharmacy (False). Key segmentation flag for PBM network analysis and GDR benchmarking.']
+  is_current boolean [note: 'Type-2 SCD flag indicating whether this row is the current (most recent) version of the pharmacy record (True) or a historical version (False). Simplifies current-state queries.']
+  is_long_term_care boolean [note: 'Indicates whether the pharmacy is designated as a long-term care pharmacy serving nursing facilities or assisted living. Relevant for Medicare Part D and SPAP reporting.']
+  is_mail_order boolean [note: 'Indicates whether the pharmacy operates as a mail-order dispensing facility (True). Mail-order pharmacies typically dispense 90-day supplies and are subject to different reimbursement guarantees.']
+  is_specialty boolean [note: 'Indicates whether the pharmacy is designated as a specialty pharmacy (True). Specialty pharmacies dispense high-cost, complex medications (SMN/LDD). Drives specialty spend monitoring.']
+  latitude decimal(9,6) [note: 'Geographic latitude coordinate of the pharmacy location in decimal degrees. Used for member proximity analysis, network adequacy mapping, and geographic access reporting.']
+  longitude decimal(9,6) [note: 'Geographic longitude coordinate of the pharmacy location in decimal degrees. Used alongside latitude for network adequacy mapping and member access distance calculations.']
+  ncpdp_number varchar [note: 'The 7-digit NCPDP provider identifier assigned by NCPDP to each dispensing pharmacy. Primary business key used for pharmacy routing on pharmacy claims and PBM adjudication.']
+  ncpdp_source_date date [note: 'Date of the NCPDP Pharmacy File extract from which this record was sourced. Used for data lineage, refresh tracking, and identifying stale pharmacy reference data.']
+  network_status varchar [note: 'Current network participation status of the pharmacy within PBM networks managed by Pillarrx clients. Drives member cost-sharing tiers and PBM contract guarantee applicability.']
+  npi varchar [note: '10-digit NPI assigned to the pharmacy by CMS/NPPES. Used for crosswalk to medical claims, provider credentialing, and HIPAA standard transactions.']
+  open_24_hours boolean [note: 'Indicates whether the pharmacy operates 24 hours per day (True). Used in member benefit communications and network adequacy assessments for employer clients.']
+  pbm_network_id varchar [note: 'PBM-assigned network identifier for this pharmacy within a specific PBM network (e.g., CVS Caremark retail network code). Used for network tier assignment and reimbursement guarantee auditing.']
+  pharmacy_name varchar [note: 'Legal business name of the pharmacy as registered with NCPDP and state boards of pharmacy. Used for display, reporting, and audit deliverables.']
+  phone varchar [note: 'Primary 10-digit telephone number for the pharmacy. Used for member outreach, prior authorization coordination, and audit contact.']
+  record_status varchar [note: 'Lifecycle status of this pharmacy dimension record. Active = currently dispensing; inactive = temporarily closed; terminated = permanently closed or removed from NCPDP file.']
+  state_code varchar [note: 'Two-letter USPS state abbreviation for the pharmacy location. Used for state board of pharmacy compliance, state PBM transparency law reporting, and geographic trend analysis.']
+  time_zone varchar [note: 'IANA time zone identifier for the pharmacy location (e.g., America/Chicago). Used for date-of-service normalization across multi-time-zone claims aggregation.']
+  type_code varchar [note: 'NCPDP-defined pharmacy type code classifying the dispensing channel (e.g., retail, mail order, specialty, long-term care, home infusion). Drives network tier and reimbursement logic.']
+  type_description varchar [note: 'Human-readable description of the pharmacy type corresponding to pharmacy_type_code (e.g., Retail, Mail Order, Specialty, Long-Term Care). Used in reporting and client deliverables.']
+  updated_timestamp timestamp [note: 'Timestamp of the most recent update to this pharmacy record in the Pillarrx lakehouse. Used for change detection, SCD Type-2 processing, and data freshness monitoring.']
+  zip_code varchar [note: '5-digit or ZIP+4 postal code for the pharmacy location. Used for geographic clustering, network adequacy, and member proximity analysis.']
+
+  Note: 'Authoritative SSOT master for every dispensing pharmacy identified by NCPDP ID, sourced from NCPDP dataQ and the NCPDP Pharmacy File. Stores NCPDP provider ID (7-digit), NPI, pharmacy and DBA names, full address, phone/fax, pharmacy type'
+}
+
+Table drug.pharmacy_network {
+  pharmacy_network_id varchar [pk, note: 'Unique surrogate identifier for each pharmacy network participation record linking a pharmacy (NCPDP ID) to a PBM network for a defined effective period.']
+  company_client_id varchar [note: 'Foreign key linking to company.company_client. Business justification: Some clients negotiate custom pharmacy networks or carve-outs (e.g., excluding mail-order, specialty-only networks).']
+  company_pbm_id varchar [note: 'Reference to the PBM that owns and administers this pharmacy network contract (e.g., CVS Caremark, Optum Rx, Express Scripts).']
+  mac_list_id varchar [note: 'FK to drug.mac_list.mac_list_id — pharmacy_network already carries a MAC list reference; once mac_list exists as a first-class entity this FK supports MAC guarantee auditing.']
+  pharmacy_id varchar [note: '7-digit NCPDP pharmacy identifier for the participating pharmacy. Denormalized here for direct claims matching and audit without requiring a join to the pharmacy dimension.']
+  pharmacy_mac_list_fk varchar [note: 'FK to drug.mac_list.mac_list_id — pharmacy_network carries a MAC list reference; FK to mac_list required for MAC guarantee auditing.']
+  pharmacy_mac_list_id varchar [note: 'Foreign key linking to drug.mac_list. Business justification: pharmacy_network references specific MAC (Maximum Allowable Cost) lists for pricing. Currently has mac_list_name (STRING) but needs proper FK to mac_list master.']
+  pharmacy_network_mac_list_fk varchar [note: 'FK to drug.mac_list.mac_list_id — pharmacy_network carries a MAC list reference; now that mac_list is a first-class master this must FK to it for MAC guarantee auditing (iteration-1 request).']
+  primary_pharmacy_id varchar [note: 'Reference to the pharmacy dimension record (keyed by NCPDP ID) that participates in this network.']
+  tertiary_pharmacy_id varchar [note: 'FK to drug.pharmacy.pharmacy_id — Network participation records link a pharmacy (NCPDP) to a PBM network; FK to the pharmacy master is required for network adequacy analysis and preferred-pharmacy benchmarking.']
+  awp_discount_brand_pct decimal(7,4) [note: 'Contracted AWP discount percentage applied to brand drug ingredient cost reimbursement for this pharmacy within this network. Core metric for PBM guarantee benchmarking (BER).']
+  awp_discount_generic_pct decimal(7,4) [note: 'Contracted AWP discount percentage applied to generic drug ingredient cost reimbursement for this pharmacy within this network. Used in GDR and GER audit calculations.']
+  contract_type varchar [note: 'PBM pricing model type for this network contract. Pass-through means transparent ingredient cost; spread means PBM retains difference between plan paid and pharmacy reimbursement.']
+  created_timestamp timestamp [note: 'Timestamp when this pharmacy network participation record was first created in the lakehouse. Supports data lineage, audit, and SCD version management.']
+  dir_applicable boolean [note: 'Indicates whether Direct and Indirect Remuneration (DIR) fees apply to claims adjudicated through this pharmacy network. Relevant for Medicare Part D plan sponsors and PBM audit.']
+  dispensing_fee_mail decimal(10,4) [note: 'Contracted dispensing fee (in USD) paid to the pharmacy per mail-order fill within this network. Distinct from retail fee due to 90-day supply economics.']
+  dispensing_fee_retail decimal(10,4) [note: 'Contracted dispensing fee (in USD) paid to the pharmacy per retail fill within this network. Used in PBM contract guarantee auditing and spread analysis.']
+  dispensing_fee_specialty decimal(10,4) [note: 'Contracted dispensing fee (in USD) paid to the pharmacy per specialty drug fill within this network. Key input for specialty spend monitoring and PBM audit.']
+  effective_date date [note: 'Date on which the pharmacy\'s participation in this PBM network becomes effective. Used for Type-2 SCD history and claims eligibility validation.']
+  is_340b boolean [note: 'Indicates whether this pharmacy is a 340B covered entity or contract pharmacy within this network, eligible for federal drug discount pricing under HRSA 340B program.']
+  is_mail_order boolean [note: 'Indicates whether this pharmacy participates as a mail-order dispensing location within this network. Relevant for 90-day supply benefit design and PMPM trend analysis.']
+  is_preferred boolean [note: 'Indicates whether this pharmacy participates at the preferred tier within the network, typically associated with lower member cost-sharing and higher plan reimbursement rates.']
+  is_specialty boolean [note: 'Indicates whether this pharmacy is designated as a specialty pharmacy within this network, authorized to dispense specialty and limited-distribution drugs (LDD).']
+  network_adequacy_class varchar [note: 'Regulatory adequacy classification of the pharmacy network per CMS or state standards. Narrow and limited networks may trigger member access reporting requirements.']
+  network_code varchar [note: 'PBM-assigned alphanumeric code uniquely identifying the pharmacy network (e.g., CVS_PREF_RETAIL, ESI_MAIL). Used for claims routing and benefit adjudication.']
+  network_name varchar [note: 'Human-readable name of the pharmacy network as defined by the PBM (e.g., \'CVS Preferred Retail Network\', \'Express Scripts Standard Mail\').']
+  network_status varchar [note: 'Current lifecycle state of the pharmacy network participation record. Active indicates the pharmacy is currently contracted within this network.']
+  network_tier varchar [note: 'Cost-sharing tier designation for this pharmacy within the network. Tier 1 typically carries the lowest member cost-share; out-of-network carries the highest or no coverage.']
+  network_type varchar [note: 'Classification of the pharmacy network by access model. Drives member cost-sharing tiers and PBM audit benchmarking. [ENUM-REF-CANDIDATE: standard_retail|preferred_retail|mail|specialty|narrow|limited_distribution — promote to reference product]']
+  notes varchar [note: 'Free-text field for analyst or data steward notes regarding this pharmacy network participation record, such as contract exceptions, audit findings, or onboarding remarks.']
+  pbm_network_file_date date [note: 'Date of the PBM network participation file from which this record was extracted. Used to track file vintage and detect stale network data in the lakehouse.']
+  pbm_network_id_external varchar [note: 'The PBM\'s own internal network identifier as received in claims feeds or contract files. Preserved for reconciliation against PBM-sourced data and audit traceability.']
+  rxbin varchar [note: '6-digit BIN used to route pharmacy claims to the correct PBM processor for this network. Required for real-time adjudication and claims feed reconciliation.']
+  rxgroup varchar [note: 'Pharmacy benefit group identifier associated with this network, used in claims adjudication to apply the correct formulary, cost-sharing, and network rules.']
+  rxpcn varchar [note: 'Processor Control Number used alongside RxBIN to route pharmacy claims to the correct PBM sub-processor or plan for this network.']
+  scd_current_flag boolean [note: 'Indicates whether this record is the current active version of the pharmacy network participation. True for the most recent version; False for historical versions.']
+  scd_version varchar [note: 'Monotonically increasing version number for Type-2 SCD history tracking. Each contract change or network renegotiation increments this version for the pharmacy-network combination.']
+  source_record_code varchar [note: 'The native identifier of this record in the originating source system (e.g., PBM network file row key, NCPDP record ID). Enables upstream reconciliation and ETL traceability.']
+  termination_date date [note: 'Date on which the pharmacy\'s participation in this PBM network ends. Null indicates an open-ended active participation record.']
+  updated_timestamp timestamp [note: 'Timestamp of the most recent update to this pharmacy network participation record. Used for incremental ETL processing and change detection in the Silver layer.']
+
+  Note: 'Defines PBM pharmacy network contracts and network participation records, linking a pharmacy (NCPDP ID) to a PBM network for a defined effective period. Stores network name, network type (standard retail, preferred retail, mail, specialty, narrow), PBM'
+}
+
+Table drug.drug_prescriber {
+  drug_prescriber_id varchar [pk, note: 'Unique surrogate identifier for the prescribing provider record in the PillarRx data lakehouse. Primary key for the drug_prescriber dimension.']
+  credential varchar [note: 'Professional credential or degree suffix of the prescribing provider (e.g., MD, DO, NP, PA-C, PharmD) as registered in NPPES. Indicates prescribing authority type.']
+  dea_number varchar [note: 'DEA registration number authorizing the prescriber to prescribe controlled substances. Required for Schedule II-V drug prescriptions. Format: 2 letters + 7 digits.']
+  deactivation_date date [note: 'Date the NPI was deactivated in NPPES (e.g., provider retired, deceased, or license revoked). Null if the NPI is currently active.']
+  entity_type_code varchar [note: 'NPPES entity type: 1 = Individual (person), 2 = Organization. Drug prescribers are typically type 1 (individual), but group practices may appear as type 2.']
+  enumeration_date date [note: 'Date the NPI was assigned to the prescriber by NPPES. Indicates when the provider was first registered in the national provider registry.']
+  erx_capable boolean [note: 'Indicates whether the prescriber is capable of transmitting electronic prescriptions (ERx). True = ERx enabled. Used in PBM workflow routing and compliance tracking.']
+  first_name varchar [note: 'Legal first name (given name) of the prescribing provider as registered in NPPES. Used for display, search, and audit reporting.']
+  gender varchar [note: 'Gender of the prescribing provider as registered in NPPES. M = Male, F = Female, U = Unknown/Not Provided. Used for demographic reporting.']
+  group_practice_pac_code varchar [note: 'CMS Provider Associate-level Identifier (PAC ID) for the group practice or organization the prescriber is affiliated with. Links individual providers to group entities in CMS data.']
+  individual_pac_code varchar [note: 'CMS Provider Associate-level Identifier (PAC ID) uniquely assigned to the individual prescriber across all CMS enrollment records. Supports cross-program provider linkage.']
+  is_controlled_substance_authorized boolean [note: 'Indicates whether the prescriber holds a valid DEA registration authorizing controlled substance prescribing. True = DEA number on file and valid.']
+  is_current_record boolean [note: 'Indicates whether this SCD Type-2 row is the current active version of the prescriber record. True = current. Simplifies queries that need only the latest prescriber attributes.']
+  is_specialty_prescriber boolean [note: 'Indicates whether the prescriber is classified as a specialty prescriber based on taxonomy code mapping. True = specialty prescriber. Used for specialty drug spend segmentation.']
+  last_name varchar [note: 'Legal last name (family name) of the prescribing provider as registered in NPPES. Used for display, search, and audit reporting.']
+  last_update_date date [note: 'Date the prescribers NPPES record was last updated by the provider or CMS. Used to detect stale records and trigger refresh from the NPPES data feed.']
+  license_state varchar [note: 'Two-letter US state abbreviation where the prescribers primary medical or prescribing license is issued. Used for cross-state prescribing compliance checks.']
+  medicare_participation_indicator varchar [note: 'Indicates whether the prescriber accepts Medicare assignment (Y = participating, N = non-participating). Relevant for Medicare Part D claim analysis and member cost-share.']
+  middle_name varchar [note: 'Middle name or initial of the prescribing provider as registered in NPPES. Supports full-name disambiguation when last and first names are identical.']
+  name_prefix varchar [note: 'Honorific prefix for the prescribing provider (e.g., Dr., Prof.) as registered in NPPES. Used in formal correspondence and reporting displays.']
+  npi varchar [note: '10-digit National Provider Identifier assigned by CMS via NPPES. Primary business key for the prescriber. Used to link prescriptions to the authoritative provider record.']
+  npi_status varchar [note: 'Current status of the NPI in NPPES: active = valid and in use, deactivated = administratively deactivated, retired = provider no longer practicing.']
+  organization_name varchar [note: 'Legal organization name for entity-type-2 (organizational) NPI records, or the practice/group name associated with an individual prescriber. Sourced from NPPES.']
+  pecos_enrolled boolean [note: 'Indicates whether the prescriber is enrolled in the CMS Provider Enrollment, Chain, and Ownership System (PECOS). Required for Medicare Part D prescribing eligibility.']
+  practice_address_line1 varchar [note: 'Primary street address line of the prescribers practice location as registered in NPPES. Used for geographic prescribing analysis and provider directory maintenance.']
+  practice_address_line2 varchar [note: 'Secondary address line (suite, floor, unit) of the prescribers practice location as registered in NPPES. Supplements the primary address line.']
+  practice_city varchar [note: 'City of the prescribers primary practice location as registered in NPPES. Used for geographic segmentation in prescribing trend and benchmarking reports.']
+  practice_fax varchar [note: '10-digit fax number for the prescribers primary practice location. Used for electronic prescription routing and prior authorization document transmission.']
+  practice_phone varchar [note: '10-digit phone number for the prescribers primary practice location as registered in NPPES. Used for provider outreach and prior authorization coordination.']
+  practice_state varchar [note: 'Two-letter US state abbreviation of the prescribers primary practice location. Used for state-level prescribing analytics and cross-state dispensing compliance.']
+  practice_zip varchar [note: '5- or 9-digit US postal ZIP code of the prescribers primary practice location. Supports geographic clustering and regional prescribing pattern analysis.']
+  prescriber_type varchar [note: 'Broad classification of the prescribers professional role. Derived from taxonomy code. Used for prescribing authority analysis and PBM audit segmentation.']
+  reactivation_date date [note: 'Date a previously deactivated NPI was reactivated in NPPES. Null if the NPI has never been deactivated or has not been reactivated.']
+  record_created_timestamp timestamp [note: 'Timestamp when this prescriber record was first created in the PillarRx data lakehouse. Supports data lineage, audit trail, and SCD Type-2 history management.']
+  record_updated_timestamp timestamp [note: 'Timestamp when this prescriber record was last modified in the PillarRx data lakehouse. Used for change detection, ETL delta processing, and audit trail.']
+  scd_effective_end_date date [note: 'End date of the validity period for this Type-2 SCD record. Null indicates the current active version. Set when a new version supersedes this record.']
+  scd_effective_start_date date [note: 'Start date of the validity period for this Type-2 SCD record. Indicates when this version of the prescriber record became effective in the PillarRx data lakehouse.']
+  specialty_description varchar [note: 'Plain-language specialty description derived from taxonomy or PBM claim data (e.g., Oncology, Cardiology, Primary Care). Used for specialty drug spend segmentation.']
+  state_license_number varchar [note: 'State-issued medical or prescribing license number for the provider. Used in PBM audit and compliance validation to confirm prescribing authority in the dispensing state.']
+  taxonomy_code varchar [note: 'NUCC Health Care Provider Taxonomy code identifying the prescribers specialty and classification (e.g., 207R00000X = Internal Medicine). Primary taxonomy from NPPES.']
+  taxonomy_description varchar [note: 'Human-readable description of the NUCC taxonomy code (e.g., Internal Medicine, Family Practice, Nurse Practitioner). Used in specialty-level prescribing analytics.']
+
+  Note: 'Authoritative master record for prescribing providers identified by NPI, sourced from NPPES (National Plan and Provider Enumeration System). This is the SSOT for WHO prescribed the drug.'
+}
+
+Table drug.manufacturer {
+  manufacturer_id varchar [pk, note: 'Unique surrogate identifier for the pharmaceutical manufacturer or labeler record within the PillarRx enterprise data platform.']
+  organization_id varchar [note: 'Foreign key linking to company.organization. Business justification: Pharmaceutical manufacturers can also be PillarRx clients (self-insured employer health plans).']
+  biosimilar_manufacturer_flag boolean [note: 'Indicates whether the manufacturer produces FDA-approved biosimilar products. Supports biosimilar substitution analysis, formulary tier strategy, and rebate benchmarking for employer clients.']
+  cap_program_name varchar [note: 'Name of the manufacturer\'s copay assistance program (CAP) as tracked in the PAX application. Used for program identification in member assistance ledger and manufacturer coupon reconciliation.']
+  cap_program_url varchar [note: 'Web address for the manufacturer\'s copay assistance program enrollment or information portal. Used by PillarRx consultants and members to access CAP enrollment resources.']
+  controlled_substance_manufacturer_flag boolean [note: 'Indicates whether the manufacturer produces DEA-scheduled controlled substances. Supports drug utilization review (DUR) analysis and regulatory compliance monitoring for employer plan clients.']
+  created_timestamp timestamp [note: 'Timestamp when this manufacturer record was first created in the PillarRx enterprise data platform. Supports data lineage, audit trail, and record governance.']
+  duns_number varchar [note: 'Dun & Bradstreet 9-digit DUNS number uniquely identifying the manufacturer as a business entity. Used for cross-referencing manufacturer identity in rebate contracts and consulting engagements.']
+  effective_end_date date [note: 'Date on which this manufacturer record version was superseded or expired. NULL indicates the current active version. Supports Type-2 SCD history for point-in-time drug reference and rebate analysis.']
+  effective_start_date date [note: 'Date on which this manufacturer record version became effective. Supports Type-2 slowly changing dimension (SCD) history tracking for the drug reference domain, enabling point-in-time drug reference lookups.']
+  fda_establishment_code varchar [note: 'FDA-assigned establishment identifier for the manufacturer\'s registered drug production facility. Supports regulatory compliance tracking and drug sourcing validation.']
+  has_cap_program boolean [note: 'Indicates whether the manufacturer offers a copay assistance program (CAP) such as copay cards or coupons managed through the PAX application. Supports affordability intelligence and member OOP optimization.']
+  headquarters_address_line1 varchar [note: 'Primary street address line of the manufacturer\'s corporate headquarters. Used for business correspondence, contract management, and manufacturer program administration.']
+  headquarters_address_line2 varchar [note: 'Secondary street address line (suite, floor, building) of the manufacturer\'s corporate headquarters. Supplements the primary address for complete mailing and contract records.']
+  headquarters_city varchar [note: 'City of the manufacturer\'s corporate headquarters. Used in geographic analysis of manufacturer distribution and for contract correspondence.']
+  headquarters_country varchar [note: 'ISO 3166-1 alpha-3 three-letter country code for the manufacturer\'s corporate headquarters. Identifies domestic vs. international manufacturers relevant to 340B and import regulations.']
+  headquarters_postal_code varchar [note: 'ZIP or ZIP+4 postal code of the manufacturer\'s corporate headquarters. Used for geographic segmentation and mailing address validation.']
+  headquarters_state varchar [note: 'Two-letter US state or territory code of the manufacturer\'s corporate headquarters. Supports state-level regulatory compliance and geographic reporting.']
+  is_340b_participating boolean [note: 'Indicates whether the manufacturer participates in the federal 340B Drug Pricing Program, which requires covered entities to receive discounted drug prices. Critical for 340B compliance and audit analysis.']
+  is_current_record boolean [note: 'Boolean flag indicating whether this row is the current active version of the manufacturer record in the Type-2 SCD history. True = current; False = historical version. Simplifies current-state queries.']
+  is_rebate_eligible boolean [note: 'Indicates whether the manufacturer has active rebate agreements applicable to PillarRx client plans. Drives rebate reconciliation workflows and PBM contract guarantee auditing.']
+  labeler_code varchar [note: 'FDA-assigned 5-digit labeler code representing the first segment of the 11-digit NDC. Uniquely identifies the manufacturer or labeler responsible for the drug product.']
+  ldd_manufacturer_flag boolean [note: 'Indicates whether the manufacturer produces limited distribution drugs (LDD) that are only available through select specialty pharmacies. Critical for specialty pharmacy network analysis and client consulting.']
+  manufacturer_name varchar [note: 'Legal or trade name of the pharmaceutical manufacturer or labeler as registered with the FDA. Used as the primary human-readable identifier in drug reference lookups and consulting reports.']
+  manufacturer_status varchar [note: 'Current lifecycle status of the manufacturer record. Inactive, acquired, merged, or dissolved statuses indicate the labeler is no longer independently operating and may affect drug reference validity.']
+  manufacturer_type varchar [note: 'Categorical classification of the manufacturer by the primary nature of its drug portfolio: brand (innovator), generic, biosimilar, over-the-counter (OTC), or combination. Drives rebate strategy and formulary analysis.']
+  parent_company_name varchar [note: 'Name of the ultimate parent corporation that owns or controls the manufacturer. Supports rebate aggregation, manufacturer program management, and spend analysis at the enterprise parent level.']
+  primary_contact_email varchar [note: 'Email address of the primary business contact at the manufacturer. Used for CAP program coordination, rebate reconciliation communications, and manufacturer program management.']
+  primary_contact_name varchar [note: 'Name of the primary business contact at the manufacturer for rebate negotiations, copay assistance program (CAP) management, and manufacturer program administration.']
+  primary_contact_phone varchar [note: 'Phone number of the primary business contact at the manufacturer. Supports direct outreach for copay assistance program (CAP) enrollment, rebate disputes, and manufacturer program coordination.']
+  source_labeler_code varchar [note: 'The manufacturer or labeler identifier as assigned by the originating source system (Medi-Span, FDB, or FDA). Enables traceability back to the upstream reference data feed for reconciliation and audit.']
+  specialty_manufacturer_flag boolean [note: 'Indicates whether the manufacturer primarily produces specialty medications (SMN). Supports specialty pharmacy spend monitoring, limited distribution drug (LDD) tracking, and specialty trend reporting.']
+  updated_timestamp timestamp [note: 'Timestamp when this manufacturer record was last modified in the PillarRx enterprise data platform. Used for change detection, SCD processing, and data quality monitoring.']
+
+  Note: 'Master record for pharmaceutical manufacturers and labelers whose drugs appear in PillarRx client claims. Stores labeler code (first 5 digits of NDC), manufacturer name, parent company name, manufacturer type (brand, generic, biosimilar, OTC)'
+}
+
+Table drug.mac_list {
+  mac_list_id varchar [pk, note: 'Unique surrogate identifier for the MAC list record in the Pillarrx data lakehouse. Primary key for the mac_list product.']
+  appeal_process_available boolean [note: 'Indicates whether pharmacies can appeal MAC prices on this list. State PBM transparency laws increasingly mandate MAC appeal rights; this flag supports compliance tracking.']
+  appeal_turnaround_days varchar [note: 'Maximum number of calendar days within which the PBM must respond to a MAC appeal from a pharmacy. Mandated by state PBM transparency laws in many states.']
+  awp_discount_basis boolean [note: 'Indicates whether MAC prices on this list are expressed as a discount off AWP rather than as absolute per-unit prices. When true, the AWP discount percentage is the operative pricing mechanism.']
+  client_specific boolean [note: 'Indicates whether this MAC list is negotiated specifically for a single employer client rather than applied across the PBM\'s full network. Client-specific lists may offer better pricing.']
+  created_timestamp timestamp [note: 'Timestamp when this MAC list record was first created in the Pillarrx data lakehouse. Supports audit trail and data governance.']
+  currency_code varchar [note: 'ISO 4217 three-letter currency code for all MAC prices on this list (e.g., USD). Supports multi-currency readiness for international plan sponsors.']
+  dir_applicable boolean [note: 'Indicates whether Direct and Indirect Remuneration (DIR) fees apply to pharmacy reimbursements under this MAC list. Relevant for Medicare Part D plan sponsors and PBM audit.']
+  drug_count varchar [note: 'Total number of distinct NDCs or drug products included on this MAC list at the time of the current version. Used for benchmarking list breadth across PBMs.']
+  drug_scope varchar [note: 'Defines which drug categories are covered by this MAC list. Most MAC lists apply to multi-source generic drugs; some PBMs extend MAC pricing to specialty or brand drugs.']
+  effective_date date [note: 'The date on which this MAC list becomes effective for claims adjudication and pharmacy reimbursement. Defines the start of the binding pricing period.']
+  formulary_linked boolean [note: 'Indicates whether this MAC list is tied to a specific formulary. Formulary-linked MAC lists restrict MAC pricing to drugs on the associated formulary tier structure.']
+  is_current boolean [note: 'Boolean flag indicating whether this SCD Type-2 record is the current active version of the MAC list. True for the latest version; false for historical versions. Simplifies current-record queries.']
+  list_code varchar [note: 'Externally-known alphanumeric code that uniquely identifies this MAC list within the PBM or plan sponsor system. Used for cross-referencing in claims adjudication and audit.']
+  list_name varchar [note: 'Human-readable name of the MAC list (e.g., \'CVS Caremark Generic MAC Q1 2024\'). Used in reporting, audit deliverables, and consulting benchmarking.']
+  list_status varchar [note: 'Current lifecycle status of the MAC list. Active lists are in use for claims adjudication. Superseded lists have been replaced by a newer version. Used to filter current vs. historical lists.']
+  list_type varchar [note: 'Categorizes the origin and governance of the MAC list. PBM-published lists are issued by the PBM; custom lists are negotiated for specific clients; state/federal MAC lists are regulatory.']
+  mac_list_description varchar [note: 'Free-text description of the MAC list\'s purpose, scope, or special conditions. Used by consulting analysts and auditors to understand the context of the list.']
+  network_scope varchar [note: 'Identifies the dispensing channel(s) to which this MAC list applies: retail pharmacy network, mail-order, specialty pharmacy, or all channels. Drives reimbursement logic in claims adjudication.']
+  notes varchar [note: 'Operational notes or annotations added by Pillarrx analysts regarding this MAC list, such as known anomalies, audit findings, or PBM communication records.']
+  pass_through_indicator boolean [note: 'Indicates whether this MAC list is used under a pass-through (transparent) PBM pricing model where the plan pays actual pharmacy cost. Relevant for PBM contract audit and spread analysis.']
+  pbm_list_id_external varchar [note: 'The PBM\'s own internal identifier for this MAC list as received in claims feeds or contract documents. Preserved for reconciliation and audit traceability back to the source PBM system.']
+  plan_year varchar [note: 'The benefit plan year (e.g., 2024) to which this MAC list is associated. Used for annual benchmarking, trend analysis, and PBM contract guarantee reconciliation.']
+  pricing_basis varchar [note: 'Defines the unit of measure for MAC prices on this list: per dispensing unit (tablet, capsule, ml), per package, or per claim. Critical for correct reimbursement calculation and audit.']
+  reference_source varchar [note: 'The external drug pricing reference used to derive MAC prices on this list (e.g., Medi-Span, First DataBank, NADAC, or PBM proprietary). Affects audit methodology and price benchmarking.']
+  scd_effective_date date [note: 'Start date of the current SCD Type-2 record version for this MAC list. Enables point-in-time historical queries for audit and benchmarking across plan years.']
+  scd_expiration_date date [note: 'End date of the current SCD Type-2 record version. Set to a high-date (9999-12-31) for the current active record. Null or high-date indicates the record is the current version.']
+  source_file_name varchar [note: 'Name of the source file or feed from which this MAC list record was loaded into the lakehouse. Supports data lineage, ETL audit, and issue investigation.']
+  source_load_date date [note: 'The date on which this MAC list record was loaded from the source PBM or reference system into the Pillarrx data lakehouse. Used for data freshness monitoring and ETL audit.']
+  source_pbm varchar [note: 'The PBM that published or administers this MAC list. Identifies the originating PBM for multi-PBM benchmarking and audit. [ENUM-REF-CANDIDATE: CVS Caremark|Optum Rx|Express Scripts|Navitus|EmpiRx Health|BCBS Michigan|Rightway|Prime']
+  spread_applicable boolean [note: 'Indicates whether the PBM retains spread (difference between plan-paid MAC and pharmacy reimbursement) on claims adjudicated under this list. Key metric for PBM audit and contract transparency.']
+  state_mandate_code varchar [note: 'Two-letter US state code if this MAC list was created or modified to comply with a specific state PBM transparency or MAC appeal law. Null if no state mandate applies.']
+  termination_date date [note: 'The date on which this MAC list expires or is superseded. Null indicates an open-ended list currently in force. Used for SCD Type-2 history and audit period scoping.']
+  update_frequency varchar [note: 'How frequently the PBM or plan sponsor updates this MAC list. Relevant for PBM audit and contract guarantee monitoring; more frequent updates may indicate aggressive MAC repricing.']
+  updated_timestamp timestamp [note: 'Timestamp when this MAC list record was last modified in the Pillarrx data lakehouse. Used for change detection, incremental ETL processing, and audit.']
+  version_number varchar [note: 'Version identifier for this MAC list, used to distinguish successive updates from the same PBM or plan sponsor. Supports audit trail and change-over-time analysis.']
+
+  Note: 'Master record for each Maximum Allowable Cost (MAC) list referenced by PBM networks and pharmacy reimbursement. A MAC list is a PBM-published or custom pricing list that sets the maximum per-unit reimbursement for multi-source generic drugs.'
+}
+
+Table drug.equivalence {
+  equivalence_id varchar [pk, note: 'Unique surrogate primary key for each NDC-to-GPI therapeutic equivalence and generic substitution crosswalk record.']
+  source_ndc_id varchar [note: 'Foreign key linking to drug.ndc. Business justification: drug_equivalence tracks therapeutic equivalence between NDCs. The source_ndc11 string should be replaced with proper FK to ndc master.']
+  awp_savings_pct decimal(7,4) [note: 'Estimated percentage cost savings when substituting the source NDC with the equivalent NDC, calculated from AWP unit prices at time of crosswalk creation. Used in savings opportunity reporting.']
+  biosimilar_interchangeable boolean [note: 'Indicates whether the equivalent NDC is an FDA-designated interchangeable biosimilar to the source biologic. Interchangeable biosimilars may be substituted without prescriber intervention.']
+  cap_substitution_flag boolean [note: 'Indicates whether this equivalence pair is relevant to copay assistance program (CAP) substitution logic in the PAX application. Flags pairs where a brand-to-generic switch may affect CAP eligibility.']
+  created_timestamp timestamp [note: 'Timestamp when this equivalence crosswalk record was first created in the PillarRx lakehouse. Supports audit trail and data governance requirements.']
+  dosage_form_match boolean [note: 'Indicates whether the source and equivalent NDCs share the same dosage form (e.g., tablet, capsule, solution). A mismatch may restrict substitution eligibility under state pharmacy law.']
+  effective_date date [note: 'The date on which this equivalence crosswalk relationship became effective. Used in time-bounded formulary analysis and historical claims auditing to apply the correct equivalence at date of service.']
+  equivalence_status varchar [note: 'Current lifecycle status of this equivalence crosswalk record. Active records are used in live formulary and claims analysis; superseded records are retained for historical audit.']
+  equivalence_type varchar [note: 'Classifies the nature of the equivalence relationship. Drives substitution logic in formulary analysis, generic dispensing rate (GDR) calculations, and copay assistance program (CAP) eligibility.']
+  equivalent_drug_name varchar [note: 'Human-readable drug name for the equivalent NDC as sourced from Medi-Span or FDB. Supports analyst readability and reporting without requiring a join to the NDC dimension.']
+  equivalent_generic_indicator varchar [note: 'Indicates whether the equivalent NDC is a brand, generic, or branded generic product. Confirms the substitution direction (e.g., brand-to-generic) for GDR and savings opportunity reporting.']
+  equivalent_gpi14 varchar [note: 'The 14-digit GPI code of the equivalent NDC. Enables GPI-level therapeutic grouping and substitution logic independent of specific NDC packaging variants.']
+  equivalent_multisource_code varchar [note: 'Medi-Span multisource code for the equivalent NDC. Confirms the equivalent is a true generic (Y) or multisource brand (M) for substitution and GDR reporting purposes.']
+  equivalent_ndc11 varchar [note: 'The 11-digit NDC of the therapeutically equivalent or generic substitute drug. Represents the target side of the substitution crosswalk used in formulary analysis and claims auditing.']
+  expiration_date date [note: 'The date on which this equivalence crosswalk relationship expires or was superseded. Null indicates an open-ended active relationship. Supports Type-2 SCD history for the drug dimension.']
+  formulary_substitution_flag boolean [note: 'Indicates whether this equivalence pair is actively used in formulary-level substitution recommendations for PillarRx client plan analysis. Distinguishes reference data from operationally applied substitutions.']
+  gpi10_match boolean [note: 'Indicates whether the source and equivalent NDCs share the same 10-digit GPI prefix, confirming same drug, strength, and dosage form. Used to validate the precision of the equivalence relationship.']
+  gpi12_match boolean [note: 'Indicates whether the source and equivalent NDCs share the same 12-digit GPI prefix, confirming same drug, strength, dosage form, and route. Provides finer equivalence precision than GPI10.']
+  is_current boolean [note: 'Indicates whether this is the current active version of the equivalence crosswalk record. Supports Type-2 slowly changing dimension (SCD) pattern for the drug equivalence history table.']
+  ldd_flag boolean [note: 'Indicates whether the source or equivalent NDC is a limited distribution drug (LDD), restricting dispensing to select specialty pharmacies. LDD status may prevent substitution in standard retail networks.']
+  orange_book_code varchar [note: 'FDA Orange Book therapeutic equivalence evaluation code (e.g., AB, AA, BX) for the equivalent NDC relative to the source. AB-rated products are considered therapeutically equivalent and substitutable.']
+  reference_source varchar [note: 'The authoritative external data source from which this equivalence relationship was derived. Medi-Span and FDB are primary sources; Orange Book is used for FDA therapeutic equivalence codes.']
+  reference_source_version varchar [note: 'Version or release identifier of the external reference source file from which this equivalence record was loaded. Supports data lineage, audit, and refresh cycle tracking.']
+  route_match boolean [note: 'Indicates whether the source and equivalent NDCs share the same route of administration (e.g., oral, injectable). Route mismatches typically disqualify automatic substitution.']
+  source_drug_name varchar [note: 'Human-readable drug name for the source NDC as sourced from Medi-Span or FDB. Supports analyst readability and reporting without requiring a join to the NDC dimension.']
+  source_generic_indicator varchar [note: 'Indicates whether the source NDC is a brand, generic, or branded generic product. Used in generic dispensing rate (GDR) analysis and substitution opportunity identification.']
+  source_gpi14 varchar [note: 'The 14-digit GPI code of the source NDC, representing its full therapeutic classification hierarchy from Medi-Span. Used to group drugs by therapeutic equivalence class.']
+  source_load_date date [note: 'The date on which the source reference file (Medi-Span or FDB) containing this equivalence record was loaded into the PillarRx lakehouse. Supports data lineage and refresh cycle auditing.']
+  source_multisource_code varchar [note: 'Medi-Span multisource code for the source NDC. M=multisource brand, O=originator brand, N=single-source brand, Y=generic. Drives substitution eligibility logic.']
+  specialty_substitution_flag boolean [note: 'Indicates whether either the source or equivalent NDC is classified as a specialty medication (SMN). Specialty substitutions require additional clinical and formulary review before application.']
+  strength_match boolean [note: 'Indicates whether the source and equivalent NDCs have the same drug strength. Strength mismatches require prescriber authorization before substitution and affect DAW code compliance.']
+  substitution_allowed boolean [note: 'Indicates whether the equivalent NDC is permitted as a generic substitute for the source NDC under applicable state pharmacy law and formulary policy. Core flag for DAW code analysis.']
+  updated_timestamp timestamp [note: 'Timestamp when this equivalence crosswalk record was last modified in the PillarRx lakehouse. Used to detect stale records and trigger downstream refresh in formulary and claims analysis pipelines.']
+
+  Note: 'NDC-to-GPI therapeutic-equivalence and generic-substitution crosswalk. This product is the SSOT for SUBSTITUTION/INTERCHANGE semantics (not clinical classification — see classification).'
+}
+
+Table drug.mac_pricing {
+  mac_pricing_id varchar [pk, note: 'Surrogate primary key for this MAC pricing record. Supports historical tracking of price changes for the same NDC-MAC list combination.']
+  mac_list_id varchar [note: 'Foreign key linking to the MAC list that contains this NDC pricing']
+  ndc_id varchar [note: 'Foreign key linking to the NDC (National Drug Code) that is priced on this MAC list']
+  appeal_status varchar [note: 'Current status of any pharmacy appeal of this MAC price. State PBM transparency laws require appeal processes for MAC prices below pharmacy acquisition cost.']
+  awp_discount_percentage decimal(5,2) [note: 'If this MAC price is expressed as a discount off AWP, this field captures the discount percentage (e.g., 80.00 for AWP-20%). Null if MAC is not AWP-based.']
+  effective_date date [note: 'The date on which this MAC price becomes effective for this NDC on this MAC list. Critical for point-in-time pricing analysis and PBM audit.']
+  expiration_date date [note: 'The date on which this MAC price expires or is superseded by a new price. Null indicates the price is currently active. Enables historical price tracking.']
+  is_current boolean [note: 'Boolean flag indicating whether this is the current active MAC price for this NDC on this MAC list. Supports Type-2 SCD historical tracking.']
+  mac_price decimal(12,4) [note: 'The Maximum Allowable Cost price for this NDC on this MAC list, expressed per unit defined by pricing_basis. This is the maximum reimbursement amount the PBM will pay pharmacies for this drug.']
+  pharmacy_acquisition_cost decimal(12,4) [note: 'The estimated pharmacy acquisition cost for this NDC at the time this MAC price was set. Used to identify below-cost MAC pricing that may trigger pharmacy appeals.']
+  price_source varchar [note: 'The external drug pricing reference used to derive this MAC price (e.g., Medi-Span, FDB, NADAC, AMP). Used for PBM audit and pricing methodology validation.']
+  pricing_basis varchar [note: 'Defines the unit of measure for this MAC price: per dispensing unit (tablet, capsule), per package, per mL, or per gram. Required to correctly apply MAC pricing to claims.']
+  scd_effective_date date [note: 'Start date of the current SCD Type-2 record version for this MAC pricing entry. Enables point-in-time historical queries.']
+  scd_expiration_date date [note: 'End date of the current SCD Type-2 record version. Set to a high-date (9999-12-31) for the current active version.']
+  update_frequency varchar [note: 'How frequently the PBM updates the MAC price for this NDC on this list. Relevant for PBM audit and price volatility analysis.']
+
+  Note: 'This association product represents the pricing relationship between an NDC and a MAC list. It captures the Maximum Allowable Cost price for a specific drug on a specific PBM MAC list, including effective dates, pricing basis, and appeal status.'
+}
+
+
+// --- Foreign Key References ---
+Ref: claim.rx_claim.ndc_id > drug.ndc.ndc_id
+Ref: claim.rx_claim.pharmacy_id > drug.pharmacy.pharmacy_id
+Ref: claim.rx_claim_line.ndc_id > drug.ndc.ndc_id
+Ref: claim.dur_event.coagent_ndc_id > drug.ndc.ndc_id
+Ref: claim.dur_event.ndc_id > drug.ndc.ndc_id
+Ref: claim.dur_event.pharmacy_id > drug.pharmacy.pharmacy_id
+Ref: claim.prior_auth.ndc_id > drug.ndc.ndc_id
+Ref: claim.adjustment.ndc_id > drug.ndc.ndc_id
+Ref: claim.rebate_record.ndc_id > drug.ndc.ndc_id
+Ref: drug.ndc.manufacturer_id > drug.manufacturer.manufacturer_id
+Ref: drug.ndc.ndc_labeler_code > drug.manufacturer.manufacturer_id
+Ref: drug.ndc.ndc_labeler_code_fk > drug.manufacturer.manufacturer_id
+Ref: drug.ndc.ndc_labeler_fk > drug.manufacturer.manufacturer_id
+Ref: drug.ndc.ndc_manufacturer_id > drug.manufacturer.manufacturer_id
+Ref: drug.ndc_price.mac_list_id > drug.mac_list.mac_list_id
+Ref: drug.ndc_price.ndc_mac_fk > drug.mac_list.mac_list_id
+Ref: drug.ndc_price.ndc_mac_list_id > drug.mac_list.mac_list_id
+Ref: drug.ndc_price.primary_ndc_id > drug.ndc.ndc_id
+Ref: drug.classification.classification_ndc_id > drug.ndc.ndc_id
+Ref: drug.classification.ndc_id > drug.ndc.ndc_id
+Ref: drug.drug_formulary.primary_drug_division_formulary_id > division.division_formulary.division_formulary_id
+Ref: drug.drug_formulary_tier.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: drug.drug_formulary_tier.division_formulary_id > division.division_formulary.division_formulary_id
+Ref: drug.drug_formulary_tier.drug_formulary_id > drug.drug_formulary.drug_formulary_id
+Ref: drug.drug_formulary_tier.drug_formulary_tier_formulary_fk > drug.drug_formulary.drug_formulary_id
+Ref: drug.drug_formulary_tier.primary_drug_formulary_id > drug.drug_formulary.drug_formulary_id
+Ref: drug.formulary_drug.drug_formulary_tier_id > drug.drug_formulary_tier.drug_formulary_tier_id
+Ref: drug.formulary_drug.drug_prescriber_id > drug.drug_prescriber.drug_prescriber_id
+Ref: drug.formulary_drug.formulary_ndc_id > drug.ndc.ndc_id
+Ref: drug.formulary_drug.ndc_id > drug.ndc.ndc_id
+Ref: drug.formulary_drug.primary_drug_formulary_id > drug.drug_formulary.drug_formulary_id
+Ref: drug.formulary_drug.primary_drug_formulary_tier_id > drug.drug_formulary_tier.drug_formulary_tier_id
+Ref: drug.pharmacy_network.company_client_id > company.company_client.company_client_id
+Ref: drug.pharmacy_network.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: drug.pharmacy_network.mac_list_id > drug.mac_list.mac_list_id
+Ref: drug.pharmacy_network.pharmacy_id > drug.pharmacy.pharmacy_id
+Ref: drug.pharmacy_network.pharmacy_mac_list_fk > drug.mac_list.mac_list_id
+Ref: drug.pharmacy_network.pharmacy_mac_list_id > drug.mac_list.mac_list_id
+Ref: drug.pharmacy_network.pharmacy_network_mac_list_fk > drug.mac_list.mac_list_id
+Ref: drug.pharmacy_network.primary_pharmacy_id > drug.pharmacy.pharmacy_id
+Ref: drug.pharmacy_network.tertiary_pharmacy_id > drug.pharmacy.pharmacy_id
+Ref: drug.manufacturer.organization_id > company.organization.organization_id
+Ref: drug.equivalence.source_ndc_id > drug.ndc.ndc_id
+Ref: drug.mac_pricing.mac_list_id > drug.mac_list.mac_list_id
+Ref: drug.mac_pricing.ndc_id > drug.ndc.ndc_id
+Ref: client.pbm_assignment.mac_list_id > drug.mac_list.mac_list_id
+Ref: client.audit_finding.pharmacy_id > drug.pharmacy.pharmacy_id
+Ref: client.client_benefit_group.mac_list_id > drug.mac_list.mac_list_id
+Ref: division.formulary_drug_placement.ndc_id > drug.ndc.ndc_id
+Ref: division.prior_auth_request.ndc_id > drug.ndc.ndc_id
+Ref: division.rebate_contract.manufacturer_id > drug.manufacturer.manufacturer_id
+
+
+TableGroup drug {
+  drug.ndc
+  drug.ndc_price
+  drug.classification
+  drug.drug_formulary
+  drug.drug_formulary_tier
+  drug.formulary_drug
+  drug.pharmacy
+  drug.pharmacy_network
+  drug.drug_prescriber
+  drug.manufacturer
+  drug.mac_list
+  drug.equivalence
+  drug.mac_pricing
+}
+

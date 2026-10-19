@@ -1,0 +1,752 @@
+// DBML Schema for Business: Pillarrx
+// Version: 1
+// Generated on: 2026-10-16 20:55:45
+
+Project {
+  database_type: 'Databricks Unity Catalog'
+  Note: 'Lakehouse data model for Pillarrx - Version 1'
+}
+
+// --- Tables ---
+
+Table claim.rx_claim {
+  rx_claim_id varchar [pk, note: 'Unique surrogate identifier for each pharmacy claim transaction record in the Pillarrx lakehouse silver layer. Serves as the primary key for the rx_claim fact entity.']
+  claim_benefit_group_id varchar [note: 'Foreign key linking to claim.claim_benefit_group. Business justification: Every pharmacy claim is adjudicated under a specific benefit group (benefit design).']
+  claim_pbm_id varchar [note: 'FK to claim.claim_pbm.claim_pbm_id — Every claim must attribute to its source PBM; claim_pbm is referenced by rx_claim for source attribution.']
+  claim_prescriber_id varchar [note: 'Foreign key linking to claim.prescriber. Business justification: Every pharmacy claim has a prescribing provider. Currently rx_claim has prescriber_npi as a string; adding prescriber_id FK allows joining to the full prescriber master record (specialty']
+  company_pbm_id varchar [note: 'Reference to the PBM that adjudicated this claim (e.g., CVS Caremark, Optum Rx, Express Scripts). Enables cross-PBM benchmarking and audit analysis.']
+  employer_id varchar [note: 'Reference to the employer client whose health plan member filled this prescription. Supports multi-tenant claim partitioning within the Company > Division > Client hierarchy.']
+  member_id varchar [note: 'Reference to the unified member record in the Member 360 master data. Links the claim to the patient who filled the prescription, enabling cross-PBM member analytics.']
+  ndc_id varchar [note: 'Reference to the drug dimension record keyed by National Drug Code (NDC). Links the claim to the dispensed drug for formulary, therapeutic class, and pricing analysis.']
+  pbm_division_id varchar [note: 'Foreign key linking to division.division. Business justification: Claims must be scoped to division for division-specific PBM guarantee calculations, consulting deliverables, and multi-division client reporting.']
+  pbm_feed_batch_id varchar [note: 'FK to claim.pbm_feed_batch.pbm_feed_batch_id — Data lineage: each claim arrives in an ingestion batch. Linking claim to its source batch enables feed-completeness gap detection and SLA traceability.']
+  pharmacy_id varchar [note: 'Reference to the pharmacy dimension record keyed by NCPDP ID. Links the claim to the dispensing pharmacy for network, specialty, and chain/independent analysis.']
+  rx_pbm_feed_batch_id varchar [note: 'Foreign key linking to claim.pbm_feed_batch. Business justification: Every rx_claim is ingested via a PBM feed batch. Strong traceability requirement for audit, data quality validation, and reconciliation.']
+  awp_discount_pct decimal(8,4) [note: 'The effective AWP discount percentage achieved on this claim as adjudicated. Core metric for PBM contract guarantee (GER/BER) audit and benchmarking against contracted rates.']
+  awp_unit_price decimal(18,4) [note: 'Average Wholesale Price per unit for the dispensed NDC at time of fill, sourced from Medi-Span or FDB. Used as the benchmark for AWP discount calculation and PBM contract audit.']
+  benefit_group_fk varchar [note: 'FK to claim.benefit_group.benefit_group_id — rx_claim references a benefit group to determine cost-sharing rules at adjudication; required for VREQ-003 hierarchy scoping and benefit-design analytics.']
+  brand_generic_indicator varchar [note: 'Indicates whether the dispensed drug is a brand, generic, specialty, or biosimilar product. Used for Generic Dispensing Rate (GDR) calculation and brand/generic spend analysis.']
+  claim_status varchar [note: 'Current lifecycle state of the pharmacy claim transaction. Distinguishes paid fills from reversals and adjustments for accurate financial reporting and PBM audit.']
+  claim_type varchar [note: 'Identifies whether this record represents an original fill, a reversal (cancellation), or an adjustment (correction) of a prior claim. Core grain discriminator for the claim fact.']
+  compound_flag boolean [note: 'Indicates whether the dispensed prescription is a compounded drug. Compound claims require special audit scrutiny and are tracked separately for PBM audit and formulary compliance.']
+  date_of_service date [note: 'The date the prescription was dispensed to the member at the pharmacy. Primary business event date used for trend analysis, PMPM/PMPY calculations, and benefit period attribution.']
+  daw_code varchar [note: 'NCPDP DAW code (0–9) indicating whether the brand was dispensed as written or a generic was substituted. Key input for Generic Dispensing Rate (GDR) and brand/generic analysis. [ENUM-REF-CANDIDATE: 0|1|2|3|4|5|6|7|8|9 — promote to reference product]']
+  days_supply varchar [note: 'Number of days of medication supplied in this fill as adjudicated by the PBM. Used for adherence calculations, mail-order vs retail classification, and PMPM normalization.']
+  deductible_applied decimal(18,4) [note: 'Dollar amount of this claim applied toward the member\'s deductible. Used to track deductible accumulation and determine when plan coverage begins for the benefit period.']
+  deductible_remaining decimal(18,4) [note: 'Member\'s remaining deductible balance after this claim is applied. Sourced from PBM adjudication response; used for member affordability and benefit period analysis.']
+  dispensing_fee decimal(18,4) [note: 'The pharmacy service fee component paid to the dispensing pharmacy as adjudicated by the PBM. Used in dispensing fee guarantee auditing and total reimbursement analysis.']
+  fill_date date [note: 'The date the prescription was physically filled and dispensed by the pharmacy. May differ from date_of_service for mail-order or specialty fills with processing lag.']
+  fill_number varchar [note: 'Sequential fill count for this prescription (0 = new, 1 = first refill, etc.). Used to distinguish new prescriptions from refills in adherence and utilization analysis.']
+  formulary_tier varchar [note: 'The formulary cost-sharing tier assigned to the dispensed drug (e.g., Tier 1 Generic, Tier 2 Preferred Brand). Used for formulary compliance analysis and benefit design reporting.']
+  ingested_timestamp timestamp [note: 'Timestamp when this claim record was first ingested into the Pillarrx lakehouse silver layer from the PBM claims feed. Used for ETL lineage, data freshness monitoring, and audit trail.']
+  ingredient_cost decimal(18,4) [note: 'The drug acquisition cost component of the claim as adjudicated by the PBM. Basis for AWP discount analysis, MAC pricing review, and PBM contract guarantee auditing.']
+  mail_order_flag boolean [note: 'Indicates whether the prescription was dispensed through a mail-order pharmacy channel. Used for retail vs. mail-order utilization analysis and channel-specific cost benchmarking.']
+  member_coinsurance decimal(18,4) [note: 'Percentage-based cost-share amount paid by the member for this claim. Distinct from copay; used in benefit design analysis and member out-of-pocket (OOP) accumulation tracking.']
+  member_copay decimal(18,4) [note: 'Fixed dollar amount paid by the member at point of sale as their cost-share obligation. Used for member affordability analysis, copay assistance program (CAP) eligibility, and OOP tracking.']
+  ndc varchar [note: '11-digit FDA National Drug Code identifying the specific drug product dispensed. Primary drug identifier on the claim; used for formulary, rebate, and pricing analysis.']
+  network_indicator varchar [note: 'Indicates whether the dispensing pharmacy was in-network or out-of-network at the time of the fill. Used for network compliance monitoring and out-of-network cost impact analysis.']
+  oop_applied decimal(18,4) [note: 'Dollar amount of this claim applied toward the member\'s annual out-of-pocket maximum (MOOP). Used for member affordability intelligence and True Out-of-Pocket (TrOOP) tracking.']
+  oop_remaining decimal(18,4) [note: 'Member\'s remaining out-of-pocket maximum balance after this claim. Sourced from PBM adjudication; used for member affordability intelligence and MOOP breach detection.']
+  other_payer_amount decimal(18,4) [note: 'Amount paid by a secondary payer (e.g., SPAP, copay card, manufacturer coupon, Medicare) on this claim. Used for coordination of benefits analysis and CAP program reconciliation.']
+  paid_date date [note: 'The date the PBM adjudicated and paid the claim. Used for cash-flow analysis, DIR reconciliation timing, and PBM guarantee period attribution.']
+  pbm_claim_number varchar [note: 'The externally-assigned claim identifier issued by the adjudicating PBM. Used as the primary business key for claim reconciliation, audit, and dispute resolution with the PBM.']
+  pbm_fk varchar [note: 'FK to claim.pbm.pbm_id — VREQ-001 requires every claim to tie to a PBM for source attribution and multi-PBM benchmarking. rx_claim description asserts the reference but it must be a guaranteed FK.']
+  pbm_member_identifier varchar [note: 'The member identifier assigned by the adjudicating PBM on this claim. Preserved as-sourced to support Member 360 identity resolution and cross-PBM member matching.']
+  plan_paid_amount decimal(18,4) [note: 'The dollar amount paid by the health plan (employer) for this claim after member cost-share. Primary metric for employer pharmacy spend reporting, PMPM, and PBM audit.']
+  prescriber_fk varchar [note: 'FK to claim.prescriber.prescriber_id — VREQ-001 requires each claim to tie to a prescribing provider by NPI; prescriber is the in-domain SSOT, so this is an in-domain FK.']
+  prior_auth_number varchar [note: 'The prior authorization approval number associated with this claim, if applicable. Used to link claims to PA records for utilization management compliance and PA analytics.']
+  quantity_dispensed decimal(18,4) [note: 'The quantity of drug units dispensed in this fill (e.g., tablets, milliliters). Used for unit-cost analysis, quantity limit (QL) compliance review, and drug utilization review.']
+  rx_number varchar [note: 'The pharmacy-assigned prescription number for this fill. Used to link multiple fills and refills of the same prescription and to support pharmacy audit reconciliation.']
+  specialty_drug_flag boolean [note: 'Indicates whether the dispensed drug is classified as a specialty medication (SMN). Used for specialty pharmacy spend monitoring, trend reporting, and limited distribution drug (LDD) analysis.']
+  to_benefit_group varchar [note: 'FK to claim.benefit_group.benefit_group_id — Every claim references a benefit group for cost-sharing rules; master FK required per VREQ-003 hierarchy scoping.']
+  to_pbm varchar [note: 'FK to claim.pbm.pbm_id — Every claim ties to a source PBM; master FK required per VREQ-001 for source attribution and benchmarking.']
+  to_prescriber varchar [note: 'FK to claim.prescriber.prescriber_id — Every claim ties to a prescribing provider (NPI); master FK required per VREQ-001.']
+  total_cost decimal(18,4) [note: 'Total gross cost of the claim (ingredient cost + dispensing fee + applicable fees). Represents the full pharmacy transaction value before any cost-share allocation. Used for TCOC analysis.']
+  updated_timestamp timestamp [note: 'Timestamp when this claim record was last modified in the lakehouse (e.g., due to an adjustment or data correction). Used for change tracking, audit, and incremental processing.']
+
+  Note: 'Central fact entity for every pharmacy claim transaction ingested and normalized across all PBMs (CVS Caremark, Optum Rx, Express Scripts, Navitus, EmpiRx Health, BCBS Michigan, Rightway, Prime Therapeutics, ServeYou, Carelon), at the atomic'
+}
+
+Table claim.rx_claim_line {
+  rx_claim_line_id varchar [pk, note: 'Unique surrogate identifier for each pharmacy claim line record in the Pillarrx lakehouse silver layer.']
+  ndc_id varchar [note: 'Foreign key to the drug dimension record (keyed by NDC) representing the dispensed drug on this claim line.']
+  primary_rx_claim_id varchar [note: 'Foreign key reference to the parent pharmacy claim header (rx_claim) that this line belongs to. Supports multi-line adjudication.']
+  to_rx_claim_id varchar [note: 'FK to claim.rx_claim.rx_claim_id — Line-level pricing decomposition must FK to its parent header so line sums can reconcile to header rollup totals; asserted in prose only across 5 iterations.']
+  awp_discount_pct decimal(7,4) [note: 'Percentage discount off AWP applied to this claim line. Core PBM contract audit metric; compared against guaranteed effective rate (GER) and brand effective rate (BER).']
+  awp_unit_price decimal(18,4) [note: 'Average Wholesale Price per unit at time of dispensing, sourced from Medi-Span or FDB. Baseline for AWP discount calculation and PBM contract guarantee auditing.']
+  bin_number varchar [note: '6-digit BIN (RxBIN) used to route the pharmacy claim to the correct PBM processor at point of sale. Essential for PBM identification and claims routing audit.']
+  claim_status varchar [note: 'Current adjudication status of this claim line. Indicates whether the line has been paid, reversed (cancelled), adjusted (corrected), rejected, or is pending processing.']
+  compound_code varchar [note: 'NCPDP compound code indicating whether the dispensed drug is a compound (0=not compound, 1=not specified, 2=compound). Compounds require special pricing and audit treatment.']
+  daw_code varchar [note: 'NCPDP DAW code (0-9) indicating whether the prescriber or member requested brand dispensing. Key driver of generic dispensing rate (GDR) analysis and formulary compliance. [ENUM-REF-CANDIDATE: 0|1|2|3|4|5|6|7|8|9 — promote to reference product]']
+  days_supply varchar [note: 'Number of days of medication supply dispensed on this claim line. Used for adherence analysis, mail-order vs retail classification, and PMPM/PMPY calculations.']
+  deductible_applied decimal(18,4) [note: 'Dollar amount applied to the member\'s deductible accumulator for this claim line. Represents member spend counted toward satisfying the plan deductible.']
+  deductible_remaining decimal(18,4) [note: 'Remaining deductible balance for the member after this claim line is applied. Supports member affordability analysis and out-of-pocket optimization reporting.']
+  dispensing_fee decimal(18,4) [note: 'Pharmacy service fee component of the claim line. Represents the fee paid to the dispensing pharmacy for filling the prescription, separate from ingredient cost.']
+  dos date [note: 'Date the prescription was dispensed to the member. The primary business event date for pharmacy claim analytics, trending, and PBM audit reconciliation.']
+  fill_number varchar [note: 'Sequential fill number for this prescription (0 = new, 1+ = refill). Used to distinguish new prescriptions from refills for adherence and utilization trend analysis.']
+  formulary_tier varchar [note: 'Formulary cost-sharing tier assigned to the dispensed drug (e.g., Tier 1 generic, Tier 2 preferred brand, Tier 3 non-preferred). Drives member cost-share and plan design analysis.']
+  ingested_timestamp timestamp [note: 'Timestamp when this claim line record was first ingested into the Pillarrx lakehouse from the source PBM feed. Supports ETL audit, data lineage, and SLA monitoring.']
+  ingredient_cost decimal(18,4) [note: 'Drug acquisition cost component of the claim line. Represents the cost of the drug itself, exclusive of dispensing fee. Core component for AWP discount and MAC analysis.']
+  line_amount decimal(18,4) [note: 'Total monetary value of this specific claim line (the principal line-level fact). Represents the gross amount for this cost component before member cost-share allocation.']
+  line_number varchar [note: 'Sequential line number within the parent pharmacy claim header. Used to order and identify individual cost components within a multi-line adjudication.']
+  line_type varchar [note: 'Classifies the cost component this line represents within the claim adjudication. Supports decomposed pricing basis per line: ingredient cost, dispensing fee, sales tax, vaccine admin fee, or other.']
+  maintenance_drug_flag boolean [note: 'Indicates whether the dispensed drug is classified as a maintenance medication (chronic/long-term therapy). Used for mail-order conversion opportunity analysis and adherence programs.']
+  member_coinsurance decimal(18,4) [note: 'Percentage-based cost-share amount paid by the member for this claim line. Distinct from copay; represents the member\'s proportional share of drug cost after deductible.']
+  member_copay decimal(18,4) [note: 'Fixed dollar amount paid by the member at point of sale for this claim line. Represents the member\'s flat-fee cost-share obligation per their benefit design.']
+  ndc varchar [note: '11-digit National Drug Code identifying the specific drug product dispensed. Primary drug identifier per FDA labeling standards. Stored as 11-digit normalized form.']
+  oop_applied decimal(18,4) [note: 'Dollar amount applied to the member\'s out-of-pocket accumulator for this claim line. Tracks member spend toward the maximum out-of-pocket (MOOP) limit.']
+  oop_remaining decimal(18,4) [note: 'Remaining out-of-pocket balance for the member after this claim line. Used for affordability intelligence and copay assistance program (CAP) eligibility determination.']
+  other_amount decimal(18,4) [note: 'Catch-all amount field for any additional cost components on this claim line not captured by ingredient cost, dispensing fee, sales tax, or vaccine admin fee.']
+  other_payer_amount decimal(18,4) [note: 'Amount paid by a secondary payer (e.g., copay assistance program, SPAP, Medicare, other insurance) for this claim line. Critical for COB and CAP reconciliation.']
+  paid_date date [note: 'Date the claim line was adjudicated and payment was processed by the PBM. May differ from date of service; used for cash-basis financial reporting and PBM guarantee reconciliation.']
+  pbm_claim_number varchar [note: 'Externally-assigned claim identifier from the source PBM (CVS Caremark, Optum Rx, Express Scripts, etc.). Used for PBM audit reconciliation and cross-source claim matching.']
+  pbm_source varchar [note: 'Name of the source PBM from which this claim line was ingested. Supports multi-PBM normalization and cross-PBM benchmarking. [ENUM-REF-CANDIDATE']
+  pcn varchar [note: 'Processor Control Number (RxPCN) used alongside BIN to route pharmacy claims to the correct PBM plan or benefit group. Supports multi-PBM claims normalization.']
+  plan_paid_amount decimal(18,4) [note: 'Amount paid by the health plan (employer/PBM) for this claim line after member cost-share. Core metric for employer pharmacy spend analysis and PBM audit.']
+  prior_auth_number varchar [note: 'Prior authorization approval number associated with this claim line when the drug required PA. Links to prior authorization analytics for utilization management reporting.']
+  quantity decimal(18,4) [note: 'Quantity of drug units dispensed on this claim line (e.g., number of tablets, milliliters, grams). The principal line-level quantity fact for utilization analysis.']
+  refill_authorized varchar [note: 'Number of refills authorized by the prescriber on the original prescription. Used for adherence monitoring and prescription lifecycle management.']
+  rx_group varchar [note: 'Pharmacy benefit group identifier transmitted on the claim, identifying the employer plan group under which the claim was adjudicated. Maps to client benefit group hierarchy.']
+  sales_tax decimal(18,4) [note: 'Sales tax applied to this claim line where applicable by state law. Tracked separately for financial reconciliation and state tax compliance reporting.']
+  specialty_drug_flag boolean [note: 'Indicates whether the dispensed drug is classified as a specialty medication (SMN). Specialty drugs require separate spend monitoring, trend reporting, and PBM channel management.']
+  transaction_type varchar [note: 'Identifies the nature of the claim transaction at the individual grain: a new fill (dispensing event), a reversal (cancellation), or an adjustment (correction to a prior claim).']
+  vaccine_admin_fee decimal(18,4) [note: 'Fee charged for vaccine administration services when the dispensed drug is a vaccine. Tracked as a distinct line component per NCPDP adjudication standards.']
+  wac_unit_price decimal(18,4) [note: 'Wholesale Acquisition Cost per unit at time of dispensing, sourced from Medi-Span or FDB. Used as an alternative pricing basis for specialty drug benchmarking.']
+
+  Note: 'Line-level pricing and cost-component breakdown of a pharmacy claim, supporting multi-line adjudication and COB scenarios. Owns the DECOMPOSED pricing basis per line: ingredient cost, dispensing fee, sales tax, vaccine administration fee, other amounts'
+}
+
+Table claim.member_oop_accumulator {
+  member_oop_accumulator_id varchar [pk, note: 'Unique surrogate primary key for the member OOP accumulator record. One record per member per benefit year per plan.']
+  benefit_plan_id varchar [note: 'Reference to the benefit plan under which the member\'s accumulators are tracked. Determines deductible and OOP maximum thresholds.']
+  claim_benefit_group_id varchar [note: 'FK to claim.claim_benefit_group.claim_benefit_group_id — Accumulator is scoped to benefit group and tracks benefit-year OOP/deductible against the benefit design.']
+  company_client_id varchar [note: 'Foreign key linking to company.company_client. Business justification: OOP accumulators must be scoped to client for CAP program eligibility determination, member cost-share reporting, and affordability analysis consulting deliverables.']
+  company_pbm_id varchar [note: 'Reference to the PBM (e.g., CVS Caremark, Optum Rx, Express Scripts) that adjudicated the claims contributing to this accumulator.']
+  member_id varchar [note: 'Reference to the member whose out-of-pocket and deductible accumulators are tracked. Links to the member master record.']
+  pbm_division_id varchar [note: 'Foreign key linking to division.division. Business justification: Accumulators are division-specific when clients have multiple divisions with distinct benefit designs.']
+  accumulator_source_type varchar [note: 'Indicates how the accumulator balances were derived: directly reported by the PBM, calculated by PillarRx from claim-level data, or provided by the plan or member.']
+  accumulator_status varchar [note: 'Current lifecycle state of this accumulator record. Active during the benefit year; closed after year-end or member disenrollment.']
+  accumulator_type varchar [note: 'Indicates whether this accumulator record tracks individual or family-level deductible and OOP thresholds per the benefit plan design.']
+  benefit_group_fk varchar [note: 'FK to claim.benefit_group.benefit_group_id — Accumulator is scoped to benefit group and benefit year; MOOP breach detection joins to benefit_group MOOP limits. Should be enforced.']
+  benefit_year varchar [note: 'The plan benefit year (e.g., 2024) for which this accumulator record applies. Accumulators reset at the start of each benefit year.']
+  benefit_year_end_date date [note: 'The last date of the benefit year accumulation period. Defines when deductible and OOP accumulators close for this member.']
+  benefit_year_start_date date [note: 'The first date of the benefit year accumulation period. Defines when deductible and OOP accumulators begin for this member.']
+  cap_applied_amt decimal(18,2) [note: 'Year-to-date dollar amount applied by copay assistance programs (manufacturer coupons, copay cards) on behalf of the member. Tracked for TrOOP exclusion analysis.']
+  cap_excluded_from_troop_flag boolean [note: 'Indicates whether copay assistance amounts are excluded from TrOOP calculation per CMS rules. True for manufacturer-funded copay cards on Medicare Part D.']
+  claim_count varchar [note: 'Total number of paid pharmacy claims contributing to this accumulator record within the benefit year. Excludes reversals and adjustments.']
+  coinsurance_applied_amt decimal(18,2) [note: 'Year-to-date coinsurance amounts paid by the member across all pharmacy claims in the benefit year. Percentage-based member cost share component.']
+  copay_applied_amt decimal(18,2) [note: 'Year-to-date fixed copay amounts paid by the member across all pharmacy claims in the benefit year. Component of total OOP accumulation.']
+  coverage_type varchar [note: 'Indicates whether this accumulator applies to pharmacy-only, medical-only, or a combined pharmacy and medical deductible/OOP per the plan design.']
+  created_timestamp timestamp [note: 'Timestamp when this accumulator record was first created in the system, typically at the start of the benefit year or upon the member\'s first claim.']
+  data_source varchar [note: 'Identifies the originating PBM or system that provided the accumulator data (e.g., CVS Caremark, Optum Rx, Express Scripts). Supports multi-PBM reconciliation.']
+  deductible_applied_amt decimal(18,2) [note: 'Year-to-date dollar amount the member has applied toward their pharmacy deductible within the benefit year. Accumulates with each paid claim.']
+  deductible_maximum_amt decimal(18,2) [note: 'The plan-defined maximum deductible threshold for this member\'s benefit plan and year. Sourced from the benefit plan configuration.']
+  deductible_met_date date [note: 'The date on which the member\'s pharmacy deductible was fully satisfied for the benefit year. Null if deductible has not yet been met.']
+  deductible_met_flag boolean [note: 'Indicates whether the member has fully satisfied their pharmacy deductible for the benefit year. True when deductible applied equals or exceeds deductible maximum.']
+  deductible_remaining_amt decimal(18,2) [note: 'Dollar amount remaining before the member satisfies their pharmacy deductible for the benefit year. Equals deductible maximum minus deductible applied.']
+  dir_adjustment_amt decimal(18,2) [note: 'Year-to-date DIR fee adjustments applied post-adjudication that may affect the member\'s effective OOP. Relevant for Medicare Part D DIR reconciliation.']
+  last_claim_date date [note: 'The date of service of the most recent pharmacy claim that updated this accumulator record. Used to identify stale or inactive accumulator records.']
+  last_updated_timestamp timestamp [note: 'Timestamp of the most recent update to this accumulator record, reflecting the latest claim adjudication or adjustment that modified accumulator balances.']
+  mbi varchar [note: 'The CMS-assigned Medicare Beneficiary Identifier for the member. Required for Medicare Part D TrOOP reporting and CMS coordination of benefits.']
+  medicare_part_d_flag boolean [note: 'Indicates whether this accumulator record applies to a Medicare Part D member, enabling TrOOP tracking and CMS catastrophic coverage threshold logic.']
+  oop_applied_amt decimal(18,2) [note: 'Year-to-date dollar amount the member has applied toward their pharmacy out-of-pocket maximum. Includes copay, coinsurance, and deductible contributions.']
+  oop_maximum_amt decimal(18,2) [note: 'The plan-defined maximum out-of-pocket threshold for this member\'s benefit plan and year. Once reached, the plan covers 100% of eligible costs.']
+  oop_met_date date [note: 'The date on which the member reached their pharmacy out-of-pocket maximum for the benefit year. Null if OOP maximum has not yet been reached.']
+  oop_met_flag boolean [note: 'Indicates whether the member has reached their pharmacy out-of-pocket maximum for the benefit year. True when OOP applied equals or exceeds OOP maximum.']
+  oop_remaining_amt decimal(18,2) [note: 'Dollar amount remaining before the member reaches their pharmacy out-of-pocket maximum for the benefit year. Equals OOP maximum minus OOP applied.']
+  other_payer_applied_amt decimal(18,2) [note: 'Year-to-date amounts paid by other payers (secondary insurance, SPAP, Medicaid) that reduce the member\'s OOP liability. Relevant for coordination of benefits.']
+  pbm_member_identifier varchar [note: 'The member identifier as assigned by the PBM source system. Used for cross-PBM reconciliation and Member 360 identity resolution.']
+  rds_eligible_flag boolean [note: 'Indicates whether the member is enrolled in a Retiree Drug Subsidy plan. Affects accumulator reporting requirements and CMS subsidy calculations.']
+  reconciliation_status varchar [note: 'Status of reconciliation between PBM-reported accumulator balances and PillarRx-calculated balances from claim-level data. Supports PBM audit workflows.']
+  reconciliation_variance_amt decimal(18,2) [note: 'Dollar difference between PBM-reported OOP accumulator balance and PillarRx-calculated balance. Non-zero values trigger PBM audit review.']
+  spap_applied_amt decimal(18,2) [note: 'Year-to-date dollar amount applied by a State Pharmaceutical Assistance Program on behalf of the member. Tracked separately for TrOOP and COB analysis.']
+  to_benefit_group varchar [note: 'FK to claim.benefit_group.benefit_group_id — Accumulator is scoped to benefit group for MOOP/deductible rules; FK needed for breach detection.']
+  troop_applied_amt decimal(18,2) [note: 'Year-to-date True Out-of-Pocket amount for Medicare Part D members. Tracks qualifying spend toward the catastrophic coverage threshold per CMS TrOOP rules.']
+  troop_remaining_amt decimal(18,2) [note: 'Dollar amount remaining before the Medicare Part D member reaches the catastrophic coverage threshold. Null for non-Medicare members.']
+  troop_threshold_amt decimal(18,2) [note: 'The CMS-defined TrOOP threshold for the benefit year at which Medicare Part D catastrophic coverage begins. Updated annually by CMS.']
+
+  Note: 'Tracks each member\'s running out-of-pocket (OOP) and deductible accumulation across all pharmacy claims within a benefit year. Maintains year-to-date deductible applied, deductible remaining, OOP applied, OOP remaining, and True Out-of-Pocket (TrOOP) for'
+}
+
+Table claim.dur_event {
+  dur_event_id varchar [pk, note: 'Unique surrogate identifier for each Drug Utilization Review (DUR) event record generated at the point of pharmacy claim adjudication.']
+  claim_prescriber_id varchar [note: 'Foreign key linking to claim.prescriber. Business justification: DUR events are triggered by prescriber actions at the point of adjudication. Currently dur_event has prescriber_npi as a string; adding prescriber_id FK allows joining to the full prescriber']
+  coagent_ndc_id varchar [note: 'Identifier of the co-agent drug involved in the DUR alert (e.g., the NDC of the interacting drug in a drug-drug interaction event). Populated when a second drug is implicated.']
+  company_pbm_id varchar [note: 'Reference to the PBM that adjudicated the claim and generated this DUR event (e.g., CVS Caremark, Optum Rx, Express Scripts).']
+  dur_rx_claim_id varchar [note: 'Reference to the parent pharmacy claim transaction that triggered this DUR event. Links the DUR event to its originating fill, reversal, or adjustment.']
+  employer_id varchar [note: 'Reference to the employer client whose plan member triggered this DUR event. Supports multi-tenant client-level DUR analytics within the Company > Division > Client hierarchy.']
+  member_id varchar [note: 'Reference to the member (patient) whose prescription triggered this DUR event. Supports Member 360 cross-PBM analysis.']
+  ndc_id varchar [note: 'Reference to the drug (by NDC) dispensed on the claim that triggered this DUR event. Links to the drug reference dimension.']
+  pbm_assignment_id varchar [note: 'Foreign key linking to client.pbm_assignment. Business justification: DUR events (drug utilization review alerts) are adjudicated by the PBM at point-of-sale.']
+  pbm_division_id varchar [note: 'Foreign key linking to division.division. Business justification: DUR events must be attributed to division for division-specific clinical program reporting, PBM contract compliance measurement (clinical intervention rates), and consulting deliverables.']
+  pbm_feed_batch_id varchar [note: 'Foreign key linking to claim.pbm_feed_batch. Business justification: DUR events are ingested via PBM feed batches. Strong traceability requirement for audit and data quality validation.']
+  pharmacy_id varchar [note: '7-digit NCPDP identifier of the pharmacy that dispensed the prescription and submitted the DUR event. Used for pharmacy-level DUR trend analysis.']
+  prior_auth_id varchar [note: 'Foreign key linking to claim.prior_auth. Business justification: DUR events may be triggered by prior authorization requirements or conflicts. Currently dur_event has prior_auth_number as a string; adding prior_auth_id FK allows joining to the full']
+  rx_claim_id varchar [note: 'FK to claim.rx_claim.rx_claim_id — Each DUR event is generated at adjudication of a specific claim; description states \'linked to a specific rx_claim\' but the FK must be guaranteed.']
+  to_rx_claim_id varchar [note: 'FK to claim.rx_claim.rx_claim_id — Each DUR event is generated for a specific claim at adjudication; parent FK required for clinical safety analysis joins.']
+  adjudication_timestamp timestamp [note: 'Date and time the pharmacy claim was adjudicated by the PBM and this DUR event was generated. Represents the principal real-world event time for this record.']
+  alert_category varchar [note: 'Broad clinical category of the DUR alert for analytics grouping (e.g., drug_interaction, duplicate_therapy, dosing, allergy, age_precaution, pregnancy, renal, hepatic).']
+  alert_sequence_number varchar [note: 'Sequential number identifying the order of this DUR alert within the claim adjudication transaction when multiple DUR events are generated for a single claim.']
+  alert_status varchar [note: 'Current disposition of the DUR alert: triggered (alert fired, no action yet), overridden (pharmacist bypassed), resolved (clinical action taken), or not_filled (prescription rejected).']
+  clinical_significance_code varchar [note: 'Numeric code from the drug reference source (Medi-Span or FDB) indicating the clinical significance of the interaction or alert (1=most significant to 5=least significant).']
+  coagent_id_qualifier varchar [note: 'Qualifier indicating the coding system used for the co-agent drug identifier (e.g., ND=NDC, UP=UPC, GC=GPI Code, HC=HCPCS). Identifies the type of the interacting drug.']
+  coagent_ndc varchar [note: '11-digit NDC of the co-agent (interacting or duplicate) drug when the DUR service reason involves a second drug. Normalized from coagent_id when qualifier is ND.']
+  days_supply varchar [note: 'Number of days of drug therapy supplied on the claim that triggered this DUR event. Relevant for duplicate therapy and refill-too-soon DUR alerts.']
+  dos date [note: 'Date the prescription was dispensed (date of service) for the claim that generated this DUR event. Used for temporal DUR trend analysis.']
+  drug_name varchar [note: 'Brand or generic name of the dispensed drug that triggered the DUR event. Denormalized from drug reference for reporting convenience.']
+  drug_reference_source varchar [note: 'The drug reference database used by the PBM to generate this DUR alert (e.g., medi_span=Wolters Kluwer Medi-Span, fdb=First DataBank, pbm_proprietary=PBM internal rules).']
+  event_type varchar [note: 'Classification of when the DUR review occurred relative to dispensing: prospective (at point of sale), concurrent (during therapy), or retrospective (post-dispensing claims analysis).']
+  formulary_tier varchar [note: 'The formulary tier of the dispensed drug at the time of the DUR event (e.g., Tier 1 generic, Tier 2 preferred brand). Relevant for DUR events involving formulary-based clinical edits.']
+  ingestion_timestamp timestamp [note: 'Date and time this DUR event record was first loaded into the PillarRx data lakehouse from the PBM claims feed. Audit timestamp for data pipeline tracking.']
+  is_high_risk boolean [note: 'Indicates whether this DUR event is classified as high-risk based on severity_code or clinical_significance_code thresholds. Used for clinical safety reporting and PBM audit.']
+  is_overridden boolean [note: 'Indicates whether the pharmacist overrode the DUR alert and dispensed the prescription despite the clinical warning. True when override_code is present and alert was bypassed.']
+  level_of_effort_code varchar [note: 'NCPDP code indicating the pharmacist\'s professional effort required to resolve the DUR alert (1=lowest to 5=highest). Used for MTM billing and audit purposes.']
+  ndc varchar [note: '11-digit FDA National Drug Code of the dispensed drug that triggered the DUR alert. Primary drug identifier on the claim.']
+  normalized_flag boolean [note: 'Indicates whether this DUR event record has been normalized and standardized by the PillarRx ETL pipeline from the raw PBM source feed into the Silver layer schema.']
+  override_code varchar [note: 'Code submitted by the pharmacist to override a DUR alert and proceed with dispensing (e.g., prescriber authorization, patient acknowledgment). Populated when alert_status is overridden.']
+  pbm_claim_number varchar [note: 'The PBM-assigned claim number from the source adjudication system that this DUR event is associated with. Used for cross-referencing back to the originating PBM feed.']
+  pbm_member_identifier varchar [note: 'The PBM-assigned member identifier as received in the source claims feed. Retained for cross-PBM reconciliation and Member 360 identity resolution.']
+  professional_service_code varchar [note: 'NCPDP code for the professional service rendered by the pharmacist in response to the DUR alert (e.g., AS=patient assessment, CC=coordination of care, DE=dosing evaluation).']
+  quantity_dispensed decimal(10,3) [note: 'The quantity of the drug dispensed on the claim that triggered this DUR event. Used in dosing-related DUR analysis (e.g., high dose alerts, quantity limit edits).']
+  result_code varchar [note: 'NCPDP-standard code indicating the pharmacist\'s action taken in response to the DUR alert (e.g., 1A=filled as is, 1B=filled with prescriber approval, 1C=not filled).']
+  result_description varchar [note: 'Human-readable description of the DUR result code (e.g., \'Filled Prescription As Is\', \'Filled With Prescriber Approval\', \'Prescription Not Filled\').']
+  service_reason_code varchar [note: 'NCPDP-standard code identifying the clinical reason the DUR alert was triggered (e.g., DD=drug-drug interaction, TD=duplicate therapy, HD=high dose, PA=drug-age precaution).']
+  service_reason_description varchar [note: 'Human-readable description of the DUR service reason code (e.g., \'Drug-Drug Interaction\', \'Duplicate Therapy\', \'High Dose Alert\'). Sourced from NCPDP code set.']
+  severity_code varchar [note: 'Clinical severity level of the DUR alert as assigned by the drug reference source (1=contraindicated, 2=severe, 3=moderate, 4=minor). Sourced from Medi-Span or FDB drug interaction database.']
+  updated_timestamp timestamp [note: 'Date and time this DUR event record was last modified in the lakehouse (e.g., due to a claim adjustment or data correction from the PBM feed).']
+
+  Note: 'Drug Utilization Review (DUR) event record generated at the point of adjudication for a pharmacy claim. Captures the DUR service reason code (e.g., drug-drug interaction, duplicate therapy, high dose), DUR result code (e.g., dispensed as is, prescription'
+}
+
+Table claim.prior_auth {
+  prior_auth_id varchar [pk, note: 'Unique surrogate identifier for the prior authorization record in the PillarRx lakehouse. Primary key for the prior_auth entity.']
+  claim_prescriber_id varchar [note: 'Reference to the prescribing provider (NPI-keyed) who initiated or is associated with the prior authorization request.']
+  company_client_id varchar [note: 'Foreign key linking to company.company_client. Business justification: Prior authorization analysis is a core consulting service requiring client attribution for PA approval rate reporting, turnaround time benchmarking, and denial reason analysis by']
+  company_pbm_id varchar [note: 'Reference to the PBM (e.g., CVS Caremark, Optum Rx, Express Scripts) that adjudicated or managed this prior authorization.']
+  member_id varchar [note: 'Reference to the member (patient) for whom the prior authorization was requested. Supports Member 360 cross-PBM analysis.']
+  ndc_id varchar [note: 'Reference to the drug dimension record (NDC-keyed) for the medication subject to prior authorization review.']
+  pbm_assignment_id varchar [note: 'Foreign key linking to client.pbm_assignment. Business justification: Prior authorizations are adjudicated by specific PBM assignments (employer-PBM contract context).']
+  pbm_division_id varchar [note: 'Foreign key linking to division.division. Business justification: Prior auths must be scoped to division for division-specific formulary enforcement, clinical program tracking, and PBM contract compliance measurement (PA turnaround times, approval rates).']
+  prior_rx_claim_id varchar [note: 'Reference to the pharmacy claim transaction this prior authorization is associated with. Links PA records to the adjudicated fill event.']
+  rx_claim_id varchar [note: 'FK to claim.rx_claim.rx_claim_id — PA is linked to the rx_claim when a PA number is present on the claim; required for denial-rate benchmarking tied to actual fills.']
+  to_rx_claim_id varchar [note: 'FK to claim.rx_claim.rx_claim_id — PA records link to rx_claim when a PA number is present; FK needed for PA denial-rate benchmarking against claims.']
+  appeal_number varchar [note: 'The reference number assigned to a PA appeal submission. Populated only when pa_type is appeal. Links the appeal to the original denied PA for audit tracking.']
+  appeal_outcome varchar [note: 'The result of the PA appeal review. Upheld means the original denial stands; overturned means the drug is approved on appeal. Null when no appeal was filed.']
+  approved_days_supply varchar [note: 'The number of days supply of medication approved under this PA. Constrains the dispensing window and refill eligibility at the pharmacy.']
+  approved_quantity decimal(10,3) [note: 'The quantity of drug units (e.g., tablets, milliliters) approved under this PA. Claims exceeding this quantity will reject at adjudication.']
+  approved_refills varchar [note: 'The number of refills authorized under this PA approval. A value of zero indicates the initial fill only; null indicates no refill restriction was specified.']
+  clinical_criteria_met boolean [note: 'Indicates whether the submitted clinical documentation satisfied the PBM or plan clinical criteria for approval. Populated from the PA decision record.']
+  created_timestamp timestamp [note: 'The timestamp when this prior authorization record was first loaded into the PillarRx lakehouse. Used for data lineage, audit, and incremental ETL processing.']
+  decision_date date [note: 'The date the PBM or plan issued the approval, denial, or other determination on the PA request. Used to calculate decision turnaround time.']
+  denial_reason_code varchar [note: 'Standardized code indicating the reason a PA request was denied (e.g., not medically necessary, step therapy required, non-formulary). Null when status is not denied.']
+  denial_reason_description varchar [note: 'Free-text or standardized narrative explanation of the denial reason provided by the PBM or plan. Supports member appeal and consulting audit workflows.']
+  diagnosis_code varchar [note: 'The ICD-10-CM diagnosis code submitted with the PA request to support medical necessity. PHI — restricted access. Null if not provided by the PBM source.']
+  effective_date date [note: 'The date on which the prior authorization approval becomes valid and claims may be adjudicated against it.']
+  expiration_date date [note: 'The date on which the prior authorization approval expires. Claims submitted after this date will reject unless a renewal PA is obtained.']
+  formulary_tier varchar [note: 'The formulary cost-sharing tier of the drug subject to this PA at the time of the request. Used to assess whether PA is driven by tier placement or clinical criteria.']
+  is_340b_eligible boolean [note: 'Indicates whether the drug and dispensing context associated with this PA may qualify under the federal 340B drug discount program. Supports 340B compliance monitoring.']
+  is_specialty_drug boolean [note: 'Indicates whether the drug subject to this PA is classified as a specialty medication (SMN). Specialty PAs typically have distinct clinical criteria and turnaround requirements.']
+  ndc varchar [note: 'The 11-digit FDA National Drug Code identifying the specific drug product subject to this PA. Stored as the normalized 11-digit format (5-4-2 segments, no hyphens).']
+  notes varchar [note: 'Free-text notes or supplemental information captured during PA review, appeal, or consulting analysis. May include clinical rationale or PBM communication details.']
+  pa_number varchar [note: 'The externally-assigned prior authorization number issued by the PBM or health plan. Used for claim adjudication routing and audit reconciliation.']
+  pa_source varchar [note: 'Indicates the entity that issued or manages the PA requirement: PBM-driven, health plan-driven, state mandate, federal program (e.g., Medicare Part D), or other.']
+  pa_status varchar [note: 'Current lifecycle status of the prior authorization request. Drives claim adjudication eligibility and member cost-share outcomes.']
+  pa_type varchar [note: 'Classification of the PA request by review pathway. Standard is routine; expedited is urgent; appeal is a reconsideration of a denial; renewal extends an existing approval.']
+  pbm_name varchar [note: 'The name of the PBM that processed or manages this PA (e.g., CVS Caremark, Optum Rx, Express Scripts). Denormalized for reporting convenience across multi-PBM analysis.']
+  pbm_pa_reference varchar [note: 'The PBM-assigned internal reference or tracking number for this PA request, distinct from the adjudication PA number. Used for PBM audit reconciliation.']
+  prescriber_npi varchar [note: 'The 10-digit NPI of the prescribing provider who requested or is associated with this PA. Sourced from the PBM claim feed for audit traceability.']
+  quantity_limit_applied boolean [note: 'Indicates whether a quantity limit restriction is the basis for or a condition of this prior authorization. Supports formulary utilization management analysis.']
+  request_date date [note: 'The date the prior authorization request was submitted to the PBM or health plan for review. Used to measure turnaround time and compliance with CMS timelines.']
+  source_pa_number varchar [note: 'The native PA record identifier from the originating PBM or source system. Preserved for reconciliation back to the source feed during PBM audits.']
+  step_therapy_required boolean [note: 'Indicates whether the PA denial or requirement is driven by a step therapy protocol, requiring the member to try a preferred drug before the requested drug is approved.']
+  turnaround_days varchar [note: 'Number of calendar days between the PA request date and the decision date. Used to benchmark PBM PA processing speed against CMS and contractual SLA requirements.']
+  updated_timestamp timestamp [note: 'The timestamp when this prior authorization record was last modified in the PillarRx lakehouse, reflecting status changes, decision updates, or appeal outcomes.']
+
+  Note: 'Prior authorization (PA) record associated with a pharmacy claim or a member-drug combination. Captures the PA number, PA type (standard, expedited, appeal), PA status (approved, denied, pending, expired), effective and expiration dates, approved quantity'
+}
+
+Table claim.claim_prescriber {
+  claim_prescriber_id varchar [pk, note: 'Unique surrogate primary key for the prescriber record in the Pillarrx claims domain lakehouse silver layer.']
+  claim_prescriber_status varchar [note: 'Current lifecycle status of the prescriber record as maintained in the Pillarrx prescriber master. Drives claim validation rules and prescriber-level reporting eligibility.']
+  claim_prescriber_type varchar [note: 'Categorical classification of the prescribing provider type used for PBM audit and benchmarking segmentation. Derived from NPPES taxonomy and normalized across PBM feeds.']
+  created_timestamp timestamp [note: 'Timestamp when this prescriber record was first created in the Pillarrx lakehouse silver layer. Used for data lineage, audit trail, and ingestion monitoring.']
+  credential_suffix varchar [note: 'Professional credential suffix (e.g., MD, DO, NP, PA, PharmD) as sourced from NPPES. Indicates prescriber licensure type for specialty and audit analysis.']
+  dea_number varchar [note: 'DEA registration number authorizing the prescriber to prescribe controlled substances. Required for Schedule II-V drug claim validation and controlled substance audit workflows.']
+  dea_schedule_authority varchar [note: 'Highest DEA controlled substance schedule the prescriber is authorized to prescribe (II through V). Used for controlled substance claim validation and DUR audit workflows.']
+  effective_date date [note: 'Date from which this prescriber record version is considered valid. Supports Type-2 slowly changing dimension (SCD) history tracking for the prescriber master in the lakehouse silver layer.']
+  entity_type varchar [note: 'NPPES NPI entity type code: individual (Type 1 NPI for a person) or organization (Type 2 NPI for a group practice or facility). Drives prescriber analytics segmentation.']
+  enumeration_date date [note: 'Date the NPI was assigned to the prescriber by NPPES. Used for prescriber tenure analysis and to validate NPI currency in PBM claim audit workflows.']
+  expiration_date date [note: 'Date on which this prescriber record version expires and is superseded by a newer version. Null for the current active record. Supports Type-2 SCD history in the lakehouse silver layer.']
+  fax varchar [note: 'Fax number for the prescribers practice location as sourced from NPPES. Used for prior authorization and electronic prescription routing in PBM workflows.']
+  first_name varchar [note: 'Legal first (given) name of the prescribing provider as sourced from NPPES or PBM claim feed. Used for display, reporting, and prescriber-level analytics.']
+  gender varchar [note: 'Gender of the prescribing provider as sourced from NPPES (M=Male, F=Female, U=Unknown). Used for demographic analysis and NPPES record matching.']
+  group_practice_pac_number varchar [note: 'CMS Provider Associate-level Identifier (PAC ID) for the group practice or organization the prescriber is affiliated with, as sourced from NPPES or CMS data. Supports group-level prescribing analytics.']
+  is_340b_prescriber boolean [note: 'Flag indicating whether the prescriber is associated with a HRSA 340B covered entity. Used to identify 340B-eligible claims for manufacturer program management and audit.']
+  is_controlled_substance_authorized boolean [note: 'Flag indicating whether the prescriber holds an active DEA registration authorizing controlled substance prescribing. Used in DUR and PBM audit claim validation.']
+  is_current boolean [note: 'Boolean flag indicating whether this row is the current active version of the prescriber record. True for the latest version; False for historical SCD Type-2 rows. Simplifies current-record queries.']
+  is_erx_enabled boolean [note: 'Flag indicating whether the prescriber is enrolled and active for electronic prescribing (ERx). Used for e-prescribing adoption analysis and PBM workflow routing.']
+  is_specialty_prescriber boolean [note: 'Flag indicating whether the prescriber is classified as a specialty prescriber based on their NUCC taxonomy code. Used to segment specialty drug spend and specialty pharmacy routing analysis.']
+  last_name varchar [note: 'Legal last (family) name of the prescribing provider as sourced from NPPES or PBM claim feed. Used for display, reporting, and prescriber-level analytics.']
+  license_state varchar [note: 'Two-letter US state code for the jurisdiction that issued the prescribers license. Used for state-level regulatory compliance and geographic prescribing analysis.']
+  middle_name varchar [note: 'Middle name or initial of the prescribing provider as sourced from NPPES. Supports full-name matching and identity resolution across PBM feeds.']
+  name_prefix varchar [note: 'Honorific or professional prefix (e.g., Dr.) for the prescribing provider as sourced from NPPES. Used in member-facing and client-facing reporting displays.']
+  npi varchar [note: '10-digit National Provider Identifier assigned by CMS via NPPES. Primary business key for the prescriber across all PBM claim feeds and the authoritative cross-source join key.']
+  npi_deactivation_date date [note: 'Date the NPI was deactivated in NPPES, if applicable. Null for active prescribers. Used to flag claims submitted under deactivated NPIs during PBM audit.']
+  npi_reactivation_date date [note: 'Date the NPI was reactivated in NPPES after a prior deactivation. Null if never deactivated or not yet reactivated. Supports NPI lifecycle tracking in audit workflows.']
+  nppes_last_update_date date [note: 'Date the prescribers NPPES record was last updated in the source NPPES registry. Used to assess data currency and trigger refresh cycles in the prescriber master.']
+  organization_name varchar [note: 'Name of the practice group, hospital system, or organization the prescriber is affiliated with as sourced from NPPES. Used for group-level prescribing trend and network analysis.']
+  pbm_prescriber_identifier varchar [note: 'Prescriber identifier as assigned by the source PBM in the claim feed (may differ from NPI). Used for cross-PBM normalization and identity resolution in the Pillarrx claims aggregation pipeline.']
+  phone varchar [note: 'Primary phone number for the prescribers practice location as sourced from NPPES. Used for prior authorization outreach and prescriber contact in consulting workflows.']
+  practice_address_line1 varchar [note: 'Primary street address line of the prescribers practice location as sourced from NPPES. Used for geographic analysis, specialty pharmacy routing, and client reporting.']
+  practice_address_line2 varchar [note: 'Secondary street address line (suite, floor, unit) of the prescribers practice location as sourced from NPPES. Supplements primary address for mail and geographic analysis.']
+  practice_city varchar [note: 'City of the prescribers primary practice location as sourced from NPPES. Used for geographic prescribing trend analysis and client-level benchmarking reports.']
+  practice_state varchar [note: 'Two-letter US state code of the prescribers primary practice location. Used for state-level prescribing analysis, regulatory compliance, and geographic benchmarking.']
+  practice_zip varchar [note: '5-digit or ZIP+4 postal code of the prescribers primary practice location. Used for geographic prescribing trend analysis and regional benchmarking.']
+  record_source varchar [note: 'Identifies the authoritative source system from which this prescriber record was ingested or created (NPPES, PBM feed, manual entry, or MDM golden record). Supports data lineage and audit.']
+  secondary_specialty_code varchar [note: 'Secondary NUCC taxonomy code for the prescriber when a second specialty is registered in NPPES. Supports multi-specialty prescriber segmentation in consulting analytics.']
+  source_pbm varchar [note: 'Name of the PBM from which this prescriber record was first sourced or most recently updated. Used for data lineage tracking and cross-PBM prescriber identity resolution.']
+  specialty_code varchar [note: 'Primary taxonomy or specialty code for the prescriber as sourced from NPPES or PBM claim feed (e.g., NUCC Health Care Provider Taxonomy Code). Used for specialty drug and formulary analysis.']
+  specialty_description varchar [note: 'Human-readable description of the prescribers primary specialty (e.g., Internal Medicine, Oncology, Psychiatry). Sourced from NUCC taxonomy or PBM feed normalization.']
+  state_license_number varchar [note: 'State-issued prescriber license number as sourced from NPPES or PBM claim feed. Used for state-level compliance validation and controlled substance audit workflows.']
+  telehealth_indicator boolean [note: 'Flag indicating whether the prescriber primarily operates via telehealth channels. Used for telehealth prescribing trend analysis and PBM audit of telehealth-originated claims.']
+  updated_timestamp timestamp [note: 'Timestamp when this prescriber record was last modified in the Pillarrx lakehouse silver layer. Used for change tracking, SCD Type-2 versioning, and data quality monitoring.']
+
+  Note: 'Prescribing provider master record keyed by NPI (National Provider Identifier) as sourced from NPPES and PBM claims feeds. Primary key is prescriber_id. Captures the prescriber\'s NPI, DEA number, name (first, last), specialty code and description'
+}
+
+Table claim.claim_pbm {
+  claim_pbm_id varchar [pk, note: 'Unique surrogate primary key for the PBM master record in the Pillarrx lakehouse. Assigned by the Enterprise Data Warehouse upon ingestion.']
+  awp_discount_brand decimal(5,2) [note: 'Contracted AWP discount percentage applied to brand-name drug ingredient cost reimbursement for this PBM. Used as the baseline for PBM contract guarantee reconciliation and audit.']
+  awp_discount_generic decimal(5,2) [note: 'Contracted AWP discount percentage applied to generic drug ingredient cost reimbursement for this PBM. Used alongside MAC pricing in generic effective rate benchmarking and audit.']
+  bin_number varchar [note: 'Six-digit Bank Identification Number (BIN) used to route pharmacy claims to the correct PBM processor at the point of sale. Required for claim adjudication routing validation and audit.']
+  claims_feed_format varchar [note: 'Technical format of the claims data feed delivered by this PBM to Pillarrx. Drives ETL pipeline selection and normalization logic in the PBM Claims Feed Ingestion Platform.']
+  claims_feed_frequency varchar [note: 'Frequency at which the PBM delivers claims data files to Pillarrx. Determines SLA expectations for data freshness and drives scheduling of ETL ingestion jobs.']
+  claims_feed_lag_days varchar [note: 'Expected number of calendar days between the pharmacy claim date of service (DOS) and the date the claim appears in the Pillarrx data feed. Used to set data completeness expectations in reporting.']
+  created_timestamp timestamp [note: 'Timestamp when the PBM master record was first created in the Pillarrx Enterprise Data Warehouse. Supports audit trail, data lineage, and record lifecycle governance.']
+  data_use_agreement_date date [note: 'Date on which the Data Use Agreement (DUA) or Business Associate Agreement (BAA) between Pillarrx and the PBM became effective. Required for HIPAA compliance and PHI data access governance.']
+  data_use_agreement_expiry date [note: 'Date on which the Data Use Agreement (DUA) or Business Associate Agreement (BAA) with the PBM expires. Triggers renewal workflow to maintain uninterrupted HIPAA-compliant data access.']
+  dir_reporting_supported boolean [note: 'Indicates whether the PBM provides Direct and Indirect Remuneration (DIR) fee data in its claims feed or as a separate reconciliation file. Critical for true net cost analysis and CMS compliance.']
+  dispensing_fee_mail decimal(8,2) [note: 'Contracted dispensing fee amount (in USD) paid to mail-order pharmacies by this PBM. Used in mail-order cost benchmarking and dispensing fee guarantee reconciliation.']
+  dispensing_fee_retail decimal(8,2) [note: 'Contracted dispensing fee amount (in USD) paid to retail network pharmacies by this PBM. Used as the benchmark value in dispensing fee guarantee reconciliation and PBM audit.']
+  formulary_model varchar [note: 'Type of formulary structure offered by the PBM. Closed formularies restrict coverage to listed drugs; open formularies cover most drugs with varying cost-sharing. Affects drug tier analysis.']
+  headquarters_state varchar [note: 'Two-letter US state code for the PBM headquarters location. Used for state PBM licensure compliance tracking and regulatory jurisdiction determination.']
+  mac_list_name varchar [note: 'Name or identifier of the Maximum Allowable Cost (MAC) pricing list used by this PBM for generic drug reimbursement. Used in MAC pricing audit and generic effective rate benchmarking.']
+  mail_order_supported boolean [note: 'Indicates whether the PBM supports mail-order pharmacy dispensing. Used to segment retail vs. mail-order claim volumes in trend analysis and benchmarking reports.']
+  notes varchar [note: 'Free-text field for Pillarrx data operations and consulting staff to record known data quirks, feed anomalies, contractual nuances, or onboarding notes specific to this PBM.']
+  npi varchar [note: 'Ten-digit National Provider Identifier (NPI) assigned to the PBM as a covered entity or business associate under HIPAA. Used in claim transaction validation and provider cross-reference.']
+  onboarding_date date [note: 'Date on which the PBM was formally onboarded into the Pillarrx platform and began delivering claims data. Marks the start of the operational data relationship and feed history.']
+  parent_company_name varchar [note: 'Name of the parent corporation that owns or controls the PBM (e.g., CVS Health for CVS Caremark, UnitedHealth Group for Optum Rx). Used in ownership conflict analysis and contract governance.']
+  pbm_code varchar [note: 'Short, normalized internal code uniquely identifying the PBM (e.g., CVS_CAREMARK, OPTUM_RX, ESI, NAVITUS). Used as the stable business key across all claim feeds and reporting.']
+  pbm_name varchar [note: 'Full legal or trade name of the PBM organization (e.g., CVS Caremark, Optum Rx, Express Scripts, Navitus Health Solutions). Used in client-facing reports and consulting deliverables.']
+  pbm_status varchar [note: 'Current lifecycle status of the PBM record within Pillarrx. Controls whether new claim feeds are accepted and whether the PBM appears in active client reporting.']
+  pbm_type varchar [note: 'Categorical classification of the PBM by market segment and ownership model. Drives benchmarking peer grouping and audit methodology selection in consulting engagements.']
+  pcn varchar [note: 'Processor Control Number (PCN) used in conjunction with BIN to route pharmacy claims to the correct PBM sub-processor or benefit plan. Supports claim routing validation during PBM audits.']
+  pricing_model varchar [note: 'Contractual pricing transparency model under which the PBM operates for Pillarrx clients. Pass-through means pharmacy reimbursement equals plan cost; spread means PBM retains the difference.']
+  primary_contact_email varchar [note: 'Email address of the primary PBM account manager or relationship contact. Used for operational communications, data feed issue escalation, and contract correspondence.']
+  primary_contact_name varchar [note: 'Full name of the primary account manager or relationship contact at the PBM. Used by Pillarrx consulting staff for escalation, data issue resolution, and contract negotiation.']
+  primary_contact_phone varchar [note: 'Phone number of the primary PBM account manager or relationship contact. Used for urgent escalation of data feed failures, claim discrepancies, and audit inquiries.']
+  rebate_file_supported boolean [note: 'Indicates whether the PBM delivers a separate manufacturer rebate reconciliation file to Pillarrx. When True, rebate data is available for guarantee reconciliation and DIR analysis.']
+  rebate_model varchar [note: 'Describes how manufacturer rebates are handled by the PBM. Pass-through means rebates flow fully to the plan; retained means the PBM keeps a portion. Critical for DIR and rebate audit analysis.']
+  rx_group varchar [note: 'Default or primary RxGroup identifier associated with this PBM. Identifies the pharmacy benefit group used for claim adjudication routing. May be overridden at the client benefit plan level.']
+  sftp_directory_path varchar [note: 'Remote directory path on the PBM SFTP server where claims data files are deposited for Pillarrx ingestion. Used by the ETL pipeline to locate and retrieve incoming claim files.']
+  sftp_host varchar [note: 'Hostname or IP address of the SFTP server used by the PBM to deliver claims data files to Pillarrx. Confidential infrastructure detail used by the ETL ingestion platform.']
+  short_name varchar [note: 'Abbreviated display name for the PBM used in dashboards, trend reports, and benchmarking outputs where space is constrained (e.g., Caremark, OptumRx, ESI).']
+  specialty_pharmacy_network boolean [note: 'Indicates whether the PBM operates a specialty pharmacy network or limited distribution drug (LDD) channel. True when specialty claims are routed through a dedicated specialty network.']
+  supports_adjustments boolean [note: 'Indicates whether the PBM includes claim adjustment transactions in its data feed. True when adjustment records are provided; False when adjustments are delivered as net replacements.']
+  supports_reversals boolean [note: 'Indicates whether the PBM includes claim reversal transactions in its data feed. True when reversal records are provided; False when reversals must be inferred from net claim activity.']
+  tax_identification_number varchar [note: 'Federal Employer Identification Number (EIN) / Tax ID for the PBM entity. Used in financial reconciliation, 1099 reporting, and contract governance under SOX and Brown & Brown finance controls.']
+  termination_date date [note: 'Date on which the PBM relationship with Pillarrx was terminated or the data feed was permanently discontinued. Null for active PBMs. Used in historical reporting and data retention governance.']
+  updated_timestamp timestamp [note: 'Timestamp when the PBM master record was most recently modified in the Pillarrx Enterprise Data Warehouse. Used for change detection, ETL delta processing, and audit trail maintenance.']
+
+  Note: 'Pharmacy Benefit Manager (PBM) master record representing each PBM from which PillarRx ingests claims data (CVS Caremark, Optum Rx, Express Scripts, Navitus, EmpiRx Health, BCBS Michigan, Rightway, Prime Therapeutics, ServeYou, Carelon).'
+}
+
+Table claim.claim_benefit_group {
+  claim_benefit_group_id varchar [pk, note: 'Unique surrogate primary key for the benefit group master record defining the pharmacy benefit design applied to a cohort of members under a specific client plan.']
+  company_pbm_id varchar [note: 'Reference to the PBM (e.g., CVS Caremark, Optum Rx, Express Scripts) that administers this benefit group and from whose claims feed this group definition was sourced.']
+  division_benefit_group_id varchar [note: 'The raw benefit group identifier as received from the PBM claims feed prior to normalization. Preserved for audit traceability and PBM reconciliation against source data.']
+  division_formulary_id varchar [note: 'Identifier of the formulary (covered drug list) associated with this benefit group as assigned by the PBM. Drives tier-based cost-sharing and drug coverage determinations.']
+  employer_id varchar [note: 'Reference to the employer client whose plan this benefit group belongs to, within the Company > Division > Client hierarchy.']
+  awp_discount_mail_pct decimal(5,4) [note: 'Contracted AWP discount percentage applied to mail-order pharmacy claims under this benefit group. Typically higher than retail. Used in PBM mail-order discount guarantee auditing.']
+  awp_discount_retail_pct decimal(5,4) [note: 'Contracted AWP discount percentage applied to retail pharmacy claims under this benefit group. Expressed as a decimal (e.g., 0.1600 = 16% off AWP). Used in PBM discount guarantee auditing.']
+  benefit_group_code varchar [note: 'The externally-known alphanumeric code identifying this benefit group as assigned by the PBM or employer plan. Used for claims routing and eligibility matching. Maps to RxGroup in claim transactions.']
+  benefit_group_name varchar [note: 'Human-readable name of the benefit group as defined by the employer plan or PBM (e.g., \'Active Employees\', \'Retirees\', \'COBRA Members\').']
+  benefit_group_status varchar [note: 'Current lifecycle state of the benefit group record indicating whether it is actively in use for claims adjudication and member eligibility assignment.']
+  benefit_type varchar [note: 'Classification of the pharmacy benefit design by coverage type, distinguishing commercial employer plans from Medicare Part D, Medicaid, retiree, COBRA, or ACA exchange coverage.']
+  cap_eligible boolean [note: 'Indicates whether members in this benefit group are eligible to participate in copay assistance programs (CAP) managed via the PAX application. Drives CAP enrollment eligibility logic.']
+  created_timestamp timestamp [note: 'Timestamp when this benefit group record was first created in the PillarRx data platform. Used for audit trail and data lineage tracking in the lakehouse silver layer.']
+  deductible_applies boolean [note: 'Indicates whether a pharmacy deductible must be satisfied before plan cost-sharing begins for members in this benefit group. Drives deductible accumulator logic in claims analysis.']
+  effective_date date [note: 'The date on which this benefit group design becomes binding and applicable to enrolled members for pharmacy claims adjudication. Aligns with plan year start.']
+  family_deductible_amount decimal(12,2) [note: 'Annual pharmacy deductible amount in USD that applies at the family/subscriber unit level before plan benefits apply. Relevant for dependent cost-sharing analysis.']
+  family_oop_max_amount decimal(12,2) [note: 'Annual maximum out-of-pocket amount in USD for the family/subscriber unit under this benefit group. Drives family-level cost-sharing accumulator analysis.']
+  generic_mandatory boolean [note: 'Indicates whether members are subject to a brand penalty (DAW cost differential) when a generic equivalent is available. Drives Generic Dispensing Rate (GDR) and DAW code analysis.']
+  individual_deductible_amount decimal(12,2) [note: 'Annual pharmacy deductible amount in USD that an individual member must satisfy before plan benefits apply. Used in member out-of-pocket and affordability analysis.']
+  individual_oop_max_amount decimal(12,2) [note: 'Annual maximum out-of-pocket amount in USD for an individual member under this benefit group. Once reached, the plan covers 100% of eligible pharmacy costs. Key for MOOP analysis.']
+  integrated_deductible boolean [note: 'Indicates whether the pharmacy deductible is integrated with the medical deductible (combined accumulator) or is a separate pharmacy-only deductible. Affects total cost of care analysis.']
+  integrated_oop boolean [note: 'Indicates whether the pharmacy out-of-pocket maximum is integrated with the medical out-of-pocket maximum (combined MOOP) or is pharmacy-only. Critical for total cost of care (TCOC) reporting.']
+  mail_order_allowed boolean [note: 'Indicates whether mail-order pharmacy dispensing is an eligible benefit channel under this benefit group. Drives channel-based cost-sharing and dispensing fee analysis.']
+  mail_order_mandatory boolean [note: 'Indicates whether mail-order dispensing is mandatory for maintenance medications after a defined number of retail fills. Affects member cost-sharing and GDR reporting.']
+  member_count varchar [note: 'Number of members currently enrolled in this benefit group as of the most recent eligibility file. Used for Per Member Per Month (PMPM) and Per Member Per Year (PMPY) denominator calculations.']
+  pass_through_pricing boolean [note: 'Indicates whether this benefit group operates under a pass-through (transparent) PBM pricing model where the plan pays actual drug cost plus a dispensing fee, with no spread retained by the PBM.']
+  pbm_source_group_name varchar [note: 'The raw benefit group name as received from the PBM claims feed prior to normalization. Preserved for audit traceability and cross-PBM benchmarking.']
+  plan_year_end_date date [note: 'The last day of the benefit plan year associated with this benefit group. Marks the boundary for annual deductible and out-of-pocket maximum accumulation periods.']
+  plan_year_start_date date [note: 'The first day of the benefit plan year associated with this benefit group. Drives deductible and out-of-pocket accumulator resets for member cost-sharing calculations.']
+  prior_auth_required boolean [note: 'Indicates whether prior authorization (PA) is required for any drug classes under this benefit group. Flags benefit groups for PA utilization management analysis.']
+  quantity_limit_applied boolean [note: 'Indicates whether quantity limits (QL) are enforced on covered drugs under this benefit group. Drives utilization management and quantity limit exception analysis.']
+  rds_eligible boolean [note: 'Indicates whether this benefit group qualifies for the CMS Retiree Drug Subsidy (RDS) program, applicable to employer-sponsored retiree pharmacy benefits.']
+  rebate_passthrough_pct decimal(5,4) [note: 'Contractual percentage of manufacturer rebates passed through to the employer plan under this benefit group. Expressed as a decimal (e.g., 1.0000 = 100%). Used in PBM rebate guarantee auditing.']
+  rx_bin varchar [note: 'Six-digit Bank Identification Number used to route pharmacy claims to the correct PBM processor. Printed on member ID cards and transmitted in NCPDP claim transactions.']
+  rx_group varchar [note: 'The RxGroup identifier transmitted on pharmacy claim transactions for routing and adjudication by the PBM. Directly corresponds to the Group ID field in NCPDP claim transactions.']
+  rx_pcn varchar [note: 'Processor Control Number used alongside RxBIN to route pharmacy claims to the correct PBM sub-processor or plan. Transmitted in NCPDP claim transactions and printed on member ID cards.']
+  specialty_benefit_type varchar [note: 'Indicates how specialty medications are covered under this benefit group — included in standard formulary, excluded, or administered under a separate specialty benefit carve-out.']
+  step_therapy_required boolean [note: 'Indicates whether step therapy (ST) protocols are enforced under this benefit group, requiring members to try lower-cost alternatives before coverage of preferred agents.']
+  termination_date date [note: 'The date on which this benefit group design ceases to be binding. Null for open-ended active groups. Used for Type-2 SCD history tracking in the lakehouse.']
+  three_forty_b_eligible boolean [note: 'Indicates whether claims under this benefit group may be subject to 340B federal drug discount pricing. Relevant for covered entity clients and manufacturer program analysis.']
+  tier_count varchar [note: 'Number of formulary cost-sharing tiers defined in this benefit group (e.g., 3 for generic/preferred brand/non-preferred, 4 for specialty tier). Drives tier-level copay analysis.']
+  updated_timestamp timestamp [note: 'Timestamp when this benefit group record was last modified in the PillarRx data platform. Used for change detection, incremental ETL processing, and audit trail maintenance.']
+
+  Note: 'Benefit group (BG) master record defining the pharmacy benefit design applied to a cohort of members under a specific client plan. Primary key is benefit_group_id.'
+}
+
+Table claim.adjustment {
+  adjustment_id varchar [pk, note: 'Unique surrogate identifier for the pharmacy claim adjustment or reversal record in the Pillarrx lakehouse silver layer.']
+  adjustment_original_rx_claim_id varchar [note: 'FK to claim.rx_claim.rx_claim_id — Adjustment/reversal references the original adjudicated claim it modifies; required for lifecycle audit trail.']
+  adjustment_rx_claim_id varchar [note: 'Reference to the original pharmacy claim transaction that this adjustment, reversal, or rebill modifies. Core linkage to the parent claim fact.']
+  claim_benefit_group_id varchar [note: 'Foreign key linking to claim.claim_benefit_group. Business justification: Adjustments are processed under a specific benefit group context (same as the original claim).']
+  company_client_id varchar [note: 'Foreign key linking to company.company_client. Business justification: Adjustments must be attributed to specific clients for accurate financial reconciliation, audit reporting, and consulting analysis of claim corrections.']
+  company_pbm_id varchar [note: 'Reference to the PBM (e.g., CVS Caremark, Optum Rx, Express Scripts) that processed the original claim and submitted this adjustment transaction.']
+  member_id varchar [note: 'Reference to the member (patient) associated with the adjusted claim. Supports Member 360 cross-PBM analytics and member-level financial reconciliation.']
+  ndc_id varchar [note: 'Reference to the 11-digit NDC drug dimension record for the drug dispensed on the adjusted claim. Supports drug-level financial impact analysis.']
+  pbm_assignment_id varchar [note: 'Foreign key linking to client.pbm_assignment. Business justification: Adjustments (reversals, rebills, DIR fees) are PBM-specific and must be reconciled against the employer\'s PBM assignment contract terms.']
+  pbm_division_id varchar [note: 'Foreign key linking to division.division. Business justification: Adjustments must be tracked at division level for accurate PBM guarantee calculations (AWP discount, dispensing fee, rebate guarantees) and division-specific financial reconciliation.']
+  pbm_feed_batch_id varchar [note: 'Foreign key linking to claim.pbm_feed_batch. Business justification: Adjustments are ingested via PBM feed batches. Every adjustment should be traceable to its ingestion batch for audit and reconciliation.']
+  rx_claim_id varchar [note: 'FK to claim.rx_claim.rx_claim_id — Adjustment/reversal records reference the original rx_claim; the lifecycle audit trail is meaningless without this parent FK.']
+  to_rx_claim_id varchar [note: 'FK to claim.rx_claim.rx_claim_id — Adjustment/reversal records reference an original rx_claim; FK needed for lifecycle audit trail and DIR reconciliation.']
+  adjustment_date date [note: 'The calendar date on which the adjustment or reversal transaction was processed or submitted by the PBM. Principal business event date for financial reconciliation.']
+  adjustment_status varchar [note: 'Current lifecycle state of the adjustment transaction: pending (received, not yet applied), processed (applied to financials), rejected (denied by PBM), or voided (cancelled before processing).']
+  adjustment_type varchar [note: 'Classifies the nature of the transaction: reversal (claim cancellation), rebill (resubmission after reversal), correction (financial correction), or general adjustment.']
+  awp_adj decimal(12,2) [note: 'The delta change to the AWP-based pricing component resulting from this adjustment. Used in AWP discount guarantee auditing and PBM contract reconciliation.']
+  daw_code varchar [note: 'The DAW code from the original claim indicating brand/generic dispensing instruction (0=no product selection, 1=substitution not allowed by prescriber, 2=substitution by patient, etc.).']
+  days_supply varchar [note: 'The number of days of medication supply dispensed on the original claim. Retained on the adjustment for PMPM/PMPY trend analysis and days-supply-based pricing reconciliation.']
+  deductible_adj decimal(10,2) [note: 'The delta change to the deductible amount applied on the original claim resulting from this adjustment. Critical for accurate member deductible accumulator reconciliation.']
+  dir_fee_adj decimal(10,2) [note: 'The delta change to the DIR fee component applied via this adjustment. DIR fees are post-adjudication pharmacy clawbacks; tracking adjustments is essential for PBM audit and spread analysis.']
+  dispensing_fee_adj decimal(10,2) [note: 'The delta change to the pharmacy dispensing fee resulting from this adjustment. Used in PBM dispensing-fee guarantee auditing and contract reconciliation.']
+  fill_number varchar [note: 'The sequential fill number (refill count) of the original prescription being adjusted. Fill 0 = new prescription; Fill 1+ = refills. Used to identify which dispensing event is impacted.']
+  ingested_timestamp timestamp [note: 'The date and time this adjustment record was first loaded into the Pillarrx lakehouse silver layer from the PBM claims feed. Used for data freshness monitoring and ETL audit.']
+  ingredient_cost_adj decimal(12,2) [note: 'The delta change to ingredient cost resulting from this adjustment. Negative for reversals; positive for upward corrections. Core financial component for PBM audit and benchmarking.']
+  is_rebill boolean [note: 'Indicates whether this adjustment record represents a rebill (resubmission of a previously reversed claim with corrected data). True = rebill transaction following a reversal.']
+  is_reversal boolean [note: 'Indicates whether this adjustment record represents a full claim reversal (cancellation) as opposed to a partial financial correction or rebill. True = full reversal.']
+  member_coinsurance_adj decimal(10,2) [note: 'The delta change to the member coinsurance (percentage cost-share) resulting from this adjustment. Supports member OOP reconciliation and benefit design analysis.']
+  member_copay_adj decimal(10,2) [note: 'The delta change to the member copay (fixed cost-share) resulting from this adjustment. Used for member out-of-pocket reconciliation and copay assistance program (CAP) impact analysis.']
+  oop_adj decimal(10,2) [note: 'The delta change to the member out-of-pocket (OOP) accumulator applied on the original claim. Used to reconcile member MOOP and TrOOP accumulators after adjustment.']
+  original_dos date [note: 'The date of service (DOS) from the original pharmacy claim being adjusted. Retained on the adjustment record for period-accurate financial reporting and audit trail.']
+  original_fill_date date [note: 'The dispensing date of the original prescription fill that is being adjusted or reversed. Used to attribute the financial impact to the correct dispensing period.']
+  other_payer_adj decimal(10,2) [note: 'The delta change to the other payer amount (e.g., SPAP, manufacturer copay card, secondary insurance) resulting from this adjustment. Supports coordination of benefits reconciliation.']
+  pbm_adjustment_number varchar [note: 'The externally-assigned transaction number or reference code assigned by the PBM to uniquely identify this adjustment or reversal event within the PBM system.']
+  pbm_claim_number varchar [note: 'The PBM-assigned claim number of the original adjudicated claim being adjusted or reversed. Used to trace the adjustment back to the source transaction in PBM systems.']
+  pbm_response_code varchar [note: 'The response or disposition code returned by the PBM upon processing the adjustment transaction (e.g., approved, rejected with reason). Used for adjustment reconciliation and exception management.']
+  pbm_response_message varchar [note: 'Free-text message returned by the PBM alongside the response code, providing additional context on the adjustment outcome (e.g., rejection reason narrative).']
+  plan_paid_adj decimal(12,2) [note: 'The delta change to the plan-paid amount resulting from this adjustment. Negative for reversals recovering plan funds; positive for underpayment corrections. Key for client financial reporting.']
+  quantity_dispensed decimal(10,3) [note: 'The quantity of drug dispensed on the original claim being adjusted, expressed in the drug\'s billing unit (e.g., tablets, mL). Retained for unit-cost recalculation during adjustment analysis.']
+  reason_code varchar [note: 'Standardized code provided by the PBM indicating the reason for the adjustment or reversal (e.g., pricing correction, eligibility change, duplicate claim, DIR fee). [ENUM-REF-CANDIDATE: promote to reference product]']
+  reason_description varchar [note: 'Human-readable description of the adjustment reason, either sourced from the PBM feed or mapped from the adjustment_reason_code during normalization.']
+  rebate_adj decimal(10,2) [note: 'The delta change to the manufacturer rebate amount associated with the original claim resulting from this adjustment. Used in rebate reconciliation and pass-through PBM contract auditing.']
+  rx_number varchar [note: 'The pharmacy-assigned prescription number from the original fill being adjusted. Provides a human-readable cross-reference to the dispensing pharmacy\'s dispensing record.']
+  timestamp timestamp [note: 'Precise date and time the adjustment transaction was processed by the PBM system. Provides sub-day precision for sequencing multiple adjustments on the same claim.']
+  total_cost_adj decimal(12,2) [note: 'The net total dollar change across all financial components (ingredient cost + dispensing fee + other fees) resulting from this adjustment. Used for client-level financial impact reporting.']
+  updated_timestamp timestamp [note: 'The date and time this adjustment record was last modified in the lakehouse (e.g., due to a reprocessing or correction of the normalized record). Supports audit trail and change tracking.']
+
+  Note: 'Adjustment and reversal transaction record that modifies or cancels a previously adjudicated pharmacy claim. Captures the original rx_claim reference, adjustment type (reversal, rebill, correction), adjustment reason code, adjustment date, the financial'
+}
+
+Table claim.medical_claim {
+  medical_claim_id varchar [pk, note: 'Unique surrogate identifier for the medical claim record in the Pillarrx lakehouse silver layer.']
+  benefit_plan_id varchar [note: 'Reference to the employer benefit plan under which this medical claim was adjudicated. Links to plan design for cost-sharing rule context.']
+  employer_id varchar [note: 'Reference to the employer client whose health plan covers this medical claim, supporting multi-tenant Company > Division > Client scoping.']
+  member_id varchar [note: 'Reference to the member (patient) associated with this medical claim, linking to the unified Member 360 record.']
+  pbm_division_id varchar [note: 'Foreign key linking to division.division. Business justification: Medical claims required for total cost of care (TCOC) analysis at division level. Multi-division clients often have separate medical/pharmacy benefit designs.']
+  admit_date date [note: 'Date of inpatient admission for institutional claims. Null for professional/outpatient claims. Used for length-of-stay and inpatient cost analysis.']
+  allowed_amount decimal(18,2) [note: 'Maximum amount the payer will consider for reimbursement after applying contractual fee schedules. Basis for plan-paid and member cost-share calculations.']
+  billed_amount decimal(18,2) [note: 'Gross amount billed by the provider before any contractual adjustments, discounts, or member cost-sharing. Basis for discount analysis.']
+  billing_provider_npi varchar [note: '10-digit NPI of the entity submitting the claim for payment (may differ from rendering provider for group practices or facilities).']
+  claim_number varchar [note: 'Externally assigned claim number from the medical payer or clearinghouse. Primary business identifier used for audit, reconciliation, and TCOC analysis.']
+  claim_source varchar [note: 'Name or code of the medical claims integration feed or payer source from which this claim was ingested (e.g., carrier name, clearinghouse identifier).']
+  claim_status varchar [note: 'Current processing lifecycle status of the medical claim as received from the medical claims integration feed.']
+  claim_type varchar [note: 'Classification of the medical claim by form type: professional (CMS-1500 / 837P) or institutional (UB-04 / 837I).']
+  discharge_date date [note: 'Date of inpatient discharge for institutional claims. Used with admit_date to calculate length of stay for inpatient benchmarking.']
+  discharge_status_code varchar [note: 'UB-04 patient discharge status code indicating disposition at discharge (e.g., 01=Home, 20=Expired, 30=Still Patient). Used for readmission and outcomes analysis.']
+  drg_code varchar [note: 'CMS Diagnosis Related Group code assigned to inpatient institutional claims for prospective payment classification and benchmarking.']
+  ingested_timestamp timestamp [note: 'Timestamp when this medical claim record was first captured and loaded into the Pillarrx lakehouse silver layer from the medical claims integration feed.']
+  is_specialty_claim boolean [note: 'Flag indicating whether this medical claim is associated with a specialty condition or high-cost specialty service. Supports specialty spend monitoring.']
+  member_coinsurance_amount decimal(18,2) [note: 'Percentage-based cost-share amount paid by the member after the deductible is met. Contributes to member out-of-pocket accumulation.']
+  member_copay_amount decimal(18,2) [note: 'Fixed dollar copay amount paid by the member at the point of service. Contributes to member out-of-pocket accumulation.']
+  member_deductible_amount decimal(18,2) [note: 'Amount applied to the member\'s deductible accumulator for this claim. Tracks member spend toward annual deductible threshold.']
+  member_oop_amount decimal(18,2) [note: 'Total out-of-pocket amount paid by the member for this claim (copay + coinsurance + deductible). Used for MOOP tracking and affordability analysis.']
+  network_indicator varchar [note: 'Indicates whether the rendering provider was in-network or out-of-network at the time of service. Drives cost-sharing tier and benchmarking segmentation.']
+  not_covered_amount decimal(18,2) [note: 'Portion of the billed amount not covered by the plan (non-covered services, benefit exclusions). Supports benefit gap and plan design analysis.']
+  other_payer_amount decimal(18,2) [note: 'Amount paid by a secondary or tertiary payer (e.g., Medicare, Medicaid, SPAP, COB payer). Used for coordination of benefits and TCOC reconciliation.']
+  paid_date date [note: 'Date the medical payer adjudicated and issued payment for this claim. Used for cash-flow and TCOC period alignment.']
+  payer_claim_number varchar [note: 'Unique claim identifier assigned by the medical payer upon adjudication. Used for cross-referencing with payer EOBs and audit reconciliation.']
+  payer_name varchar [note: 'Name of the medical insurance carrier or payer that adjudicated this claim. Supports multi-payer TCOC aggregation for employer clients.']
+  place_of_service_code varchar [note: 'CMS two-digit code indicating the setting where the medical service was rendered (e.g., 11=Office, 21=Inpatient Hospital, 23=Emergency Room).']
+  plan_paid_amount decimal(18,2) [note: 'Amount paid by the employer health plan after member cost-sharing is applied. Core TCOC metric for employer spend analysis.']
+  primary_diagnosis_code varchar [note: 'ICD-10-CM code for the primary diagnosis associated with this medical claim. Core clinical dimension for TCOC and disease-burden analysis.']
+  procedure_code varchar [note: 'CPT or HCPCS Level II procedure code identifying the medical service or supply billed. Primary clinical service identifier for TCOC analysis.']
+  procedure_modifier varchar [note: 'Two-character CPT/HCPCS modifier appended to the procedure code to indicate special circumstances (e.g., bilateral, assistant surgeon, telehealth).']
+  received_date date [note: 'Date the medical claim was received by the payer or clearinghouse. Used for turnaround-time and audit lag analysis.']
+  rendering_provider_name varchar [note: 'Name of the provider who rendered the medical service, as reported on the claim. Supports provider-level reporting without requiring NPI lookup.']
+  rendering_provider_npi varchar [note: '10-digit NPI of the provider who rendered the medical service. Sourced from NPPES. Used for provider-level TCOC and specialty analysis.']
+  rendering_provider_specialty varchar [note: 'Medical specialty taxonomy code or description for the rendering provider. Used for specialty-level TCOC segmentation and benchmarking.']
+  revenue_code varchar [note: 'Four-digit UB-04 revenue code used on institutional claims to identify the type of service or accommodation billed by the facility.']
+  secondary_diagnosis_code varchar [note: 'ICD-10-CM code for the secondary or comorbid diagnosis on this claim. Supports comorbidity analysis and total cost of care stratification.']
+  service_category varchar [note: 'High-level category of the medical service for TCOC segmentation and reporting. [ENUM-REF-CANDIDATE: inpatient|outpatient|emergency|professional|mental_health|pharmacy|other — promote to reference product]']
+  service_date date [note: 'The date on which the medical service was rendered. Primary event date used for TCOC trend analysis and period attribution.']
+  service_end_date date [note: 'End date of the service period for institutional claims spanning multiple days (e.g., inpatient stays). Equals service_date for single-day professional claims.']
+  units_of_service decimal(10,2) [note: 'Quantity of services, procedures, or days billed on this claim line. Used for unit-cost normalization in benchmarking and TCOC analysis.']
+  updated_timestamp timestamp [note: 'Timestamp of the most recent update to this medical claim record in the lakehouse, reflecting adjustments, status changes, or data corrections.']
+
+  Note: 'Integrated medical claim record ingested from the medical claims feed for total cost of care (TCOC) analysis. Captures the medical claim number, member identifier, date of service, diagnosis codes (ICD-10), procedure codes (CPT/HCPCS), place of service'
+}
+
+Table claim.pbm_feed_batch {
+  pbm_feed_batch_id varchar [pk, note: 'Unique surrogate identifier for each PBM feed batch ingestion record within the PillarRx PBM Claims Feed Ingestion Platform.']
+  claim_pbm_id varchar [note: 'FK to claim.claim_pbm.claim_pbm_id — Each ingestion batch is a delivery from a specific PBM source; batch captures PBM identifier.']
+  company_pbm_id varchar [note: 'Reference to the PBM source that delivered this feed batch (e.g., CVS Caremark, Optum Rx, Express Scripts, Navitus, EmpiRx Health).']
+  employer_id varchar [note: 'Foreign key linking to client.employer. Business justification: PBM feed batches are often employer-scoped when PBMs deliver client-specific extracts. Data onboarding, feed validation, and SLA monitoring require linking batches to the employer client for']
+  original_batch_pbm_feed_batch_id varchar [note: 'For reprocessed batches (is_reprocessed = true), references the pbm_feed_batch_id of the original batch that this record supersedes. Null for first-time ingestions.']
+  pbm_division_id varchar [note: 'Foreign key linking to division.division. Business justification: Feed batches are division-specific - each division receives separate PBM data feeds even within same employer.']
+  pbm_sender_company_pbm_id varchar [note: 'The sender identifier declared in the PBM feed file header (e.g., NCPDP sender ID, BIN, or proprietary PBM system ID). Used for source authentication and routing.']
+  actual_record_count varchar [note: 'Total number of claim records physically present in the received feed file as counted during ingestion. Compared against expected_record_count for completeness validation.']
+  adjustment_count varchar [note: 'Number of claim adjustment transactions contained in this feed batch. Adjustments correct previously adjudicated fills and are tracked separately for audit purposes.']
+  batch_status varchar [note: 'Current lifecycle state of the feed batch within the ingestion pipeline. Tracks progression from receipt through validation, processing, and completion or failure.']
+  checksum_algorithm varchar [note: 'Algorithm used to compute the file_checksum (e.g., MD5, SHA-256, SHA-512). Required to correctly validate file integrity during reprocessing or audit.']
+  client_scope varchar [note: 'Identifies the employer client(s) whose claims data is contained in this feed batch. May be a single client code or a comma-separated list for multi-client PBM feeds.']
+  created_timestamp timestamp [note: 'Date and time this pbm_feed_batch record was first created in the PillarRx ingestion platform. Serves as the audit record creation timestamp.']
+  delivery_method varchar [note: 'Mechanism by which the PBM transmitted the feed file to PillarRx (e.g., SFTP, API push, cloud storage drop). Informs ingestion routing and SLA tracking.']
+  expected_record_count varchar [note: 'Total number of claim records declared by the PBM in the feed file header or manifest. Used for reconciliation against actual_record_count to detect truncation or transmission errors.']
+  extract_date date [note: 'The date on which the PBM generated and extracted this feed file from their adjudication system. May differ from the received_timestamp due to transmission delays.']
+  feed_file_name varchar [note: 'Original file name of the PBM claims feed file as received from the source PBM, including extension. Used for traceability and audit of the ingestion pipeline.']
+  feed_file_path varchar [note: 'Full storage path or URI of the received PBM feed file in the landing zone (e.g., ADLS, S3, SFTP drop). Enables reprocessing and audit trail.']
+  feed_format varchar [note: 'Technical format of the PBM feed file (e.g., NCPDP D.0 flat file, pipe-delimited, CSV). Drives parser selection during ETL normalization.']
+  feed_frequency varchar [note: 'Expected delivery cadence for this PBM feed as contracted (e.g., daily, weekly, monthly). Used to detect missing or late file deliveries and trigger SLA alerts.']
+  feed_type varchar [note: 'Classification of the data content delivered in this batch. Distinguishes pharmacy claims feeds from eligibility, formulary, rebate, prior authorization, or medical claims feeds.']
+  file_checksum varchar [note: 'Cryptographic hash (e.g., MD5 or SHA-256) of the received feed file used to verify file integrity and detect corruption or tampering during transmission.']
+  file_size_bytes varchar [note: 'Size of the received PBM feed file in bytes. Used for transmission completeness checks and storage capacity planning in the ingestion platform.']
+  fill_count varchar [note: 'Number of original prescription fill transactions (claim type = fill) contained in this feed batch. Used for volume trending and PBM audit reconciliation.']
+  ingestion_environment varchar [note: 'Target environment into which this feed batch was ingested (Production, UAT, Dev, Sandbox). Prevents test data from contaminating production analytics.']
+  is_incremental boolean [note: 'Indicates whether this batch is an incremental (delta) feed containing only new or changed records since the last delivery, as opposed to a full historical reload.']
+  is_reprocessed boolean [note: 'Indicates whether this batch record represents a reprocessing of a previously received feed file (e.g., after a validation failure or data correction). Prevents duplicate loading.']
+  notes varchar [note: 'Free-text operational notes entered by the PillarRx data engineering team regarding this feed batch (e.g., late delivery explanation, PBM communication, manual override reason).']
+  pbm_batch_reference varchar [note: 'The PBM-assigned batch or transmission reference number included in the feed file header. Used for cross-referencing with the PBM\'s own transmission logs during audits.']
+  pbm_code varchar [note: 'Standardized short code identifying the PBM that delivered this feed batch. Used for routing, normalization, and source attribution in the ingestion pipeline.']
+  pbm_fk varchar [note: 'FK to claim.pbm.pbm_id — Each ingestion batch is delivered by a specific PBM; FK needed for feed-completeness monitoring per source.']
+  processed_record_count varchar [note: 'Number of claim records successfully parsed, normalized, and loaded into the Silver layer during ETL processing of this batch.']
+  processing_end_timestamp timestamp [note: 'Date and time when the ETL normalization pipeline completed processing this feed batch. Combined with processing_start_timestamp to compute pipeline duration.']
+  processing_start_timestamp timestamp [note: 'Date and time when the ETL normalization pipeline began processing this feed batch. Used for ingestion SLA measurement and pipeline performance monitoring.']
+  received_timestamp timestamp [note: 'Date and time the PBM feed file was received and landed in the PillarRx ingestion platform. Serves as the authoritative business event timestamp for SLA tracking.']
+  rejected_record_count varchar [note: 'Number of claim records that failed validation or normalization rules and were rejected during ETL processing. Drives data quality alerting and reprocessing workflows.']
+  reporting_period_end_date date [note: 'The latest date of service (DOS) covered by the claims data in this feed batch, as declared by the PBM. Defines the reporting window for client analytics.']
+  reporting_period_start_date date [note: 'The earliest date of service (DOS) covered by the claims data in this feed batch, as declared by the PBM. Defines the reporting window for client analytics.']
+  reversal_count varchar [note: 'Number of claim reversal transactions contained in this feed batch. Reversals cancel previously adjudicated fills and affect net plan spend calculations.']
+  to_pbm varchar [note: 'FK to claim.pbm.pbm_id — Each ingestion batch is from one PBM source; FK needed for feed-completeness monitoring per PBM.']
+  total_ingredient_cost_amount decimal(18,2) [note: 'Sum of ingredient cost amounts across all claim records in this feed batch. Ingredient cost is the drug acquisition cost component used in AWP discount and MAC analysis.']
+  total_member_cost_share_amount decimal(18,2) [note: 'Sum of all member cost-share amounts (copay + coinsurance + deductible applied) across all claim records in this batch. Used for member OOP and MOOP reconciliation.']
+  total_plan_paid_amount decimal(18,2) [note: 'Sum of plan-paid amounts across all claim records in this feed batch (net of reversals). Used for high-level financial reconciliation against PBM invoices and client reporting.']
+  updated_timestamp timestamp [note: 'Date and time this pbm_feed_batch record was last modified (e.g., status update, reprocessing flag change). Supports change tracking and audit.']
+  validation_error_summary varchar [note: 'Human-readable summary of validation errors encountered during feed batch processing. Captures top error categories (e.g., missing NDC, invalid NPI) for triage and remediation.']
+  validation_status varchar [note: 'Result of the automated data quality validation checks applied to this feed batch (e.g., record count match, required field presence, NDC format checks). Distinct from batch_status.']
+
+  Note: 'Ingestion batch record representing a single file delivery from a PBM source system into the PillarRx PBM Claims Feed Ingestion Platform. Captures the PBM identifier, feed file name, file receipt timestamp, reporting period start and end dates, record'
+}
+
+Table claim.rebate_record {
+  rebate_record_id varchar [pk, note: 'Unique surrogate identifier for the manufacturer rebate record within the PillarRx lakehouse. Primary key for the rebate_record entity.']
+  claim_pbm_id varchar [note: 'FK to claim.claim_pbm.claim_pbm_id — Rebate records reference the PBM rebate contract; FK to PBM master needed for guarantee reconciliation.']
+  company_pbm_id varchar [note: 'Reference to the PBM through which the rebatable claims were adjudicated. Links to company.pbm.']
+  employer_id varchar [note: 'Reference to the employer client whose plan members generated the rebatable claims. Links to client.employer. Supports multi-tenant client scoping.']
+  ndc_id varchar [note: 'Reference to the drug NDC dimension record associated with this rebate. Links to drug.ndc. Used for claim-level rebate attribution.']
+  pbm_assignment_id varchar [note: 'Foreign key linking to client.pbm_assignment. Business justification: Rebate records must be reconciled against the specific PBM assignment\'s contracted rebate guarantees, passthrough percentages, and pricing model.']
+  rebate_contract_id varchar [note: 'Reference to the rebate contract under which this rebate record was earned. Links to the division.rebate_contract product.']
+  rebate_payment_id varchar [note: 'Reference to the rebate payment record that settled this rebate amount. Links to the division.rebate_payment product. Nullable until payment is received.']
+  rebate_rx_claim_id varchar [note: 'FK to claim.rx_claim.rx_claim_id — Claim-level rebate rows reference the originating claim; for claim-grain rebates a guaranteed FK supports DIR and pass-through reconciliation. (Drug-class-level rebate rows may be null-FK.)']
+  to_rx_claim_id varchar [note: 'FK to claim.rx_claim.rx_claim_id — Rebate records track amounts at the claim or drug-class level; a claim-level FK is required for claim-grain rebate reconciliation.']
+  adjustment_amount decimal(18,2) [note: 'Dollar amount of any post-invoice adjustment applied to this rebate record (positive = upward adjustment, negative = clawback or reduction).']
+  adjustment_reason varchar [note: 'Explanation for the rebate adjustment amount, such as claim restatement, eligibility correction, or DIR reconciliation. Required when adjustment_amount is non-zero.']
+  admin_fee_amount decimal(18,2) [note: 'Administrative fee retained by the PBM from the gross rebate before passing through to the plan. Key metric in pass-through vs. spread PBM model audits.']
+  benefit_period_end_date date [note: 'End date of the benefit period to which this rebate record applies. Together with benefit_period_start_date defines the rebate measurement window.']
+  benefit_period_start_date date [note: 'Start date of the benefit period (plan year quarter or contract period) to which this rebate record applies. Used for period-level rebate aggregation.']
+  claim_count varchar [note: 'Number of eligible pharmacy claims included in this rebate record for the benefit period. Used to validate rebate amounts against per-claim rates.']
+  created_timestamp timestamp [note: 'Timestamp when this rebate record was first created in the PillarRx lakehouse. Audit trail for data lineage and ETL traceability.']
+  currency_code varchar [note: 'ISO 4217 three-letter currency code for all monetary amounts on this rebate record. Typically USD for domestic PBM rebates.']
+  dispute_reason varchar [note: 'Free-text or coded reason for a rebate dispute when rebate_status is \'disputed\'. Captures the basis for challenging the invoiced or received amount.']
+  drug_name varchar [note: 'Brand or generic name of the drug associated with this rebate record. Denormalized for readability in rebate reporting and consulting deliverables.']
+  estimated_rebate_amount decimal(18,2) [note: 'Projected rebate amount calculated at time of estimation, prior to PBM invoice or manufacturer confirmation. Used for accrual and client forecasting.']
+  formulary_tier varchar [note: 'Formulary tier placement of the drug at the time the rebate was earned. Tier placement drives rebate eligibility and rate under most PBM contracts.']
+  gpi_code varchar [note: '14-digit Medi-Span Generic Product Identifier representing the therapeutic class or drug group for class-level rebate records where a single NDC is not applicable.']
+  invoice_date date [note: 'Date on which the rebate was invoiced to the manufacturer or PBM. Marks the formal billing event in the rebate lifecycle.']
+  invoiced_rebate_amount decimal(18,2) [note: 'Rebate amount formally invoiced to the manufacturer or PBM for the benefit period. Represents the billed gross rebate before any adjustments.']
+  is_340b_excluded boolean [note: 'Indicates whether claims under the federal 340B drug discount program are excluded from this rebate record, as required by most manufacturer rebate contracts.']
+  is_pass_through boolean [note: 'Indicates whether the rebate is fully passed through to the employer plan (true) or retained in whole or part by the PBM under a spread model (false).']
+  manufacturer_name varchar [note: 'Name of the pharmaceutical manufacturer from whom the rebate is earned. Key party in the rebate contract relationship.']
+  market_share_pct decimal(7,4) [note: 'Drug market share percentage achieved within the therapeutic class for the benefit period. Determines tier qualification for market-share-based rebate contracts.']
+  net_rebate_amount decimal(18,2) [note: 'Net rebate amount passed through to the employer plan after deducting PBM administrative fees. Core metric for plan sponsor rebate value reporting.']
+  notes varchar [note: 'Free-text notes entered by PillarRx analysts regarding this rebate record, such as audit findings, reconciliation commentary, or client communication context.']
+  pbm_rebate_reference varchar [note: 'PBM-assigned reference number for this rebate record as reported in the PBM rebate remittance file. Used for cross-referencing PBM source data during audits.']
+  performance_tier varchar [note: 'Performance tier achieved under the rebate contract for the benefit period (e.g., Tier 1, Tier 2, Gold). Determines the applicable rebate rate for performance-based contracts.']
+  rebate_basis varchar [note: 'Method used to calculate the rebate amount: per claim, per dispensed unit, percentage of AWP/WAC, flat fee, or market-share tier. Drives rate application logic.']
+  rebate_rate decimal(10,6) [note: 'Contractual rebate rate applied to calculate the rebate amount, expressed as a percentage of AWP or a per-unit dollar amount per the rebate contract terms.']
+  rebate_status varchar [note: 'Current lifecycle state of the rebate record, from initial estimation through receipt, dispute resolution, or voiding.']
+  rebate_type varchar [note: 'Classification of the rebate by its contractual basis. [ENUM-REF-CANDIDATE: brand|specialty|performance|administrative|inflation|market_share|formulary_placement — promote to reference product]']
+  received_date date [note: 'Date on which the rebate payment was actually received. Nullable until payment is confirmed. Used for cash-basis rebate accounting.']
+  received_rebate_amount decimal(18,2) [note: 'Actual rebate amount received from the manufacturer or PBM. May differ from invoiced amount due to disputes, adjustments, or partial payments.']
+  record_number varchar [note: 'Externally-known business identifier for this rebate record, assigned by the PBM or manufacturer. Used for reconciliation and audit traceability.']
+  source_pbm_name varchar [note: 'Name of the PBM that reported this rebate record (e.g., CVS Caremark, Optum Rx, Express Scripts). Denormalized for multi-PBM reporting without join.']
+  therapeutic_class_code varchar [note: 'Drug therapeutic class code (e.g., Medi-Span GPI class prefix) used for class-level rebate aggregation and performance tier measurement.']
+  unit_count decimal(18,4) [note: 'Total dispensed units (tablets, milliliters, etc.) across all eligible claims in this rebate record. Used for unit-based rebate rate calculations.']
+  updated_timestamp timestamp [note: 'Timestamp of the most recent update to this rebate record. Used to detect changes during reconciliation cycles and ETL incremental loads.']
+
+  Note: 'Manufacturer rebate record tracking rebate amounts earned and received at the claim or drug-class level for a given client and benefit period. Captures the rebate type (brand, specialty, performance, administrative), the drug NDC or GPI therapeutic class'
+}
+
+Table claim.cob {
+  cob_id varchar [pk, note: 'Unique surrogate primary key for the coordination-of-benefits segment record. One row per other-payer occurrence on a pharmacy claim.']
+  benefit_plan_id varchar [note: 'Foreign key linking to client.benefit_plan. Business justification: Coordination of benefits (COB) records track other payer coverage for members. Linking to benefit_plan enables accurate accumulator reconciliation, TROOP calculation for Medicare Part D']
+  company_client_id varchar [note: 'Foreign key linking to company.company_client. Business justification: COB records must be attributed to clients for coordination of benefits analysis, other payer recovery audits, and CAP program coordination reporting. New FK needed.']
+  other_payer_company_pbm_id varchar [note: 'Identifier of the other payer (e.g., secondary insurer, SPAP, Medicare, Medicaid, manufacturer copay card). Interpreted in conjunction with other_payer_id_qualifier.']
+  pbm_division_id varchar [note: 'Foreign key linking to division.division. Business justification: COB records needed at division level for accurate accumulator tracking and PBM guarantee measurement when coordination of benefits rules vary by division.']
+  rx_claim_id varchar [note: 'Foreign key to the parent pharmacy claim (rx_claim) to which this COB segment belongs. Links the other-payer record to its adjudicated fill transaction.']
+  cap_applied_flag boolean [note: 'Indicates whether this COB segment represents a manufacturer copay assistance program (CAP) payment such as a copay card or coupon. Enables PAX application tracking and CAP program analytics.']
+  cob_status varchar [note: 'Processing status of this COB segment. Indicates whether the other-payer amount was successfully applied, rejected by the adjudicator, pending resolution, or reversed.']
+  coordination_period_end_date date [note: 'End date of the benefit period during which the other payer\'s coverage is active and coordinating. Null if the other payer coverage is open-ended or ongoing.']
+  coordination_period_start_date date [note: 'Start date of the benefit period during which the other payer\'s coverage is active and coordinating. Used to validate COB eligibility and benefit year alignment.']
+  ingestion_timestamp timestamp [note: 'Timestamp when this COB segment record was first loaded into the lakehouse Silver layer from the PBM claims feed. Supports data freshness monitoring and ETL audit.']
+  other_payer_amount_qualifier varchar [note: 'NCPDP qualifier indicating what the other_payer_paid_amt represents. Values: 01=Ingredient Cost, 02=Dispensing Fee, 03=Total, 04=Copay, 05=Coinsurance, 06=Deductible.']
+  other_payer_bin varchar [note: 'Six-digit Bank Identification Number (BIN/RxBIN) of the other payer used for pharmacy claim routing. Enables identification of the other payer\'s adjudication network.']
+  other_payer_coinsurance_amt decimal(12,2) [note: 'Percentage-based coinsurance amount assessed by the other payer for this claim. Supports granular COB cost-sharing analysis separate from copay and deductible.']
+  other_payer_copay_amt decimal(12,2) [note: 'Fixed copay amount assessed by the other payer for this claim. Distinguishes the copay component of patient responsibility from coinsurance and deductible for COB analytics.']
+  other_payer_coverage_type varchar [note: 'Type of coverage provided by the other payer. Distinguishes pharmacy-specific COB from medical or other benefit coordination, relevant for total cost of care analysis.']
+  other_payer_date date [note: 'Date on which the other payer adjudicated or processed this claim. Used to sequence COB events and validate that the other payer processed the claim before the primary plan.']
+  other_payer_deductible_amt decimal(12,2) [note: 'Deductible amount applied by the other payer toward this claim. Used to determine how much of the patient responsibility is attributable to the other payer\'s deductible accumulator.']
+  other_payer_group varchar [note: 'Benefit group identifier (RxGroup) associated with the other payer\'s plan. Used to identify the specific benefit design under the secondary or tertiary payer.']
+  other_payer_id_qualifier varchar [note: 'Qualifier code indicating the type of identifier in other_payer_id. NCPDP values: 01=BIN, 02=NPI, 03=NCPDP, 04=Medicare, 99=Other. Required to correctly interpret the payer ID.']
+  other_payer_name varchar [note: 'Human-readable name of the other payer (e.g., \'Medicare Part D\', \'Aetna\', \'Pfizer Copay Card\'). Sourced from the PBM claims feed or enriched from payer reference data.']
+  other_payer_paid_amt decimal(12,2) [note: 'Dollar amount paid by the other payer toward this claim. Used in COB calculations to determine residual member liability and plan liability after all payers have contributed.']
+  other_payer_patient_responsibility_amt decimal(12,2) [note: 'Amount the other payer determined to be the patient\'s responsibility (copay, coinsurance, deductible) under that payer\'s benefit design. Feeds into primary plan COB adjudication.']
+  other_payer_pcn varchar [note: 'Processor Control Number (RxPCN) of the other payer, used alongside BIN to route claims to the correct adjudication processor for the secondary or tertiary payer.']
+  other_payer_type varchar [note: 'Classification of the other payer. Supports COB analytics and CAP program identification. [ENUM-REF-CANDIDATE: commercial|medicare|medicaid|spap|manufacturer_cap|tricare|other — promote to reference product]']
+  payer_sequence varchar [note: 'Indicates the coordination order of this other payer relative to the primary plan: primary, secondary, or tertiary. Drives COB logic and member liability calculation.']
+  pbm_claim_number varchar [note: 'The PBM-assigned claim reference number from the source adjudication system. Used to correlate the COB segment back to the raw PBM claims feed for audit and reconciliation.']
+  reject_code varchar [note: 'NCPDP reject code returned when the COB segment was not accepted during adjudication. Used for claims audit and PBM performance analysis when COB coordination fails.']
+  reject_description varchar [note: 'Human-readable description of the reject code for the COB segment. Supports claims audit workflows and PBM consulting deliverables when investigating COB adjudication failures.']
+  source_file_name varchar [note: 'Name of the raw PBM claims file from which this COB segment was extracted. Enables data lineage tracing back to the original ingestion artifact for audit and reconciliation.']
+  troop_excluded_flag boolean [note: 'Indicates whether the other payer amount is excluded from the member\'s True Out-of-Pocket (TrOOP) accumulator under Medicare Part D rules. Critical for 340B and manufacturer CAP compliance.']
+  updated_timestamp timestamp [note: 'Timestamp of the most recent update to this COB segment record in the lakehouse. Tracks adjustments, reversals, or corrections applied after initial ingestion.']
+
+  Note: 'Coordination-of-benefits / other-payer segment for a pharmacy claim, capturing each other-payer amount, payer sequence (primary/secondary/tertiary), other payer ID and qualifier, other payer paid amount, other payer patient responsibility, and the'
+}
+
+
+// --- Foreign Key References ---
+Ref: claim.rx_claim.claim_benefit_group_id > claim.claim_benefit_group.claim_benefit_group_id
+Ref: claim.rx_claim.claim_pbm_id > claim.claim_pbm.claim_pbm_id
+Ref: claim.rx_claim.claim_prescriber_id > claim.claim_prescriber.claim_prescriber_id
+Ref: claim.rx_claim.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: claim.rx_claim.employer_id > client.employer.employer_id
+Ref: claim.rx_claim.member_id > company.member.member_id
+Ref: claim.rx_claim.ndc_id > drug.ndc.ndc_id
+Ref: claim.rx_claim.pbm_division_id > division.division.division_id
+Ref: claim.rx_claim.pbm_feed_batch_id > claim.pbm_feed_batch.pbm_feed_batch_id
+Ref: claim.rx_claim.pharmacy_id > drug.pharmacy.pharmacy_id
+Ref: claim.rx_claim.rx_pbm_feed_batch_id > claim.pbm_feed_batch.pbm_feed_batch_id
+Ref: claim.rx_claim_line.ndc_id > drug.ndc.ndc_id
+Ref: claim.rx_claim_line.primary_rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.rx_claim_line.to_rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.member_oop_accumulator.benefit_plan_id > client.benefit_plan.benefit_plan_id
+Ref: claim.member_oop_accumulator.claim_benefit_group_id > claim.claim_benefit_group.claim_benefit_group_id
+Ref: claim.member_oop_accumulator.company_client_id > company.company_client.company_client_id
+Ref: claim.member_oop_accumulator.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: claim.member_oop_accumulator.member_id > company.member.member_id
+Ref: claim.member_oop_accumulator.pbm_division_id > division.division.division_id
+Ref: claim.dur_event.claim_prescriber_id > claim.claim_prescriber.claim_prescriber_id
+Ref: claim.dur_event.coagent_ndc_id > drug.ndc.ndc_id
+Ref: claim.dur_event.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: claim.dur_event.dur_rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.dur_event.employer_id > client.employer.employer_id
+Ref: claim.dur_event.member_id > company.member.member_id
+Ref: claim.dur_event.ndc_id > drug.ndc.ndc_id
+Ref: claim.dur_event.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
+Ref: claim.dur_event.pbm_division_id > division.division.division_id
+Ref: claim.dur_event.pbm_feed_batch_id > claim.pbm_feed_batch.pbm_feed_batch_id
+Ref: claim.dur_event.pharmacy_id > drug.pharmacy.pharmacy_id
+Ref: claim.dur_event.prior_auth_id > claim.prior_auth.prior_auth_id
+Ref: claim.dur_event.rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.dur_event.to_rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.prior_auth.claim_prescriber_id > claim.claim_prescriber.claim_prescriber_id
+Ref: claim.prior_auth.company_client_id > company.company_client.company_client_id
+Ref: claim.prior_auth.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: claim.prior_auth.member_id > company.member.member_id
+Ref: claim.prior_auth.ndc_id > drug.ndc.ndc_id
+Ref: claim.prior_auth.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
+Ref: claim.prior_auth.pbm_division_id > division.division.division_id
+Ref: claim.prior_auth.prior_rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.prior_auth.rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.prior_auth.to_rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.claim_benefit_group.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: claim.claim_benefit_group.division_benefit_group_id > division.division_benefit_group.division_benefit_group_id
+Ref: claim.claim_benefit_group.division_formulary_id > division.division_formulary.division_formulary_id
+Ref: claim.claim_benefit_group.employer_id > client.employer.employer_id
+Ref: claim.adjustment.adjustment_original_rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.adjustment.adjustment_rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.adjustment.claim_benefit_group_id > claim.claim_benefit_group.claim_benefit_group_id
+Ref: claim.adjustment.company_client_id > company.company_client.company_client_id
+Ref: claim.adjustment.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: claim.adjustment.member_id > company.member.member_id
+Ref: claim.adjustment.ndc_id > drug.ndc.ndc_id
+Ref: claim.adjustment.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
+Ref: claim.adjustment.pbm_division_id > division.division.division_id
+Ref: claim.adjustment.pbm_feed_batch_id > claim.pbm_feed_batch.pbm_feed_batch_id
+Ref: claim.adjustment.rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.adjustment.to_rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.medical_claim.benefit_plan_id > client.benefit_plan.benefit_plan_id
+Ref: claim.medical_claim.employer_id > client.employer.employer_id
+Ref: claim.medical_claim.member_id > company.member.member_id
+Ref: claim.medical_claim.pbm_division_id > division.division.division_id
+Ref: claim.pbm_feed_batch.claim_pbm_id > claim.claim_pbm.claim_pbm_id
+Ref: claim.pbm_feed_batch.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: claim.pbm_feed_batch.employer_id > client.employer.employer_id
+Ref: claim.pbm_feed_batch.original_batch_pbm_feed_batch_id > claim.pbm_feed_batch.pbm_feed_batch_id
+Ref: claim.pbm_feed_batch.pbm_division_id > division.division.division_id
+Ref: claim.pbm_feed_batch.pbm_sender_company_pbm_id > company.company_pbm.company_pbm_id
+Ref: claim.rebate_record.claim_pbm_id > claim.claim_pbm.claim_pbm_id
+Ref: claim.rebate_record.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: claim.rebate_record.employer_id > client.employer.employer_id
+Ref: claim.rebate_record.ndc_id > drug.ndc.ndc_id
+Ref: claim.rebate_record.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
+Ref: claim.rebate_record.rebate_contract_id > division.rebate_contract.rebate_contract_id
+Ref: claim.rebate_record.rebate_payment_id > division.rebate_payment.rebate_payment_id
+Ref: claim.rebate_record.rebate_rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.rebate_record.to_rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.cob.benefit_plan_id > client.benefit_plan.benefit_plan_id
+Ref: claim.cob.company_client_id > company.company_client.company_client_id
+Ref: claim.cob.other_payer_company_pbm_id > company.company_pbm.company_pbm_id
+Ref: claim.cob.pbm_division_id > division.division.division_id
+Ref: claim.cob.rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: division.prior_auth_request.linked_rx_claim_id > claim.rx_claim.rx_claim_id
+
+
+TableGroup claim {
+  claim.rx_claim
+  claim.rx_claim_line
+  claim.member_oop_accumulator
+  claim.dur_event
+  claim.prior_auth
+  claim.claim_prescriber
+  claim.claim_pbm
+  claim.claim_benefit_group
+  claim.adjustment
+  claim.medical_claim
+  claim.pbm_feed_batch
+  claim.rebate_record
+  claim.cob
+}
+
