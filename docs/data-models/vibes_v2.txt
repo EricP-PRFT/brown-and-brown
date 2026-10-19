@@ -1,3 +1,5 @@
+RE-APPLY ALL MISSED VIBES FROM V1. Additionally:
+
 FIX MISSING FKs ON rx_claim: Add FK to drug.ndc via ndc_id. Confirm claim_prescriber FK exists. Add subscriber FK to company.subscriber for policyholder-level rollups.
 
 RESOLVE BENEFIT_GROUP SSOT: claim.claim_benefit_group, client.client_benefit_group, and division.division_benefit_group all represent "benefit_group". Choose ONE as the SSOT owner; others reference it via FK.
