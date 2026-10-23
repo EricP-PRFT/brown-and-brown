@@ -1,0 +1,7 @@
+PBM-References
+
+ncpdp: https://www.ncpdp.org/
+first databank: https://www.fdbhealth.com/
+nucc: https://www.nucc.org/
+nppes: https://nppes.cms.hhs.gov/login
+medispan: https://www.wolterskluwer.com/en/solutions/medi-span/medi-span/drug-data

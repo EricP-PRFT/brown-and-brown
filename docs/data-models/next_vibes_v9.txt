@@ -1,0 +1,133 @@
+**Model Quality Score: 70.98/100**
+
+**Static Analysis Findings (10 actionable):**
+  - [SA:unlinked_fk] Column drug.pharmacy_network.ncpdp_id looks like an FK but has no foreign_key_to reference
+  - [SA:unlinked_fk] Column drug.pharmacy_network.pharmacy_ncpdp_id looks like an FK but has no foreign_key_to reference
+  - [SA:unlinked_fk] Column drug.pharmacy_network.tertiary_pharmacy_id looks like an FK but has no foreign_key_to reference
+  - [SA:unlinked_fk] Column client.pbm_assignment.mac_list_id looks like an FK but has no foreign_key_to reference
+  - [SA:unlinked_fk] Column division.division_benefit_group.claim_benefit_group_id looks like an FK but has no foreign_key_to reference
+  - [SA:missing_pk] Product 'drug.ndc' has no primary key attribute.
+  - [SA:denormalized_natural_key] Product 'drug.pharmacy' has both FK 'ncpdp_id' and natural key 'ncpdp_number' for entity 'ncpdp'. The natural key is redundant — use the FK join instead.
+  - [SA:cross_domain_duplicate] Potential SSOT violation: 'claim.claim_benefit_group' and 'client.client_benefit_group' have the same entity name 'benefit_group' in different domains. One should be the SSOT owner, the other should reference via FK.
+  - [SA:cross_domain_duplicate] Potential SSOT violation: 'claim.claim_benefit_group' and 'division.division_benefit_group' have the same entity name 'benefit_group' in different domains. One should be the SSOT owner, the other should reference via FK.
+  - [SA:cross_domain_duplicate] Potential SSOT violation: 'client.client_benefit_group' and 'division.division_benefit_group' have the same entity name 'benefit_group' in different domains. One should be the SSOT owner, the other should reference via FK.
+
+**PRIORITY 1 — connect_table: claim.rx_claim** — add column ndc_id (BIGINT) with FK to drug.ndc.ndc_id — every pharmacy claim must resolve to a specific dispensed NDC for pricing and formulary analysis.
+**PRIORITY 2 — connect_table: claim.rx_claim** — add column subscriber_id (BIGINT) with FK to company.subscriber.subscriber_id — claims must roll up to the subscriber for OOP accumulation and family benefit tracking.
+**PRIORITY 3 — connect_table: claim.rx_claim** — add column claim_prescriber_id (BIGINT) with FK to claim.claim_prescriber.claim_prescriber_id — confirm prescriber linkage for DUR and prior-auth lineage.
+**PRIORITY 4 — connect_table: drug.equivalence** — add column ndc_id (BIGINT) with FK to drug.ndc.ndc_id — therapeutic/generic equivalence rows must anchor to a specific NDC.
+**PRIORITY 5 — connect_table: drug.drug_prescriber** — add column ndc_id (BIGINT) with FK to drug.ndc.ndc_id — prescriber-drug records must link to the drug reference.
+**PRIORITY 6 — connect_table: claim.claim_pbm_source** — add column company_pbm_id (BIGINT) with FK to company.company_pbm.company_pbm_id — PBM source rows must resolve to the canonical company PBM entity (and store as BIGINT, not a ref string).
+**PRIORITY 7 — connect_table: company.company_pbm** — add column organization_id (BIGINT) with FK to company.organization.organization_id — each PBM must tie to its parent organization in the tenant hierarchy.
+**PRIORITY 8 — connect_table: claim.adjustment** — add column original_rx_claim_id (BIGINT) with FK to claim.rx_claim.rx_claim_id — reversal/adjustment lineage back to the original claim.
+**PRIORITY 9 — connect_table: claim.cob** — add column member_id (BIGINT) with FK to company.member.member_id — coordination-of-benefits rows must identify the covered member.
+**PRIORITY 10 — connect_table: claim.member_oop_accumulator** — add column subscriber_id (BIGINT) with FK to company.subscriber.subscriber_id — OOP accumulators aggregate at the subscriber level.
+**PRIORITY 13 — rename_attribute: company.subscriber** — rename column subscriber_client_fk to client_id
+**PRIORITY 14 — rename_attribute: company.member** — rename column member_360_key to member_360_id
+**PRIORITY 15 — rename_attribute: drug.pharmacy_network** — rename column mac_list_fk to mac_list_id
+**PRIORITY 16 — rename_attribute: company.client_division_assignment** — rename column data_assignment_fk to data_assignment_id
+**PRIORITY 17 — rename_attribute: company.client_division_assignment** — rename column client_division_fk to client_division_id
+**PRIORITY 18 — rename_attribute: division.pbm_guarantee_period** — rename column pbm_period_fk to pbm_guarantee_period_id
+**PRIORITY 19 — rename_attribute: drug.ndc** — rename column ndc_labeler_code_fk to labeler_code_id
+**PRIORITY 20 — rename_attribute: drug.drug_formulary_tier** — rename column drug_formulary_tier_formulary_fk to formulary_id
+**PRIORITY 21 — rename_attribute: company.tenant_change_log** — rename column tenant_change_log_fk to parent_tenant_change_log_id
+**PRIORITY 22 — connect_table: client.client_benefit_group** — add column division_benefit_group_id (BIGINT) with FK to division.division_benefit_group.division_benefit_group_id — division_benefit_group is the SSOT owner; client-level groups must reference it.
+**PRIORITY 23 — connect_table: claim.claim_benefit_group** — add column division_benefit_group_id (BIGINT) with FK to division.division_benefit_group.division_benefit_group_id — claim-level groups must reference the SSOT division benefit group.
+**PRIORITY 24 — connect_table: drug.pharmacy** — add column pharmacy_network_id (BIGINT) with FK to drug.pharmacy_network.pharmacy_network_id — wire the unlinked ncpdp/network relationship and store network id as BIGINT not STRING.
+**PRIORITY 25 — connect_table: drug.pharmacy_network** — add column pharmacy_ncpdp_id (BIGINT) with FK to drug.pharmacy.pharmacy_id — resolve the unlinked primary pharmacy reference on the network.
+**PRIORITY 26 — connect_table: drug.pharmacy_network** — add column tertiary_pharmacy_id (BIGINT) with FK to drug.pharmacy.pharmacy_id — resolve the unlinked tertiary pharmacy business-role reference.
+**PRIORITY 27 — remove_fk: drug.pharmacy** — remove FK on column ncpdp_id because a self-ref on ncpdp_id equals an external identifier, not the pharmacy PK; replace network linkage with pharmacy_network_id.
+**PRIORITY 28 — rename_attribute: drug.ndc** — rename column awp to awp (change type NUMERIC to DECIMAL) — pricing must use DECIMAL for exact monetary precision.
+**PRIORITY 29 — rename_attribute: drug.ndc** — rename column wac to wac (change type NUMERIC to DECIMAL) — pricing must use DECIMAL for exact monetary precision.
+**PRIORITY 30 — rename_attribute: client.client_benefit_group** — add type BIGINT on column claim_benefit_group_id — dangling untyped cross-ref column must be a typed FK.
+**PRIORITY 31 — rename_attribute: division.division_benefit_group** — add type BIGINT on column claim_benefit_group_id — dangling untyped cross-ref column must be a typed FK.
+**PRIORITY 32 — connect_table: drug.pharmacy** — add column npi (STRING) — national provider identifier required for pharmacy identity resolution.
+**PRIORITY 33 — connect_table: drug.pharmacy** — add column ncpdp_id (STRING) — NCPDP identifier required as the external pharmacy key.
+**PRIORITY 34 — connect_table: drug.pharmacy** — add column chain_independent_status (STRING) — pharmacy chain vs independent classification for network analysis.
+**PRIORITY 35 — connect_table: drug.pharmacy** — add column specialty_designation (STRING) — specialty pharmacy flag required for channel analysis.
+**PRIORITY 36 — connect_table: drug.pharmacy** — add column effective_start_date (DATE) — Type-2 SCD tracking for pharmacy attribute history.
+**PRIORITY 37 — connect_table: drug.pharmacy** — add column effective_end_date (DATE) — Type-2 SCD tracking for pharmacy attribute history.
+**PRIORITY 38 — connect_table: drug.pharmacy** — add column is_current_record (BIGINT) — Type-2 SCD current-row flag for pharmacy.
+**PRIORITY 39 — rename_attribute: claim.claim_pbm_source** — add tag dbx_subdomain with business value PBM Source System on claim_pbm_source — satisfy the subdomain tag requirement (VREQ scope: products.subdomain editable here).
+**PRIORITY 40 — connect_table: division.formulary_drug_placement** — add column ndc_id (BIGINT) with FK to drug.ndc.ndc_id — confirm the formulary placement resolves to the specific NDC (verify prior apply landed).
+
+Other known issues from static analysis (49):
+  - Attribute 'ndc_labeler_fk' in drug.ndc has redundant product prefix 'ndc_'. Rename to 'labeler_fk'
+  - Attribute 'tenant_change_log_fk' in company.tenant_change_log has redundant product prefix 'tenant_change_log_'. Rename to 'fk'
+  - Attribute 'member_360_key' in company.member has redundant product prefix 'member_'. Rename to '360_key'
+  - Table drug.pharmacy has self-referencing FK on column 'ncpdp_id' with same name as PK 'pharmacy_id' — the FK column must have a different name that describes the relationship (the LLM should choose a contextual label)
+  - Table company.tenant_change_log has self-referencing FK on column 'tenant_change_log_fk' with same name as PK 'tenant_change_log_id' — the FK column must have a different name that describes the relationship (the LLM should choose a contextual label)
+  - Table division.division_benefit_group has self-referencing FK on column 'client_benefit_group_id' with same name as PK 'division_benefit_group_id' — the FK column must have a different name that describes the relationship (the LLM should choose a contextual label)
+  - Table claim.dur_event has 3 FK columns pointing to claim.rx_claim (dur_rx_claim_id, rx_claim_id, to_rx_claim_id) (generic/unlabeled: rx_claim_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table claim.prior_auth has 3 FK columns pointing to claim.rx_claim (prior_rx_claim_id, rx_claim_id, to_rx_claim_id) (generic/unlabeled: rx_claim_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table claim.cob has 2 FK columns pointing to claim.rx_claim (rx_claim_id, member_id) (generic/unlabeled: rx_claim_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table drug.ndc has 5 FK columns pointing to drug.manufacturer (labeler_manufacturer_id, manufacturer_id, labeler_code_fk, ndc_labeler_fk, ndc_manufacturer_id) (generic/unlabeled: manufacturer_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table drug.ndc_price has 3 FK columns pointing to drug.mac_list (primary_mac_list_id, mac_list_id, ndc_mac_list_id) (generic/unlabeled: mac_list_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table drug.drug_formulary_tier has 2 FK columns pointing to drug.drug_formulary (drug_formulary_id, primary_drug_formulary_id) (generic/unlabeled: drug_formulary_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table drug.pharmacy_network has 2 FK columns pointing to drug.mac_list (mac_list_id, pharmacy_mac_list_id) (generic/unlabeled: mac_list_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table client.pbm_assignment has 2 FK columns pointing to client.employer (employer_id, pbm_employer_id) (generic/unlabeled: employer_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table client.benefit_plan has 3 FK columns pointing to client.employer (benefit_employer_id, employer_id, plan_employer_id) (generic/unlabeled: employer_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table client.benefit_plan has 2 FK columns pointing to client.pbm_assignment (benefit_pbm_assignment_id, pbm_assignment_id) (generic/unlabeled: pbm_assignment_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table client.client_consulting_engagement has 2 FK columns pointing to client.employer (client_employer_id, employer_id) (generic/unlabeled: employer_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table client.client_engagement_deliverable has 2 FK columns pointing to client.client_consulting_engagement (client_consulting_engagement_id, primary_client_consulting_engagement_id) (generic/unlabeled: client_consulting_engagement_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table client.consulting_fee_invoice has 2 FK columns pointing to client.client_consulting_engagement (client_consulting_engagement_id, primary_client_consulting_engagement_id) (generic/unlabeled: client_consulting_engagement_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table client.onboarding_event has 3 FK columns pointing to client.employer (employer_id, onboarding_employer_id, primary_employer_id) (generic/unlabeled: employer_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table client.pbm_contract has 2 FK columns pointing to client.employer (employer_id, pbm_employer_id) (generic/unlabeled: employer_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table client.audit_finding has 2 FK columns pointing to client.pbm_contract (audit_pbm_contract_id, pbm_contract_id) (generic/unlabeled: pbm_contract_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table client.contact has 2 FK columns pointing to client.employer (contact_employer_id, employer_id) (generic/unlabeled: employer_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table client.data_feed_config has 2 FK columns pointing to client.employer (data_employer_id, employer_id) (generic/unlabeled: employer_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table client.data_feed_config has 3 FK columns pointing to client.pbm_assignment (data_pbm_assignment_id, pbm_assignment_id, primary_pbm_assignment_id) (generic/unlabeled: pbm_assignment_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table client.client_benefit_group has 2 FK columns pointing to division.division_benefit_group (division_benefit_group_id, claim_benefit_group_id) (generic/unlabeled: division_benefit_group_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table company.org_division has 4 FK columns pointing to company.organization (parent_organization_id, primary_organization_id, tertiary_organization_id, organization_id) (generic/unlabeled: organization_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table company.company_client has 2 FK columns pointing to company.org_division (company_org_division_id, org_division_id) (generic/unlabeled: org_division_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table company.client_pbm_contract has 3 FK columns pointing to company.company_client (company_client_id, primary_company_client_id, tertiary_company_client_id) (generic/unlabeled: company_client_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table company.company_benefit_group has 2 FK columns pointing to company.company_client (company_client_id, primary_company_client_id) (generic/unlabeled: company_client_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table company.client_onboarding has 3 FK columns pointing to company.company_client (company_client_id, primary_company_client_id, tertiary_company_client_id) (generic/unlabeled: company_client_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table company.company_consulting_engagement has 2 FK columns pointing to company.company_client (company_client_id, primary_company_client_id) (generic/unlabeled: company_client_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table company.company_engagement_deliverable has 2 FK columns pointing to company.company_consulting_engagement (company_consulting_engagement_id, primary_company_consulting_engagement_id) (generic/unlabeled: company_consulting_engagement_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table company.consulting_fee has 3 FK columns pointing to company.company_consulting_engagement (company_consulting_engagement_id, primary_company_consulting_engagement_id, tertiary_company_consulting_engagement_id) (generic/unlabeled: company_consulting_engagement_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table company.client_contact has 3 FK columns pointing to company.company_client (linked_company_client_id, primary_company_client_id, tertiary_company_client_id) (generic/unlabeled: linked_company_client_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table company.subscriber has 2 FK columns pointing to company.company_client (company_client_id, subscriber_company_client_id) (generic/unlabeled: company_client_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table company.client_division_assignment has 5 FK columns pointing to company.org_division (org_division_id, secondary_org_division_id, client_division_org_division_id, client_org_division_id, assignment_org_division_id) (generic/unlabeled: org_division_id, secondary_org_division_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table company.client_division_assignment has 3 FK columns pointing to company.company_client (company_client_id, primary_company_client_id, tertiary_company_client_id) (generic/unlabeled: company_client_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table division.division has 2 FK columns pointing to company.organization (organization_id, company_id) (generic/unlabeled: organization_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table division.division_pbm_contract has 2 FK columns pointing to division.division (division_id, pbm_division_id) (generic/unlabeled: division_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table division.pbm_guarantee_result has 2 FK columns pointing to division.pbm_guarantee_period (pbm_guarantee_period_id, primary_pbm_guarantee_period_id) (generic/unlabeled: pbm_guarantee_period_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table division.formulary_drug_placement has 2 FK columns pointing to division.division_formulary_tier (division_formulary_tier_id, formulary_tier_id) (generic/unlabeled: division_formulary_tier_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - Table division.rebate_payment has 2 FK columns pointing to division.rebate_contract (primary_rebate_contract_id, secondary_rebate_contract_id) (generic/unlabeled: secondary_rebate_contract_id) — rename generic columns to describe their business role (e.g., inspector_employee_id, approver_employee_id; origin_plan_id, amendment_plan_id)
+  - FK column 'ndc_labeler_fk' in drug.ndc doesn't end with target PK 'manufacturer_id' — FK columns MUST end with the target table's PK (e.g., driver_manufacturer_id or just manufacturer_id)
+  - FK column 'tenant_change_log_fk' in company.tenant_change_log doesn't end with target PK 'tenant_change_log_id' — FK columns MUST end with the target table's PK (e.g., driver_tenant_change_log_id or just tenant_change_log_id)
+  - 123 attribute(s) match person-data patterns but lack pii_ tags
+  - 11 non-PK attributes redundantly prefixed with their product name
+  - 3 attribute(s) have value_regex on typed columns (DATE/BOOLEAN/INT/etc.) — regex is redundant when data_type constrains format
+  - 2580 business attribute(s) lack a glossary-term tag (glossary IS in use - coverage must be complete). e.g., claim.rx_claim.awp_discount_pct, claim.rx_claim.awp_unit_price, claim.rx_claim.benefit_group_fk, claim.rx_claim.brand_generic_indicator, claim.rx_claim.claim_status
+**Vibe adherence: 78.7% (37/47 in-scope VREQs applied) | Structural quality: 64/100 (reported separately, NOT blended)**
+## VIBE SCOPE SUMMARY
+- vibe_scope: Requested Entities -> drug.ndc, claim.rx_claim, claim.claim_pbm_source, company.company_pbm, claim.cob, claim.member_oop_accumulator, division.division_benefit_group, client.client_benefit_group, claim.claim_benefit_group, claim.claim_pbm, company.member, company.subscriber, drug.drug_formulary_tier, drug.pharmacy_network, drug.pharmacy, company.tenant_change_log, claim, drug, client, company, division
+- frozen this run: 0 domain record(s), 0 product(s), 0 metric view(s)
+- in-scope adherence: 61.7% over 47 in-scope VREQ(s)
+- scope_rejected: 0 | blocked (scope_dependency_conflict): 0 | fence violations: 0 | authorized out-of-scope links (P4): 0
+- fence restores: 298
+
+
+Deterministic score: 70.98/100 (LLM assessment: 58/100)
+
+## MISSED VIBES (carried from the previous run — apply these THIS run; user directives first)
+
+- (USER DIRECTIVE - supreme authority) Add FK on rx_claim: ndc_id -> drug.ndc. (target: drug.rx_claim, drug.ndc) [missed: vov_residual_unapplied]
+- (USER DIRECTIVE - supreme authority) Connect isolated table: add FK drug.equivalence -> drug.ndc(ndc_id). (target: drug.equivalence, drug.ndc) [missed: vov_residual_unapplied]
+- (USER DIRECTIVE - supreme authority) Add ndc_id FK on drug.drug_prescriber -> drug.ndc. (target: drug.drug_prescriber, drug.ndc) [missed: vov_residual_unapplied]
+- (USER DIRECTIVE - supreme authority) Add cross-domain FK claim.rebate_record -> drug.ndc(ndc_id). (target: claim.rebate_record, drug.ndc) [missed: vov_residual_unapplied]
+- (USER DIRECTIVE - supreme authority) Add cross-domain FK div.formulary_drug_placement -> drug.ndc(ndc_id). (target: div.formulary_drug_placement, drug.ndc) [missed: vov_residual_unapplied]
+- (USER DIRECTIVE - supreme authority) Rename member_360_key to 360_key. (target: company.member.member_360_key) [missed: vov_residual_unapplied]
+- (USER DIRECTIVE - supreme authority) Fix FK name mac_list_fk so all FKs end with the target PK suffix. (target: mac_list_fk) [missed: vov_residual_unapplied]
+- (USER DIRECTIVE - supreme authority) Fix FK name data_assignment_fk so it ends with the target PK suffix. (target: data_assignment_fk) [missed: vov_residual_unapplied]
+- (USER DIRECTIVE - supreme authority) Fix FK name client_division_fk so it ends with the target PK suffix. (target: client_division_fk) [missed: vov_residual_unapplied]
+- (USER DIRECTIVE - supreme authority) Fix FK name pbm_period_fk so it ends with the target PK suffix. (target: pbm_period_fk) [missed: vov_residual_unapplied]
+- Re-apply all previously missed V5 requirements (target: *) [missed: orchestrator status=partial]
+- Add ndc_id and subscriber_id FKs on rx_claim and confirm claim_prescriber_id FK (target: rx_claim, drug.ndc, company.subscriber) [missed: orchestrator status=failed]
+- Wire isolated tables with FKs to connect them into the model (target: drug.equivalence, drug.drug_prescriber, claim_pbm_source, company.company_pbm, company.organization, drug.ndc) [missed: orchestrator status=failed]
+- Apply a set of column/table renames across claim, member, subscriber (target: claim.claim_pbm, claim_pbm_source, member.pbm_member_id, subscriber.pbm_subscriber_id, subscriber_client_fk, member_360_key) [missed: orchestrator status=failed]
+- Enforce FK naming convention ending in target PK suffix and business-role names for multiple FKs (target: mac_list_fk, data_assignment_fk, client_division_fk, pbm_period_fk, ndc_labeler_code_fk, drug_formulary_tier_formulary_fk, pharmacy_network_mac_list_fk) [missed: orchestrator status=failed]
+- Wire unlinked ncpdp_id and pharmacy FK columns in pharmacy tables (target: drug.pharmacy, drug.pharmacy_network, pharmacy_network) [missed: orchestrator status=failed]
+- Add subdomain tag to claim_pbm_source (target: claim_pbm_source) [missed: orchestrator status=failed]

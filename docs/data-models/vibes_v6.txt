@@ -1,0 +1,23 @@
+RE-APPLY ALL MISSED VIBES FROM V5. Additionally:
+
+FIX MISSING PK: drug.ndc MUST have ndc_id as PK.
+
+ADD FKs ON rx_claim: ndc_id->drug.ndc. subscriber_id->company.subscriber. Confirm claim_prescriber_id FK exists.
+
+CONNECT ISOLATED TABLES: drug.equivalence->drug.ndc(ndc_id). drug.drug_prescriber add ndc_id->drug.ndc. claim_pbm_source->company.company_pbm(company_pbm_id). company.company_pbm->company.organization(organization_id).
+
+CROSS-DOMAIN FKs: claim.adjustment->rx_claim(original_rx_claim_id) reversal lineage. claim.cob->company.member(member_id). claim.rebate_record->drug.ndc(ndc_id). claim.member_oop_accumulator->company.subscriber(subscriber_id). div.formulary_drug_placement->drug.ndc(ndc_id).
+
+BENEFIT_GROUP SSOT: division.division_benefit_group is SSOT owner. client.client_benefit_group and claim.claim_benefit_group FK to it. Wire unlinked cross-ref columns.
+
+RENAMES: claim.claim_pbm->claim_pbm_source (complete if partial). member.pbm_member_id->source_member_id. subscriber.pbm_subscriber_id->source_subscriber_id. subscriber_client_fk->client_fk. member_360_key->360_key.
+
+FK NAMING: All FKs MUST end with target PK suffix. Fix mac_list_fk, data_assignment_fk, client_division_fk, pbm_period_fk. Strip: ndc_labeler_code_fk->labeler_code_fk, drug_formulary_tier_formulary_fk->formulary_fk, pharmacy_network_mac_list_fk->mac_list_fk. Multiple FKs to same table MUST use business-role names.
+
+DATA TYPES: ndc.awp/wac NUMERIC->DECIMAL. pharmacy.pharmacy_network_id STRING->BIGINT. claim_pbm_source.company_pbm_id must be BIGINT not a ref string. Add types on client_benefit_group.claim_benefit_group_id and div.division_benefit_group.claim_benefit_group_id.
+
+WIRE UNLINKED FKs: ncpdp_id in drug.pharmacy/pharmacy_network; pharmacy_ncpdp_id/tertiary_pharmacy_id in pharmacy_network.
+
+ENSURE drug.pharmacy has npi, ncpdp_id, chain_independent_status, specialty_designation, Type-2 SCD columns.
+
+Add subdomain tag on claim_pbm_source. Fix tenant_change_log self-ref FK name.

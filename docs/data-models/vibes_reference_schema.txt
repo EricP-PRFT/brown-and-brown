@@ -1,0 +1,61 @@
+CREATE NEW DOMAIN: reference — holds external reference data sourced from MAC External feeds (FDB, Medi-Span, NCPDP, NPPES, NUCC). These are SSOT lookup tables for external reference content not owned by B&B/PillarRx. Existing drug-domain tables (drug.ndc, drug.pharmacy, drug.drug_prescriber) are derived Silver-layer tables that JOIN to these reference tables; the reference domain holds the authoritative external source records themselves.
+
+ALL reference tables MUST carry: source_file_name (STRING), source_load_date (DATE), effective_start_date (DATE), effective_end_date (DATE), is_current (BOOLEAN) for Type-2 SCD history. All PKs are BIGINT surrogates unless noted.
+
+--- SOURCE: FIRSTDATABANK (ftp.fdbhealth.com) ---
+
+TABLE reference.fdb_drug: PK fdb_drug_id. FDB-specific drug identifiers and cross-references from the NDDF Plus database. Columns: fdb_drug_code (STRING, FDB internal drug code — natural key), ndc11 (STRING), ndc_id (BIGINT, FK to drug.ndc.ndc_id), hic3_code (STRING, Hierarchic Ingredient Code level 3), hic3_description (STRING), hicl_seqno (STRING, HIC Labeler sequence), routed_dosage_form_code (STRING), routed_generic_drug_name (STRING), strength_description (STRING), fdb_therapeutic_class_code (STRING), fdb_therapeutic_class_description (STRING), desi_code (STRING, Drug Efficacy Study Implementation rating), ahfs_code (STRING, AHFS Pharmacologic-Therapeutic classification), fdb_pregnancy_category (STRING), fdb_obsolete_date (DATE).
+Note: 'Authoritative FDB drug identifiers and classification cross-references sourced from the First DataBank NDDF Plus feed. Supports dual-source drug validation alongside Medi-Span.'
+
+TABLE reference.fdb_drug_interaction: PK fdb_interaction_id. Drug-drug interaction pairs from the FDB Drug Interactions module. Columns: drug_1_fdb_drug_code (STRING), drug_1_ndc11 (STRING), drug_2_fdb_drug_code (STRING), drug_2_ndc11 (STRING), interaction_severity (STRING — major/moderate/minor), clinical_effect_description (STRING), management_description (STRING), interaction_class_code (STRING), onset_description (STRING — rapid/delayed/not specified), documentation_level (STRING — established/probable/suspected/possible/unlikely).
+Note: 'FDB drug-drug interaction pairs used in DUR alerting and clinical decision support for PBM prior authorization workflows.'
+
+TABLE reference.fdb_pricing: PK fdb_pricing_id. FDB-sourced AWP and WAC pricing at the NDC level. Columns: fdb_drug_code (STRING), ndc11 (STRING), ndc_id (BIGINT, FK to drug.ndc.ndc_id), awp_unit_price (DECIMAL(12,4)), awp_package_price (DECIMAL(12,4)), wac_unit_price (DECIMAL(12,4)), wac_package_price (DECIMAL(12,4)), pricing_effective_date (DATE), package_size (DECIMAL(10,4)), package_size_unit (STRING), unit_dose_indicator (BOOLEAN), federal_upper_limit_price (DECIMAL(12,4)).
+Note: 'FDB-sourced drug pricing benchmarks. Feeds drug.ndc_price alongside Medi-Span pricing for dual-source validation and audit.'
+
+--- SOURCE: MEDISPAN (sftp.na.wolterskluwer.com) ---
+
+TABLE reference.medispan_drug: PK medispan_drug_id. Medi-Span Master Drug Database (MDDB) drug-level record. Columns: medispan_drug_code (STRING, natural key), ndc11 (STRING), ndc_id (BIGINT, FK to drug.ndc.ndc_id), gpi14 (STRING, 14-digit Generic Product Identifier), gpi2_drug_group (STRING), gpi4_drug_class (STRING), gpi6_drug_subclass (STRING), gpi8_drug_name (STRING), gpi10_name_extension (STRING), gpi12_dosage_form (STRING), gpi14_strength (STRING), multisource_code (STRING — M/O/N/Y), innovator_code (STRING), dea_schedule (STRING), route_of_administration (STRING), dosage_form (STRING), drug_name (STRING), generic_name (STRING), labeler_name (STRING), obsolete_date (DATE).
+Note: 'Authoritative Medi-Span drug reference record with full GPI hierarchy decomposition. Primary source for therapeutic class analysis and GDR reporting.'
+
+TABLE reference.medispan_gpi_hierarchy: PK gpi_hierarchy_id. Medi-Span GPI classification hierarchy reference table. Columns: gpi_level (INT — 2/4/6/8/10/12/14), gpi_code (STRING), gpi_description (STRING), parent_gpi_code (STRING), gpi_level_name (STRING — drug_group/drug_class/drug_subclass/drug_name/name_extension/dosage_form/strength).
+Note: 'Standalone GPI hierarchy for therapeutic class rollups and benchmarking. Enables self-join traversal from GPI-14 to GPI-2 drug group without denormalization.'
+
+TABLE reference.medispan_pricing: PK medispan_pricing_id. Medi-Span-sourced AWP and WAC pricing. Columns: medispan_drug_code (STRING), ndc11 (STRING), ndc_id (BIGINT, FK to drug.ndc.ndc_id), awp_unit_price (DECIMAL(12,4)), awp_package_price (DECIMAL(12,4)), wac_unit_price (DECIMAL(12,4)), wac_package_price (DECIMAL(12,4)), pricing_effective_date (DATE), package_size (DECIMAL(10,4)), package_size_unit (STRING), unit_dose_indicator (BOOLEAN), federal_upper_limit_price (DECIMAL(12,4)), repackager_indicator (BOOLEAN).
+Note: 'Medi-Span-sourced drug pricing benchmarks. Feeds drug.ndc_price alongside FDB pricing for dual-source validation.'
+
+--- SOURCE: NCPDP (dbfiles.ncpdp.org) ---
+
+TABLE reference.ncpdp_pharmacy: PK ncpdp_pharmacy_id. NCPDP dataQ pharmacy provider records from the NCPDP Provider Database. Columns: ncpdp_number (STRING, 7-digit NCPDP provider ID — natural key), npi (STRING, 10-digit NPI), store_number (STRING), pharmacy_name (STRING), dba_name (STRING), address_line1 (STRING), address_line2 (STRING), city (STRING), state_code (STRING), zip_code (STRING), phone (STRING), fax (STRING), dea_number (STRING), dispensing_class_code (STRING, FK to reference.ncpdp_dispensing_class.dispensing_class_code), pharmacy_type_code (STRING), chain_code (STRING), chain_name (STRING), last_modified_date (DATE), deactivation_date (DATE), ncpdp_status (STRING — active/inactive/closed).
+Note: 'NCPDP pharmacy provider records from the NCPDP Provider Database file. SSOT for pharmacy identification by NCPDP number. Feeds drug.pharmacy in the Silver layer.'
+
+TABLE reference.ncpdp_dispensing_class: PK dispensing_class_id. NCPDP dispensing class code reference. Columns: dispensing_class_code (STRING, natural key), dispensing_class_description (STRING — e.g., community/retail pharmacy, institutional pharmacy, mail order, long-term care, home infusion, specialty, nuclear, compounding, government).
+Note: 'NCPDP dispensing class code set defining pharmacy channel types for network analysis.'
+
+TABLE reference.ncpdp_pharmacy_service: PK pharmacy_service_id. Services offered by each pharmacy per NCPDP data. Columns: ncpdp_number (STRING, FK to reference.ncpdp_pharmacy via ncpdp_number), service_type_code (STRING), service_type_description (STRING — e.g., 24-hour, drive-through, compounding, delivery, durable medical equipment, e-prescribing, immunizations, specialty).
+Note: 'NCPDP pharmacy service capabilities. One-to-many from ncpdp_pharmacy — a pharmacy can offer multiple service types.'
+
+--- SOURCE: NPPES (download from CMS) ---
+
+TABLE reference.nppes_provider: PK nppes_provider_id. NPI records from the CMS NPPES NPI data dissemination file. Columns: npi (STRING, 10-digit NPI — natural key), entity_type_code (STRING — 1=individual, 2=organization), provider_first_name (STRING), provider_last_name (STRING), provider_middle_name (STRING), provider_name_prefix (STRING), provider_credential (STRING), provider_organization_name (STRING), enumeration_date (DATE), last_update_date (DATE), deactivation_date (DATE), reactivation_date (DATE), npi_status (STRING — active/deactivated), practice_address_line1 (STRING), practice_address_line2 (STRING), practice_city (STRING), practice_state (STRING), practice_zip (STRING), practice_phone (STRING), practice_fax (STRING), mailing_address_line1 (STRING), mailing_address_line2 (STRING), mailing_city (STRING), mailing_state (STRING), mailing_zip (STRING), gender (STRING — M/F/U), sole_proprietor (STRING), is_organization_subpart (BOOLEAN), parent_organization_lbn (STRING), parent_organization_tin (STRING).
+Note: 'CMS NPPES NPI registry records. SSOT for provider identity by NPI. Feeds drug.drug_prescriber in the Silver layer.'
+
+TABLE reference.nppes_provider_taxonomy: PK nppes_taxonomy_assignment_id. NPI-to-taxonomy code assignments (many-to-many — each NPI can carry up to 15 taxonomy codes in NPPES). Columns: npi (STRING, FK to reference.nppes_provider via npi), taxonomy_code (STRING, FK to reference.nucc_taxonomy via taxonomy_code), license_number (STRING), license_state (STRING), is_primary (BOOLEAN — true if this is the provider's primary taxonomy assignment).
+Note: 'Links an NPI to its NUCC taxonomy codes. A provider may hold multiple taxonomy assignments; is_primary marks the principal specialty.'
+
+TABLE reference.nppes_other_identifier: PK nppes_other_id_id. Alternate provider identifiers from NPPES (Medicaid, state license, DEA, etc.). Columns: npi (STRING, FK to reference.nppes_provider via npi), identifier_type_code (STRING — e.g., Medicaid, Medicare UPIN, state license), identifier_value (STRING), identifier_state (STRING), identifier_issuer (STRING).
+Note: 'Alternate provider identifiers reported in NPPES beyond the NPI itself. Supports cross-system provider matching.'
+
+--- SOURCE: NUCC (nucc.org taxonomy code set) ---
+
+TABLE reference.nucc_taxonomy: PK nucc_taxonomy_id. NUCC Health Care Provider Taxonomy code set. Columns: taxonomy_code (STRING, unique natural key — e.g., 207R00000X), grouping (STRING — top-level provider grouping, e.g., Allopathic & Osteopathic Physicians), classification (STRING — provider classification within grouping, e.g., Internal Medicine), specialization (STRING — sub-specialty within classification, e.g., Cardiovascular Disease; nullable), definition (STRING — full description of the taxonomy code), taxonomy_version (STRING — NUCC release version).
+Note: 'NUCC Health Care Provider Taxonomy code set. Standalone reference for provider specialty classification. Referenced by reference.nppes_provider_taxonomy and by drug.drug_prescriber.taxonomy_code.'
+
+--- CROSS-DOMAIN FKs ---
+
+WIRE reference tables to existing drug domain: drug.ndc.fdb_drug_code FK to reference.fdb_drug (via fdb_drug_code). drug.ndc.medi_span_drug_code FK to reference.medispan_drug (via medispan_drug_code). drug.pharmacy.ncpdp_number FK to reference.ncpdp_pharmacy (via ncpdp_number). drug.drug_prescriber.npi FK to reference.nppes_provider (via npi). drug.drug_prescriber.taxonomy_code FK to reference.nucc_taxonomy (via taxonomy_code).
+
+--- DATA LINEAGE ---
+
+TABLE reference.external_source_load: PK source_load_id. Tracks each file load from the 5 MAC External sources. Columns: source_name (STRING — FIRSTDATABANK/MEDISPAN/NCPDP/NPPES/NUCC), source_file_name (STRING), file_received_date (DATE), file_effective_date (DATE), record_count (BIGINT), load_status (STRING — success/partial/failed), loaded_timestamp (TIMESTAMP), etl_process_name (STRING — matches the DLH inventory ETL names, e.g., Load_Acq_External_FDB_ALL_ALL_ALL).
+Note: 'Audit trail for MAC External reference data file ingestion. One row per source file load.'
