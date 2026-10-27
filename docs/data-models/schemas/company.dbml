@@ -734,7 +734,9 @@ Table company.tenant_change_log {
 // company.client_contact
 Ref: company.client_contact.linked_company_client_id > company.company_client.company_client_id
 Ref: company.client_contact.primary_company_client_id > company.company_client.company_client_id
-Ref: company.client_contact.salesforce_contact_id > client.contact.contact_id
+
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: company.client_contact.salesforce_contact_id > client.contact.contact_id
 Ref: company.client_contact.tertiary_company_client_id > company.company_client.company_client_id
 
 // company.client_division_assignment
@@ -744,7 +746,9 @@ Ref: company.client_division_assignment.client_division_org_division_id > compan
 Ref: company.client_division_assignment.client_org_division_id > company.org_division.org_division_id
 Ref: company.client_division_assignment.company_client_id > company.company_client.company_client_id
 Ref: company.client_division_assignment.company_pbm_id > company.company_pbm.company_pbm_id
-Ref: company.client_division_assignment.division_pbm_contract_id > division.division_pbm_contract.division_pbm_contract_id
+
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: company.client_division_assignment.division_pbm_contract_id > division.division_pbm_contract.division_pbm_contract_id
 Ref: company.client_division_assignment.org_division_id > company.org_division.org_division_id
 Ref: company.client_division_assignment.primary_company_client_id > company.company_client.company_client_id
 Ref: company.client_division_assignment.tertiary_company_client_id > company.company_client.company_client_id
@@ -758,7 +762,9 @@ Ref: company.client_onboarding.primary_company_client_id > company.company_clien
 Ref: company.client_onboarding.tertiary_company_client_id > company.company_client.company_client_id
 
 // company.client_pbm_contract
-Ref: company.client_pbm_contract.claim_pbm_id > claim.claim_pbm.claim_pbm_id
+
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: company.client_pbm_contract.claim_pbm_id > claim.claim_pbm.claim_pbm_id
 Ref: company.client_pbm_contract.company_client_id > company.company_client.company_client_id
 Ref: company.client_pbm_contract.company_pbm_id > company.company_pbm.company_pbm_id
 Ref: company.client_pbm_contract.primary_company_client_id > company.company_client.company_client_id
@@ -768,7 +774,9 @@ Ref: company.client_pbm_contract.tertiary_company_client_id > company.company_cl
 // company.company_benefit_group
 Ref: company.company_benefit_group.company_client_id > company.company_client.company_client_id
 Ref: company.company_benefit_group.company_pbm_id > company.company_pbm.company_pbm_id
-Ref: company.company_benefit_group.division_formulary_id > division.division_formulary.division_formulary_id
+
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: company.company_benefit_group.division_formulary_id > division.division_formulary.division_formulary_id
 Ref: company.company_benefit_group.primary_company_client_id > company.company_client.company_client_id
 
 // company.company_client
@@ -801,12 +809,14 @@ Ref: company.member.pbm_member_id > company.member.member_id
 Ref: company.member.subscriber_id > company.subscriber.subscriber_id
 
 // company.org_division
-Ref: company.org_division.division_formulary_id > division.division_formulary.division_formulary_id
+
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: company.org_division.division_formulary_id > division.division_formulary.division_formulary_id
 Ref: company.org_division.organization_id > company.organization.organization_id
 Ref: company.org_division.parent_organization_id > company.organization.organization_id
-Ref: company.org_division.pbm_contract_id > client.pbm_contract.pbm_contract_id
+// Ref: company.org_division.pbm_contract_id > client.pbm_contract.pbm_contract_id
 Ref: company.org_division.primary_organization_id > company.organization.organization_id
-Ref: company.org_division.salesforce_division_id > division.division.division_id
+// Ref: company.org_division.salesforce_division_id > division.division.division_id
 Ref: company.org_division.tertiary_organization_id > company.organization.organization_id
 
 // company.organization
@@ -815,7 +825,9 @@ Ref: company.organization.parent_organization_id > company.organization.organiza
 // company.subscriber
 Ref: company.subscriber.company_client_id > company.company_client.company_client_id
 Ref: company.subscriber.company_pbm_id > company.company_pbm.company_pbm_id
-Ref: company.subscriber.employer_id > client.employer.employer_id
+
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: company.subscriber.employer_id > client.employer.employer_id
 Ref: company.subscriber.pbm_subscriber_id > company.subscriber.subscriber_id
 Ref: company.subscriber.primary_company_benefit_group_id > company.company_benefit_group.company_benefit_group_id
 Ref: company.subscriber.subscriber_company_benefit_group_id > company.company_benefit_group.company_benefit_group_id
@@ -823,7 +835,9 @@ Ref: company.subscriber.subscriber_company_client_id > company.company_client.co
 
 // company.tenant_change_log
 Ref: company.tenant_change_log.company_pbm_id > company.company_pbm.company_pbm_id
-Ref: company.tenant_change_log.division_id > division.division.division_id
-Ref: company.tenant_change_log.employer_id > client.employer.employer_id
+
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: company.tenant_change_log.division_id > division.division.division_id
+// Ref: company.tenant_change_log.employer_id > client.employer.employer_id
 Ref: company.tenant_change_log.organization_id > company.organization.organization_id
 Ref: company.tenant_change_log.rolled_back_from_log_id > company.tenant_change_log.tenant_change_log_id

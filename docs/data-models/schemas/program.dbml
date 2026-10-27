@@ -293,35 +293,45 @@ Table program.savings_program {
 // 33 relationships
 
 // program.accumulator_program
-Ref: program.accumulator_program.client_id > client.employer.employer_id
-Ref: program.accumulator_program.division_id > division.division.division_id
-Ref: program.accumulator_program.employer_id > client.employer.employer_id
-Ref: program.accumulator_program.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
+
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: program.accumulator_program.client_id > client.employer.employer_id
+// Ref: program.accumulator_program.division_id > division.division.division_id
+// Ref: program.accumulator_program.employer_id > client.employer.employer_id
+// Ref: program.accumulator_program.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
 Ref: program.accumulator_program.savings_program_id > program.savings_program.savings_program_id
 
 // program.alternative_funding_program
-Ref: program.alternative_funding_program.client_id > client.employer.employer_id
-Ref: program.alternative_funding_program.employer_id > client.employer.employer_id
+
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: program.alternative_funding_program.client_id > client.employer.employer_id
+// Ref: program.alternative_funding_program.employer_id > client.employer.employer_id
 Ref: program.alternative_funding_program.savings_program_id > program.savings_program.savings_program_id
 
 // program.charitable_assistance
 Ref: program.charitable_assistance.savings_program_id > program.savings_program.savings_program_id
 
 // program.claim_savings_attribution
-Ref: program.claim_savings_attribution.member_id > company.member.member_id
-Ref: program.claim_savings_attribution.rx_claim_id > claim.rx_claim.rx_claim_id
+
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: program.claim_savings_attribution.member_id > company.member.member_id
+// Ref: program.claim_savings_attribution.rx_claim_id > claim.rx_claim.rx_claim_id
 Ref: program.claim_savings_attribution.savings_program_id > program.savings_program.savings_program_id
 
 // program.contract_pharmacy_340b
 Ref: program.contract_pharmacy_340b.covered_entity_340b_id > program.covered_entity_340b.covered_entity_340b_id
 
 // program.copay_assistance_program
-Ref: program.copay_assistance_program.manufacturer_id > drug.manufacturer.manufacturer_id
-Ref: program.copay_assistance_program.ndc_id > drug.ndc.ndc_code
+
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: program.copay_assistance_program.manufacturer_id > drug.manufacturer.manufacturer_id
+// Ref: program.copay_assistance_program.ndc_id > drug.ndc.ndc_code
 Ref: program.copay_assistance_program.savings_program_id > program.savings_program.savings_program_id
 
 // program.covered_entity_340b
-Ref: program.covered_entity_340b.employer_id > client.employer.employer_id
+
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: program.covered_entity_340b.employer_id > client.employer.employer_id
 Ref: program.covered_entity_340b.savings_program_id > program.savings_program.savings_program_id
 
 // program.government_benefit_rule
@@ -329,25 +339,33 @@ Ref: program.government_benefit_rule.savings_program_id > program.savings_progra
 
 // program.member_accumulator_impact
 Ref: program.member_accumulator_impact.accumulator_program_id > program.accumulator_program.accumulator_program_id
-Ref: program.member_accumulator_impact.member_id > company.member.member_id
+
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: program.member_accumulator_impact.member_id > company.member.member_id
 
 // program.member_copay_enrollment
 Ref: program.member_copay_enrollment.copay_assistance_program_id > program.copay_assistance_program.copay_assistance_program_id
-Ref: program.member_copay_enrollment.member_id > company.member.member_id
+
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: program.member_copay_enrollment.member_id > company.member.member_id
 
 // program.patient_assistance_program
-Ref: program.patient_assistance_program.manufacturer_id > drug.manufacturer.manufacturer_id
-Ref: program.patient_assistance_program.ndc_id > drug.ndc.ndc_code
+
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: program.patient_assistance_program.manufacturer_id > drug.manufacturer.manufacturer_id
+// Ref: program.patient_assistance_program.ndc_id > drug.ndc.ndc_code
 Ref: program.patient_assistance_program.savings_program_id > program.savings_program.savings_program_id
 
 // program.program_type
 Ref: program.program_type.savings_program_id > program.savings_program.savings_program_id
 
 // program.rebate_contract
-Ref: program.rebate_contract.client_id > client.employer.employer_id
-Ref: program.rebate_contract.division_id > division.division.division_id
-Ref: program.rebate_contract.manufacturer_id > drug.manufacturer.manufacturer_id
-Ref: program.rebate_contract.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
+
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: program.rebate_contract.client_id > client.employer.employer_id
+// Ref: program.rebate_contract.division_id > division.division.division_id
+// Ref: program.rebate_contract.manufacturer_id > drug.manufacturer.manufacturer_id
+// Ref: program.rebate_contract.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
 Ref: program.rebate_contract.savings_program_id > program.savings_program.savings_program_id
 
 // program.rebate_payment
