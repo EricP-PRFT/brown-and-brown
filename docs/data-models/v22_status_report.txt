@@ -1,0 +1,212 @@
+v22 STATUS REPORT — PillarRx Model Review
+=========================================================================
+
+A. WHAT v22 APPLIED
+=========================================================================
+
+v22 ran program_vibe_step4.txt — the division rebate migration (step 4 of 4).
+Scoped to: division, claim domains.
+
+The vibe instructed the agent to:
+  - Rewire FKs from division.rebate_contract/payment to program equivalents
+  - Remove or deprecate division.rebate_contract and division.rebate_payment
+
+=========================================================================
+
+B. MODEL QUALITY SCORE
+=========================================================================
+
+  Deterministic: 64.41/100 (down from ~71 in v9)
+  LLM assessment: 62/100
+  Vibe adherence: 100% (13/13 in-scope VREQs attempted)
+  In-scope adherence: 84.62% over 13 VREQs
+  Structural quality: 63/100
+
+The score dropped because the migration created inconsistencies (half-migrated
+state) that the agent counts against structural quality.
+
+=========================================================================
+
+C. REMAINING ISSUES FROM next_vibes_v22
+=========================================================================
+
+STRUCTURAL (13 actionable from static analysis):
+
+  Unlinked FKs (4):
+    - drug.pharmacy.ncpdp_id — no FK target defined
+    - drug.pharmacy_network.ncpdp_id — no FK target
+    - drug.pharmacy_network.pharmacy_ncpdp_id — no FK target
+    - drug.pharmacy_network.tertiary_pharmacy_id — no FK target
+
+  Siloed/Isolated tables (3):
+    - drug.equivalence — zero inbound and outbound FKs
+    - drug.classification — zero inbound and outbound FKs
+    - division.rebate_contract — now isolated (FKs were rewired away from it)
+
+  SSOT violations (3 — same as previous versions):
+    - claim.claim_benefit_group vs client.client_benefit_group vs
+      division.division_benefit_group — benefit_group entity duplicated
+      across 3 domains without clear SSOT ownership
+
+HALF-MIGRATED STATE (priorities 1-6, 16):
+  The agent partially executed step 4:
+    - division.rebate_payment FKs were rewired to program.rebate_contract (done)
+    - division.rebate_contract was NOT removed (orchestrator status=failed)
+    - division.rebate_payment was NOT removed (orchestrator status=failed)
+    - division.rebate_contract is now ISOLATED (zero FKs) — an orphan
+    - The agent suggests either deprecating them with tags OR connecting
+      division.rebate_contract back to division/client/drug (priorities 2-6)
+
+OVER-WIRED FKs (priorities 11-15):
+  The agent correctly identifies the over-wiring from step 3:
+    - Remove program.rebate_contract FK from member_oop_accumulator (illogical)
+    - Remove program.rebate_payment FK from member_oop_accumulator (illogical)
+    - Remove program.member_accumulator_impact FK from rebate_record (illogical)
+    - Remove program.member_copay_enrollment FK from rebate_record (illogical)
+    - Remove program.member_copay_enrollment FK from member_oop_accumulator
+
+TYPING (from "other known issues"):
+    - drug.ndc.awp: NUMERIC (unrecognized type, should be DECIMAL)
+    - drug.ndc.wac: NUMERIC (unrecognized type, should be DECIMAL)
+    - program.copay_assistance_program.ndc_id: VARCHAR != BIGINT FK target mismatch
+    - program.patient_assistance_program.ndc_id: VARCHAR != BIGINT FK target mismatch
+
+NAMING (from "other known issues" — 62 items):
+    - 13 non-PK attributes redundantly prefixed with product name
+    - 8 FK columns don't end with target PK suffix
+    - Multiple tables with duplicate FK columns to same target needing
+      business-role names (26+ instances across all domains)
+    - 127 attributes match PII patterns but lack pii_ tags
+    - 2 tables missing subdomain tags
+
+OUT-OF-SCOPE (deferred):
+    - drug.classification needs FK to drug.drug_formulary (isolated)
+    - drug.drug_prescriber needs FK to drug.pharmacy (dangling)
+
+MISSED VIBES (4 — carried forward):
+    - Remove/deprecate division.rebate_contract (failed)
+    - Remove/deprecate division.rebate_payment (failed)
+    - Establish migration context (partial)
+    - Verify removal (partial)
+
+=========================================================================
+
+D. STATUS OF OUR KNOWN ISSUES
+=========================================================================
+
+  NDC CHAIN:
+    claim.rx_claim.ndc_code  — DEPLOYED (string) *** NEW SINCE v15 ***
+    drug.ndc.ndc_code        — DEPLOYED (string) *** NEW SINCE v15 ***
+    drug.ndc.ndc_id          — EXISTS (bigint surrogate PK)
+    claim.rx_claim.ndc_id    — NOT YET (surrogate FK still missing)
+    claim.rebate_record.ndc_code — DEPLOYED (string, from step 3)
+    VERDICT: Natural key chain is connected. Surrogate FK still needed
+    for performance.
+
+  NCPDP BIGINT (3 columns):
+    claim.rx_claim.ncpdp_id      — STILL BIGINT (should be STRING)
+    claim.dur_event.ncpdp_id     — STILL BIGINT (should be STRING)
+    client.audit_finding.ncpdp_id — STILL BIGINT (should be STRING)
+    VERDICT: Unfixed. These survived v10 through v22.
+
+  DIVISION REBATE MIGRATION:
+    division.rebate_contract  — STILL EXISTS (isolated, zero FKs)
+    division.rebate_payment   — STILL EXISTS (FKs rewired to program)
+    program.rebate_contract   — EXISTS with full FKs
+    program.rebate_payment    — EXISTS with FK to program.rebate_contract
+    VERDICT: Half-migrated. Program versions are functional. Division
+    versions are orphaned but not removed. The agent cannot remove tables.
+
+  CONTRACT_PHARMACY_340B.PHARMACY_ID:
+    — STILL MISSING. No pharmacy_id FK column on the table.
+
+  OVER-WIRED PROGRAM FKs:
+    claim.rebate_record has ~13 program.* FK columns (should have 2-3)
+    claim.member_oop_accumulator has ~12 program.* FK columns (should have 1-2)
+    VERDICT: Still over-wired. The agent's next_vibes correctly identifies
+    5 of these as illogical and proposes removal.
+
+=========================================================================
+
+E. v22 ERROR LOG HIGHLIGHTS
+=========================================================================
+
+  The step 4 migration was a near-total failure at the mutator level:
+
+  - 18x rejected_unsafe: "mutator returned new_model='NoneType'"
+    The sandbox mutator crashed trying to remove/modify division tables.
+    Batches B0001-B0004 all failed across 8 escalation iterations.
+
+  - TRUE-FIXPOINT at iter 8/10 with 4 residual VREQs. The agent gave up.
+
+  - 7 UNSAFE-AST REJECT at finalization — the agent produced invalid code.
+
+  - selffixer-attribute-count-guard repeatedly rejected mutations that would
+    have dropped columns (the agent tried to remove the division tables but
+    the guard blocked it because "the requirement asks to remove no column").
+
+  - Invariants worsened: errors went from 4 to 0 but siloed_count increased
+    from 2 to 4 (division.rebate_contract became isolated).
+
+  ROOT CAUSE: The vibe modeling agent's sandbox cannot safely remove tables.
+  The REMOVE TABLE directive is not a supported operation — the mutator
+  crashes or the attribute-count guard blocks it. This is an agent
+  limitation, not a vibe quality issue.
+
+=========================================================================
+
+F. RECOMMENDED NEXT STEPS (prioritized)
+=========================================================================
+
+  1. ABANDON TABLE REMOVAL VIA VIBES. The agent cannot remove tables.
+     Instead, manually drop division.rebate_contract and
+     division.rebate_payment from the catalog using SQL:
+       DROP TABLE IF EXISTS pillarrx.division.rebate_contract;
+       DROP TABLE IF EXISTS pillarrx.division.rebate_payment;
+     Or tag them deprecated in the model JSON and leave the physical
+     tables for manual cleanup.
+
+  2. FIX NCPDP BIGINT (3 columns). Write a focused vibe scoped to
+     claim, client domains:
+       RETYPE claim.rx_claim.ncpdp_id BIGINT -> STRING
+       RETYPE claim.dur_event.ncpdp_id BIGINT -> STRING
+       RETYPE client.audit_finding.ncpdp_id BIGINT -> STRING
+
+  3. PRUNE OVER-WIRED PROGRAM FKs. Write a vibe scoped to claim domain
+     to remove the ~20 illogical program.* FK columns the agent added to
+     rebate_record and member_oop_accumulator in step 3. Keep only the
+     business-meaningful FKs:
+       rebate_record: keep rebate_contract_id, savings_program_id
+       member_oop_accumulator: keep accumulator_program_id
+
+  4. ADD contract_pharmacy_340b.pharmacy_id. Write a vibe scoped to
+     program domain:
+       ADD column program.contract_pharmacy_340b.pharmacy_id (BIGINT)
+       FK to drug.pharmacy.pharmacy_id
+
+  5. ADD rx_claim.ndc_id SURROGATE FK. The natural key ndc_code is now
+     deployed, but the BIGINT surrogate FK for performant joins is still
+     missing. Write a vibe scoped to claim domain:
+       ADD column claim.rx_claim.ndc_id (BIGINT) FK to drug.ndc.ndc_id
+
+  6. CONNECT ISOLATED TABLES. drug.equivalence and drug.classification
+     have zero FKs. Write a vibe scoped to drug domain to wire them into
+     the graph (FKs to drug.ndc, drug.drug_formulary, etc.).
+
+  7. FIX AWP/WAC TYPING. drug.ndc.awp and wac are still NUMERIC in the
+     model (the physical tables may differ). Write a vibe scoped to drug:
+       RETYPE drug.ndc.awp NUMERIC -> DECIMAL(18,4)
+       RETYPE drug.ndc.wac NUMERIC -> DECIMAL(18,4)
+
+  8. ADDRESS BENEFIT_GROUP SSOT. The 3-way benefit_group duplication
+     across claim, client, and division has been flagged since v9.
+     Decide which domain owns benefit_group (likely division per vibes_v6)
+     and wire the others as FKs.
+
+  9. NAMING CLEANUP. Low priority but high volume (62 items). FK suffix
+     conventions, redundant prefixes, business-role names for multi-FK
+     tables. Best done as a dedicated naming vibe once structural issues
+     are resolved.
+
+  10. PII TAGGING. 127 attributes match PII patterns but lack pii_ tags.
+      Required for HIPAA compliance tracking. Dedicated tagging vibe.

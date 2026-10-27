@@ -1,0 +1,396 @@
+v15 MODEL vs PHYSICAL TABLES - Complete Gap Analysis
+========================================================================
+Model: 2952 columns across 70 tables
+Physical: 2932 columns across 71 tables
+========================================================================
+
+=== TABLES IN PHYSICAL BUT NOT IN MODEL ===
+
+  ﻿claim.adjustment (1 columns) -- NO MODEL DEFINITION
+
+=== DOMAIN: CLAIM ===
+
+claim.adjustment
+  IN MODEL, NOT PHYSICAL (1):
+    + adjustment_id (bigint)
+  TYPE MISMATCHES (2):
+    ~ days_supply: model=int vs physical=bigint
+    ~ fill_number: model=int vs physical=bigint
+
+claim.claim_benefit_group
+  TYPE MISMATCHES (2):
+    ~ member_count: model=int vs physical=bigint
+    ~ tier_count: model=int vs physical=bigint
+
+claim.claim_pbm
+  TYPE MISMATCHES (1):
+    ~ claims_feed_lag_days: model=int vs physical=bigint
+
+claim.dur_event
+  IN MODEL, NOT PHYSICAL (1):
+    + dispensed_ndc_code (varchar)
+  TYPE MISMATCHES (2):
+    ~ alert_sequence_number: model=int vs physical=bigint
+    ~ days_supply: model=int vs physical=bigint
+
+claim.member_oop_accumulator
+  TYPE MISMATCHES (2):
+    ~ benefit_year: model=int vs physical=bigint
+    ~ claim_count: model=int vs physical=bigint
+
+claim.prior_auth
+  TYPE MISMATCHES (4):
+    ~ approved_days_supply: model=int vs physical=bigint
+    ~ approved_refills: model=int vs physical=bigint
+    ~ formulary_tier: model=int vs physical=bigint
+    ~ turnaround_days: model=int vs physical=bigint
+
+claim.rebate_record
+  TYPE MISMATCHES (1):
+    ~ claim_count: model=int vs physical=bigint
+
+claim.rx_claim
+  IN MODEL, NOT PHYSICAL (1):
+    + ndc (string)
+  TYPE MISMATCHES (2):
+    ~ days_supply: model=int vs physical=bigint
+    ~ fill_number: model=int vs physical=bigint
+
+claim.rx_claim_line
+  IN MODEL, NOT PHYSICAL (20):
+    + awp_discount_pct (decimal(7,4))
+    + awp_unit_price (decimal(18,4))
+    + claim_status (string)
+    + daw_code (string)
+    + days_supply (int)
+    + deductible_applied (decimal(18,4))
+    + deductible_remaining (decimal(18,4))
+    + dispensing_fee (decimal(18,4))
+    + fill_number (int)
+    + formulary_tier (string)
+    + ingredient_cost (decimal(18,4))
+    + member_coinsurance (decimal(18,4))
+    + member_copay (decimal(18,4))
+    + ndc (string)
+    + oop_applied (decimal(18,4))
+    + oop_remaining (decimal(18,4))
+    + other_payer_amount (decimal(18,4))
+    + plan_paid_amount (decimal(18,4))
+    + quantity (decimal(18,4))
+    + wac_unit_price (decimal(18,4))
+  TYPE MISMATCHES (2):
+    ~ line_number: model=int vs physical=bigint
+    ~ refill_authorized: model=int vs physical=bigint
+
+=== DOMAIN: CLIENT ===
+
+client.audit_finding
+  TYPE MISMATCHES (2):
+    ~ claim_count: model=int vs physical=bigint
+    ~ member_count: model=int vs physical=bigint
+
+client.benefit_plan
+  TYPE MISMATCHES (5):
+    ~ mail_days_supply_limit: model=int vs physical=bigint
+    ~ mail_order_required_days: model=int vs physical=bigint
+    ~ plan_year: model=int vs physical=bigint
+    ~ retail_days_supply_limit: model=int vs physical=bigint
+    ~ tier_count: model=int vs physical=bigint
+
+client.cap_program_enrollment
+  TYPE MISMATCHES (1):
+    ~ plan_year: model=int vs physical=bigint
+
+client.client_benefit_group
+  TYPE MISMATCHES (4):
+    ~ mail_days_supply_limit: model=int vs physical=bigint
+    ~ plan_year: model=int vs physical=bigint
+    ~ retail_days_supply_limit: model=int vs physical=bigint
+    ~ tier_count: model=int vs physical=bigint
+
+client.client_engagement_deliverable
+  TYPE MISMATCHES (3):
+    ~ audit_finding_count: model=int vs physical=bigint
+    ~ member_count: model=int vs physical=bigint
+    ~ sla_target_days: model=int vs physical=bigint
+
+client.consulting_fee_invoice
+  TYPE MISMATCHES (3):
+    ~ billed_claim_count: model=int vs physical=bigint
+    ~ billed_member_count: model=int vs physical=bigint
+    ~ invoice_sequence_number: model=int vs physical=bigint
+
+client.data_feed_config
+  TYPE MISMATCHES (3):
+    ~ data_retention_days: model=int vs physical=bigint
+    ~ sftp_port: model=int vs physical=bigint
+    ~ sla_delivery_hours: model=int vs physical=bigint
+
+client.document
+  TYPE MISMATCHES (2):
+    ~ retention_period_years: model=int vs physical=bigint
+    ~ version_number: model=int vs physical=bigint
+
+client.employer
+  TYPE MISMATCHES (4):
+    ~ eligible_member_count: model=int vs physical=bigint
+    ~ employee_count: model=int vs physical=bigint
+    ~ pbm_count: model=int vs physical=bigint
+    ~ plan_year_start_month: model=int vs physical=bigint
+
+client.onboarding_event
+  TYPE MISMATCHES (2):
+    ~ pbm_count: model=int vs physical=bigint
+    ~ sla_target_days: model=int vs physical=bigint
+
+client.pbm_contract
+  TYPE MISMATCHES (1):
+    ~ renewal_notice_days: model=int vs physical=bigint
+
+=== DOMAIN: COMPANY ===
+
+company.client_division_assignment
+  TYPE MISMATCHES (1):
+    ~ member_count: model=int vs physical=bigint
+
+company.client_onboarding
+  TYPE MISMATCHES (2):
+    ~ member_count_expected: model=int vs physical=bigint
+    ~ member_count_loaded: model=int vs physical=bigint
+
+company.client_pbm_contract
+  TYPE MISMATCHES (4):
+    ~ audit_lookback_months: model=int vs physical=bigint
+    ~ awp_edition_lag_days: model=int vs physical=bigint
+    ~ mac_appeal_turnaround_days: model=int vs physical=bigint
+    ~ notice_period_days: model=int vs physical=bigint
+
+company.company_benefit_group
+  TYPE MISMATCHES (4):
+    ~ formulary_tier_count: model=int vs physical=bigint
+    ~ mail_days_supply_standard: model=int vs physical=bigint
+    ~ mail_order_mandatory_fill_threshold: model=int vs physical=bigint
+    ~ retail_days_supply_standard: model=int vs physical=bigint
+
+company.company_client
+  TYPE MISMATCHES (3):
+    ~ employee_count: model=int vs physical=bigint
+    ~ member_count: model=int vs physical=bigint
+    ~ plan_year_start_month: model=int vs physical=bigint
+
+company.company_consulting_engagement
+  TYPE MISMATCHES (1):
+    ~ audit_finding_count: model=int vs physical=bigint
+
+company.company_engagement_deliverable
+  TYPE MISMATCHES (2):
+    ~ audit_finding_count: model=int vs physical=bigint
+    ~ member_count_analyzed: model=int vs physical=bigint
+
+company.company_pbm
+  TYPE MISMATCHES (1):
+    ~ data_lag_days: model=int vs physical=bigint
+
+company.consulting_fee
+  TYPE MISMATCHES (1):
+    ~ member_count: model=int vs physical=bigint
+
+company.member
+  TYPE MISMATCHES (1):
+    ~ plan_year: model=int vs physical=bigint
+
+company.org_division
+  TYPE MISMATCHES (3):
+    ~ client_count: model=int vs physical=bigint
+    ~ member_count_active: model=int vs physical=bigint
+    ~ plan_year_start_month: model=int vs physical=bigint
+
+company.organization
+  TYPE MISMATCHES (3):
+    ~ member_count: model=int vs physical=bigint
+    ~ pbm_count: model=int vs physical=bigint
+    ~ plan_year_start_month: model=int vs physical=bigint
+
+company.subscriber
+  TYPE MISMATCHES (1):
+    ~ dependent_count: model=int vs physical=bigint
+
+=== DOMAIN: DIVISION ===
+
+division.division
+  TYPE MISMATCHES (2):
+    ~ member_count: model=int vs physical=bigint
+    ~ plan_year_start_month: model=int vs physical=bigint
+
+division.division_benefit_group
+  TYPE MISMATCHES (2):
+    ~ mail_order_days_supply: model=int vs physical=bigint
+    ~ retail_days_supply: model=int vs physical=bigint
+
+division.division_formulary
+  TYPE MISMATCHES (7):
+    ~ brand_drug_count: model=int vs physical=bigint
+    ~ drug_count: model=int vs physical=bigint
+    ~ excluded_drug_count: model=int vs physical=bigint
+    ~ generic_drug_count: model=int vs physical=bigint
+    ~ plan_year: model=int vs physical=bigint
+    ~ specialty_drug_count: model=int vs physical=bigint
+    ~ tier_count: model=int vs physical=bigint
+
+division.division_formulary_tier
+  TYPE MISMATCHES (3):
+    ~ days_supply_limit: model=int vs physical=bigint
+    ~ plan_year: model=int vs physical=bigint
+    ~ tier_number: model=int vs physical=bigint
+
+division.division_pbm_contract
+  TYPE MISMATCHES (2):
+    ~ audit_lookback_months: model=int vs physical=bigint
+    ~ renewal_notice_days: model=int vs physical=bigint
+
+division.engagement
+  TYPE MISMATCHES (3):
+    ~ audit_finding_count: model=int vs physical=bigint
+    ~ deliverable_count: model=int vs physical=bigint
+    ~ member_count: model=int vs physical=bigint
+
+division.formulary_drug_placement
+  TYPE MISMATCHES (6):
+    ~ age_restriction_max: model=int vs physical=bigint
+    ~ age_restriction_min: model=int vs physical=bigint
+    ~ days_supply_limit: model=int vs physical=bigint
+    ~ quantity_limit_days: model=int vs physical=bigint
+    ~ scd_version: model=int vs physical=bigint
+    ~ tier_number: model=int vs physical=bigint
+
+division.pbm_feed
+  TYPE MISMATCHES (2):
+    ~ expected_member_count: model=int vs physical=bigint
+    ~ lookback_days: model=int vs physical=bigint
+
+division.pbm_guarantee_period
+  TYPE MISMATCHES (5):
+    ~ actual_member_months: model=int vs physical=bigint
+    ~ contract_year_number: model=int vs physical=bigint
+    ~ evaluation_year: model=int vs physical=bigint
+    ~ minimum_member_months: model=int vs physical=bigint
+    ~ total_claim_count: model=int vs physical=bigint
+
+division.pbm_guarantee_result
+  TYPE MISMATCHES (1):
+    ~ claim_count: model=int vs physical=bigint
+
+division.prior_auth_request
+  TYPE MISMATCHES (1):
+    ~ days_supply_requested: model=int vs physical=bigint
+
+division.prior_auth_rule
+  TYPE MISMATCHES (5):
+    ~ age_max_years: model=int vs physical=bigint
+    ~ age_min_years: model=int vs physical=bigint
+    ~ approval_duration_days: model=int vs physical=bigint
+    ~ quantity_limit_days: model=int vs physical=bigint
+    ~ step_sequence_number: model=int vs physical=bigint
+
+division.rebate_contract
+  TYPE MISMATCHES (3):
+    ~ amendment_number: model=int vs physical=bigint
+    ~ minimum_claim_volume: model=int vs physical=bigint
+    ~ rebate_lag_days: model=int vs physical=bigint
+
+division.rebate_payment
+  TYPE MISMATCHES (1):
+    ~ claim_count: model=int vs physical=bigint
+
+division.reconciliation_deliverable
+  TYPE MISMATCHES (1):
+    ~ claim_count_audited: model=int vs physical=bigint
+
+=== DOMAIN: DRUG ===
+
+drug.classification
+  IN MODEL, NOT PHYSICAL (1):
+    + ndc_id (varchar)
+
+drug.drug_formulary
+  TYPE MISMATCHES (6):
+    ~ brand_drug_count: model=int vs physical=bigint
+    ~ drug_count: model=int vs physical=bigint
+    ~ generic_drug_count: model=int vs physical=bigint
+    ~ plan_year: model=int vs physical=bigint
+    ~ specialty_drug_count: model=int vs physical=bigint
+    ~ tier_count: model=int vs physical=bigint
+
+drug.drug_formulary_tier
+  TYPE MISMATCHES (3):
+    ~ formulary_year: model=int vs physical=bigint
+    ~ scd_version: model=int vs physical=bigint
+    ~ tier_number: model=int vs physical=bigint
+
+drug.formulary_drug
+  IN MODEL, NOT PHYSICAL (1):
+    + ndc_id (varchar)
+  TYPE MISMATCHES (6):
+    ~ age_restriction_max: model=int vs physical=bigint
+    ~ age_restriction_min: model=int vs physical=bigint
+    ~ plan_year: model=int vs physical=bigint
+    ~ quantity_limit_days: model=int vs physical=bigint
+    ~ step_therapy_step_number: model=int vs physical=bigint
+    ~ tier_number: model=int vs physical=bigint
+
+drug.mac_list
+  TYPE MISMATCHES (3):
+    ~ appeal_turnaround_days: model=int vs physical=bigint
+    ~ drug_count: model=int vs physical=bigint
+    ~ plan_year: model=int vs physical=bigint
+
+drug.ndc
+  IN MODEL, NOT PHYSICAL (1):
+    + ndc_code (varchar)
+  IN PHYSICAL, NOT MODEL (4):
+    - manufacturer_id (bigint)
+    - ndc_labeler_code_fk (bigint)
+    - ndc_labeler_fk (bigint)
+    - ndc_manufacturer_id (bigint)
+  TYPE MISMATCHES (2):
+    ~ awp: model=decimal(12,4) vs physical=decimal(18,2)
+    ~ wac: model=decimal(12,4) vs physical=decimal(18,2)
+
+drug.pharmacy
+  IN PHYSICAL, NOT MODEL (1):
+    - ncpdp_number (string)
+
+drug.pharmacy_network
+  TYPE MISMATCHES (3):
+    ~ ncpdp_id: model=string vs physical=bigint
+    ~ pharmacy_ncpdp_id: model=string vs physical=bigint
+    ~ scd_version: model=int vs physical=bigint
+
+=== TABLES WITH PERFECT MATCH ===
+
+  claim.claim_prescriber (44 columns)
+  claim.cob (32 columns)
+  claim.medical_claim (44 columns)
+  claim.pbm_feed_batch (46 columns)
+  client.client_consulting_engagement (42 columns)
+  client.contact (41 columns)
+  client.pbm_assignment (42 columns)
+  company.client_contact (33 columns)
+  company.tenant_change_log (35 columns)
+  drug.drug_prescriber (41 columns)
+  drug.equivalence (33 columns)
+  drug.mac_pricing (14 columns)
+  drug.manufacturer (33 columns)
+  drug.ndc_price (44 columns)
+
+========================================================================
+SUMMARY
+========================================================================
+Total tables:                    71
+Tables in model only:            0
+Tables in physical only:         1
+Tables with gaps:                56
+Tables matching perfectly:        14
+Columns in model not physical:   26
+Columns in physical not model:   5
+Type mismatches:                 142

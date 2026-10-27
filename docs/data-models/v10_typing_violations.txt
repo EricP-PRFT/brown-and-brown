@@ -1,0 +1,185 @@
+PBM MODEL v10 TYPING VIOLATIONS — Column-by-Column Audit
+=========================================================================
+Audited: 3147 attributes across 6 domains (claim, drug, client, company,
+division, program) against pbm-reference.md industry standards.
+=========================================================================
+
+--- CRITICAL (data loss — leading zeros destroyed or precision lost) ---
+
+1. drug.ndc.ndc_labeler_code_fk
+   Current: BIGINT  ->  Required: STRING (or rename)
+   Reason: Column name contains "ndc_labeler_code" which is an NDC
+   component (5-digit labeler, e.g., "00069"). Typed as BIGINT, leading
+   zeros are silently destroyed. The FK target is drug.manufacturer which
+   is a surrogate BIGINT, so the column name is misleading — if it holds
+   an actual labeler code, it MUST be STRING; if it's purely a surrogate
+   FK to manufacturer, it should be renamed to labeler_manufacturer_id.
+
+2. drug.ndc.ndc_labeler_fk
+   Current: BIGINT  ->  Required: STRING (or rename)
+   Reason: Same issue as #1. Column name implies NDC labeler code but
+   FK target is drug.manufacturer.manufacturer_id (a surrogate). If this
+   holds the actual 5-digit labeler code, STRING is mandatory. If it's a
+   redundant surrogate FK to manufacturer, rename to drop the misleading
+   "ndc_labeler" prefix. Currently there are FIVE FK columns on drug.ndc
+   pointing to drug.manufacturer (labeler_manufacturer_id, manufacturer_id,
+   ndc_labeler_code_fk, ndc_labeler_fk, ndc_manufacturer_id) — this was
+   already flagged in next_vibes_v9 static analysis.
+
+3. drug.ndc.awp
+   Current: NUMERIC  ->  Required: DECIMAL(12,4)
+   Reason: AWP (Average Wholesale Price) is a financial field requiring
+   exact decimal precision. NUMERIC is an alias but DECIMAL is the explicit
+   Databricks/industry convention. Already flagged in vibes_v6.
+
+4. drug.ndc.wac
+   Current: NUMERIC  ->  Required: DECIMAL(12,4)
+   Reason: WAC (Wholesale Acquisition Cost) — same as AWP above.
+
+--- HIGH (interop risk, type mismatch, or identifier convention) ---
+
+5. drug.pharmacy_network.ncpdp_id
+   Current: BIGINT  ->  Required: STRING
+   Reason: Column name is "ncpdp_id" and it has NO foreign_key_to defined
+   (it's an unlinked FK per next_vibes_v9 static analysis). The tag says
+   "renamed_from=pharmacy_id,business_role=primary_dispensing". If this
+   holds a 7-digit NCPDP Provider ID, it MUST be STRING (leading zeros).
+   If it's a surrogate FK to drug.pharmacy, it should be renamed to
+   pharmacy_id (BIGINT) and properly linked. Currently ambiguous AND
+   wrong type for either interpretation.
+
+6. drug.pharmacy_network.pharmacy_ncpdp_id
+   Current: BIGINT  ->  Required: STRING (or rename to pharmacy_id)
+   Reason: Same class of issue. Column name implies an NCPDP number but
+   is typed as BIGINT. If it holds the actual NCPDP number, STRING is
+   mandatory. If it's a surrogate FK to drug.pharmacy, rename to
+   pharmacy_id. Currently unlinked per static analysis.
+
+7. claim.rx_claim.ncpdp_id
+   Current: BIGINT  ->  Required: STRING (or rename)
+   Reason: FK points to drug.pharmacy.ncpdp_id. The target column
+   drug.pharmacy.ncpdp_id is typed VARCHAR (correct). But this FK column
+   is BIGINT, creating a type mismatch. If this is meant to be a surrogate
+   FK to the pharmacy table, it should be pharmacy_id BIGINT pointing to
+   drug.pharmacy.pharmacy_id. If it holds the actual NCPDP number, it
+   must be STRING.
+
+8. client.audit_finding.ncpdp_id
+   Current: BIGINT  ->  Required: STRING (or rename)
+   Reason: FK points to drug.pharmacy.ncpdp_id. Same issue as #7 — type
+   mismatch between BIGINT FK and VARCHAR target.
+
+9. claim.dur_event.ncpdp_id
+   Current: BIGINT  ->  Required: STRING (or rename)
+   Reason: FK points to drug.pharmacy.ncpdp_id. Same class of issue as
+   #7 and #8.
+
+10. program.contract_pharmacy_340b.pharmacy_id
+    Current: BIGINT  FK-> drug.pharmacy.ncpdp_id
+    Required: BIGINT FK-> drug.pharmacy.pharmacy_id (or STRING if targeting ncpdp_id)
+    Reason: FK type mismatch. pharmacy_id is BIGINT but targets
+    drug.pharmacy.ncpdp_id which is VARCHAR. Should target the surrogate
+    PK drug.pharmacy.pharmacy_id instead.
+
+--- NAMING ISSUES (not type violations but create type confusion) ---
+
+N1. drug.ndc has 5 FK columns to drug.manufacturer:
+    labeler_manufacturer_id, manufacturer_id, ndc_labeler_code_fk,
+    ndc_labeler_fk, ndc_manufacturer_id
+    Already flagged in next_vibes_v9 static analysis. The "ndc_" prefixed
+    columns violate FK naming convention and create type ambiguity.
+
+N2. drug.pharmacy has both ncpdp_number (STRING) and ncpdp_id (VARCHAR):
+    Two columns holding the same NCPDP identifier. Redundant per
+    next_vibes_v9 static analysis finding [SA:denormalized_natural_key].
+
+N3. claim.dur_event.dispensed_ndc_id: name implies surrogate (BIGINT)
+    but holds NDC value (VARCHAR FK-> drug.ndc.ndc_code). Should be
+    dispensed_ndc_code.
+
+N4. program.copay_assistance_program.ndc_id and
+    program.patient_assistance_program.ndc_id: names imply surrogate FK
+    but FK target is drug.ndc.ndc_code (the string natural key). Should
+    be ndc_code for consistency.
+
+--- CONFIRMED CORRECT (80+ fields checked — no violation) ---
+
+The following identifier and coded fields are correctly typed as STRING:
+
+  IDENTIFIERS:
+  drug.ndc.ndc_code (VARCHAR), drug.ndc.ndc11 (STRING),
+  drug.ndc.ndc11_formatted (STRING), drug.ndc.gpi14 (STRING),
+  drug.ndc.fdb_drug_code (STRING), drug.ndc.medi_span_drug_code (STRING),
+  drug.ndc.dea_schedule (STRING), drug.pharmacy.npi (STRING),
+  drug.pharmacy.ncpdp_number (STRING), drug.pharmacy.ncpdp_id (VARCHAR),
+  drug.pharmacy.dea_number (STRING), drug.drug_prescriber.npi (STRING),
+  drug.drug_prescriber.dea_number (STRING),
+  drug.drug_prescriber.taxonomy_code (STRING),
+  drug.classification.ahfs_therapeutic_class_code (STRING),
+  drug.classification.dea_schedule_code (STRING),
+  drug.classification.gpi14 (STRING), drug.classification.gpi* (all STRING),
+  drug.classification.multisource_code (STRING),
+  drug.classification.ndc11 (STRING),
+  drug.equivalence.equivalent_gpi14 (STRING),
+  drug.equivalence.equivalent_ndc11 (STRING),
+  drug.formulary_drug.gpi (STRING),
+  claim.rx_claim.ndc (STRING), claim.rx_claim.rx_number (STRING),
+  claim.rx_claim.pbm_claim_number (STRING),
+  claim.rx_claim.daw_code (STRING), claim.rx_claim.claim_status (STRING),
+  claim.rx_claim.brand_generic_indicator (STRING),
+  claim.claim_prescriber.npi (STRING),
+  claim.claim_prescriber.dea_number (STRING),
+  claim.member_oop_accumulator.mbi (STRING),
+  claim.prior_auth.prescriber_npi (STRING),
+  claim.medical_claim.billing_provider_npi (STRING),
+  claim.medical_claim.rendering_provider_npi (STRING),
+  claim.rebate_record.gpi_code (STRING),
+  company.subscriber.mbi (STRING), company.subscriber.gender (STRING),
+  company.member.gender (STRING), company.company_pbm.npi (STRING),
+  program.covered_entity_340b.entity_npi (STRING),
+  program.copay_assistance_program.gpi14 (STRING),
+  program.patient_assistance_program.gpi14 (STRING),
+  division.prior_auth_request.prescriber_npi (STRING)
+
+  BOOLEANS (correctly BOOLEAN, not BIGINT):
+  drug.ndc.is_current, drug.ndc_price.is_current,
+  drug.equivalence.gpi10_match, drug.equivalence.gpi12_match
+
+  ZIP CODES (correctly STRING):
+  drug.pharmacy.zip_code, drug.drug_prescriber.practice_zip,
+  claim.claim_prescriber.practice_zip, client.employer.zip_code,
+  client.contact.zip_code, company.company_client.billing_address_zip
+
+  FINANCIALS (correctly DECIMAL):
+  drug.ndc.awp_unit_price DECIMAL(12,4), drug.ndc.wac_unit_price DECIMAL(12,4),
+  drug.ndc_price.awp_unit_price DECIMAL(12,4), drug.ndc_price.wac_unit_price DECIMAL(12,4),
+  drug.ndc_price.mac_price DECIMAL(12,4), plus 10+ other pricing fields
+
+  SURROGATE PKs (correctly BIGINT):
+  drug.ndc.ndc_id, drug.ndc_price.ndc_price_id, claim.rx_claim.rx_claim_id,
+  and all other _id PK columns checked — all BIGINT.
+
+=========================================================================
+SUMMARY
+=========================================================================
+
+  CRITICAL violations:  4  (2 NDC/naming ambiguity, 2 pricing precision)
+  HIGH violations:      6  (5 NCPDP type mismatches, 1 FK target mismatch)
+  Naming issues:        4  (create type confusion but not data loss)
+  Confirmed correct:   80+ fields checked, properly typed
+
+The model is SUBSTANTIALLY better typed than initially feared. Most
+identifiers (NDC, NPI, GPI, DEA, MBI, taxonomy, DAW, claim_number,
+rx_number, ZIP, gender, claim_status, brand_generic) are correctly
+STRING. The main issues cluster around:
+
+1. NCPDP columns: 5 of 6 violations involve ncpdp_id columns typed as
+   BIGINT instead of STRING, or BIGINT FKs targeting VARCHAR columns.
+   This is the single biggest class of bug.
+
+2. NDC manufacturer FKs: 2 columns on drug.ndc have names implying NDC
+   labeler codes but are actually surrogate FKs to manufacturer. The
+   naming creates ambiguity about whether the column holds an identifier
+   (needs STRING) or a surrogate (BIGINT is fine).
+
+3. AWP/WAC: 2 columns are NUMERIC instead of DECIMAL (known from v6).

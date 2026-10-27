@@ -1,0 +1,163 @@
+PBM MODEL v15 TYPING VIOLATIONS — Column-by-Column Audit
+=========================================================================
+Audited: ~3100+ attributes across 70 tables in 5 domains (claim, drug,
+client, company, division) against pbm-reference.md industry standards.
+NOTE: No "program" domain exists in v15 — the program domain vibes did
+not land. v15 has 5 domains, not 6.
+=========================================================================
+
+--- v10 VIOLATION RE-CHECK (were the 10 v10 issues fixed?) ---
+
+ 1. drug.pharmacy_network.ncpdp_id         BIGINT -> STRING     FIXED ✓
+ 2. drug.pharmacy_network.pharmacy_ncpdp_id BIGINT -> STRING     FIXED ✓
+ 3. claim.rx_claim.ncpdp_id                 BIGINT               NOT FIXED ✗
+ 4. client.audit_finding.ncpdp_id           BIGINT               NOT FIXED ✗
+ 5. claim.dur_event.ncpdp_id                BIGINT               NOT FIXED ✗
+ 6. drug.ndc.ndc_labeler_code_fk            naming ambiguity     FIXED ✓ (column removed, replaced by labeler_manufacturer_id BIGINT)
+ 7. drug.ndc.ndc_labeler_fk                 naming ambiguity     FIXED ✓ (column removed)
+ 8. drug.ndc.awp                            NUMERIC -> DECIMAL   FIXED ✓ (now DECIMAL(12,4))
+ 9. drug.ndc.wac                            NUMERIC -> DECIMAL   FIXED ✓ (now DECIMAL(12,4))
+10. program.contract_pharmacy_340b FK       FK target mismatch   N/A (program domain does not exist in v15)
+
+Score: 6 of 9 applicable v10 violations fixed. 3 remain (all NCPDP BIGINT).
+
+--- CRITICAL (data loss — leading zeros destroyed) ---
+
+NONE. No identifier columns with leading zeros are typed as numeric.
+All NDC, NPI, GPI, DEA, MBI, taxonomy, AHFS columns are correctly STRING.
+
+--- HIGH (type mismatch or interop risk) ---
+
+1. claim.rx_claim.ncpdp_id
+   Current: BIGINT  ->  Required: STRING
+   FK target: drug.pharmacy.ncpdp_id (VARCHAR)
+   Reason: Type mismatch. FK column is BIGINT but target is VARCHAR.
+   The value_regex on dur_event's ncpdp_id shows ^[0-9]{7}$ confirming
+   this holds a 7-digit NCPDP number, not a surrogate. BIGINT drops
+   leading zeros in NCPDP IDs like 0123456.
+
+2. client.audit_finding.ncpdp_id
+   Current: BIGINT  ->  Required: STRING
+   FK target: drug.pharmacy.ncpdp_id (VARCHAR)
+   Reason: Same type mismatch as #1. Description says "7-digit NCPDP
+   identifier" and value_regex is ^[0-9]{7}$.
+
+3. claim.dur_event.ncpdp_id
+   Current: BIGINT  ->  Required: STRING
+   FK target: drug.pharmacy.ncpdp_id (VARCHAR)
+   Reason: Same type mismatch as #1. Description explicitly says
+   "7-digit NCPDP identifier" and value_regex is ^[0-9]{7}$.
+
+--- MEDIUM (naming convention, not data loss) ---
+
+4. drug.classification.ndc_id
+   Current: VARCHAR, FK-> drug.ndc.ndc_code
+   Issue: Column named "ndc_id" but holds a VARCHAR NDC string (FK to
+   ndc_code natural key), not a BIGINT surrogate. The _id suffix implies
+   surrogate. Should be renamed to ndc_code for consistency.
+
+5. drug.formulary_drug.ndc_id
+   Current: VARCHAR, FK-> drug.ndc.ndc_code
+   Issue: Same as #4. Named "ndc_id" but holds NDC string value.
+   Should be ndc_code.
+
+6. claim.prior_auth.formulary_tier
+   Current: INT
+   Issue: Formulary tiers can have non-numeric variants (specialty,
+   excluded, not_listed). STRING would be more robust. INT is functional
+   but fragile if tier classification evolves.
+
+--- STRUCTURAL GAPS (not typing violations, but significant) ---
+
+G1. claim.rx_claim has NO foreign key to drug.ndc.
+    The rx_claim table has an "ndc" STRING column (the 11-digit code) but
+    no surrogate FK (ndc_id BIGINT) to drug.ndc.ndc_id. This was Priority 1
+    in next_vibes_v9 and has failed to land across v6-v15. Claims cannot
+    join to the drug reference dimension without a string match.
+
+G2. claim.rebate_record has NO NDC column.
+    Has gpi_code (STRING) for class-level identification but no NDC field.
+    Claim-level rebate records tied to a specific dispensed product cannot
+    be traced to a drug. The table description mentions "drug NDC or GPI"
+    but only GPI exists.
+
+G3. program domain does not exist.
+    The vibes_program.txt directives (15 tables across savings programs,
+    rebates, accumulators, 340B, etc.) did not produce a program domain
+    in v15. The v10 error log showed the agent accepted them as
+    "new_containers" but hit structural failures during application.
+
+--- CONFIRMED CORRECT (80+ fields checked — no violation) ---
+
+IDENTIFIERS (all STRING):
+  drug.ndc: ndc_code (VARCHAR PK), ndc11 (STRING), ndc11_formatted (STRING),
+    gpi14 (STRING), fdb_drug_code (STRING), medi_span_drug_code (STRING),
+    dea_schedule (STRING), labeler_manufacturer_id (BIGINT FK — correct)
+  drug.pharmacy: npi (STRING), ncpdp_id (VARCHAR), ncpdp_number (STRING),
+    dea_number (STRING), zip_code (STRING), phone (STRING), fax (STRING)
+  drug.pharmacy_network: ncpdp_id (STRING), pharmacy_ncpdp_id (STRING)
+  drug.drug_prescriber: npi (STRING), dea_number (STRING),
+    taxonomy_code (STRING), practice_zip (STRING)
+  drug.classification: gpi14, gpi2-gpi6 codes, ndc11, multisource_code,
+    ndc_status — all STRING
+  drug.equivalence: equivalent_ndc11, equivalent_gpi14, source_gpi14 — all STRING
+  drug.formulary_drug: gpi (STRING), preferred_alternative_ndc (STRING)
+  claim.rx_claim: ndc (STRING), daw_code (STRING), claim_status (STRING),
+    brand_generic_indicator (STRING), rx_number (STRING),
+    pbm_claim_number (STRING)
+  claim.rx_claim_line: ndc (STRING), daw_code (STRING), claim_status (STRING)
+  claim.dur_event: ndc (STRING), coagent_ndc (STRING),
+    dispensed_ndc_code (VARCHAR FK->drug.ndc.ndc_code)
+  claim.prior_auth: ndc (STRING), prescriber_npi (STRING)
+  claim.claim_prescriber: npi (STRING), dea_number (STRING), practice_zip (STRING)
+  claim.claim_pbm: npi (STRING)
+  claim.medical_claim: billing_provider_npi (STRING),
+    rendering_provider_npi (STRING), claim_number (STRING), claim_status (STRING)
+  claim.member_oop_accumulator: mbi (STRING)
+  claim.rebate_record: gpi_code (STRING)
+  client.audit_finding: ndc (STRING)
+  client.cap_program_enrollment: ndc (STRING)
+  company.subscriber: mbi (STRING), gender (STRING)
+  company.member: gender (STRING)
+  division.formulary_drug_placement: ndc (STRING), gpi (STRING),
+    formulary_alternative_ndc (STRING)
+  division.prior_auth_rule: target_ndc (STRING), target_gpi (STRING),
+    step_therapy_predecessor_ndc (STRING)
+  division.prior_auth_request: prescriber_npi (STRING)
+  All contact/employer/org tables: zip_code, phone, fax — all STRING
+
+BOOLEANS (all correctly BOOLEAN, not BIGINT):
+  All is_current columns across 12+ SCD-2 tables: BOOLEAN
+  drug.ndc.biosimilar_indicator, drug.equivalence.gpi10_match,
+  drug.equivalence.gpi12_match, claim.rebate_record.is_340b_excluded
+
+FINANCIALS (all correctly DECIMAL, no NUMERIC/FLOAT/DOUBLE anywhere):
+  drug.ndc: awp DECIMAL(12,4), wac DECIMAL(12,4), awp_unit_price DECIMAL(12,4),
+    awp_package_price DECIMAL(12,4)
+  drug.ndc_price: all pricing DECIMAL(12,4)
+  claim.rebate_record: all amounts DECIMAL(18,2)
+  All other monetary fields confirmed DECIMAL
+
+SURROGATES (all correctly BIGINT, no INT on any _id column):
+  Every surrogate PK and FK column ending in _id is BIGINT.
+
+=========================================================================
+SUMMARY
+=========================================================================
+
+  v10 fixes applied:    6 of 9 applicable (67%)
+  CRITICAL violations:  0
+  HIGH violations:      3  (all NCPDP BIGINT — same class, same fix)
+  MEDIUM violations:    3  (2 naming, 1 tier type)
+  Structural gaps:      3  (no rx_claim->drug.ndc FK, no NDC on rebate_record,
+                            no program domain)
+
+The v15 model is substantially cleaner than v10. The only remaining typing
+bugs are 3 ncpdp_id columns (rx_claim, dur_event, audit_finding) still
+typed BIGINT instead of STRING — identical to the v10 findings that were
+not fixed. Everything else passes: NDC, NPI, GPI, DEA, MBI, taxonomy,
+DAW, gender, claim_status, ZIP, phone, financials, surrogates, booleans.
+
+The structural gaps (no claim->drug FK, missing NDC on rebate_record,
+missing program domain) are more impactful than the typing issues at
+this point.

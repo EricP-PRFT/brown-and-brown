@@ -193,6 +193,7 @@ The PCT is the central fact table. Key column groups:
 - **Processing flags:** rx_count (PAID=1, REVERSED=-1, ADJUSTED/REJECTED=0), complete/orphaned reversal flags, inclusion/exclusion indicators
 - **Lineage/Audit:** PBM_code, source type/name/format/file/line, record hash, insert/update timestamps, ETL run IDs
 
+
 ### Standard Transformations
 
 - `COALESCE(value, 'NOT PROVIDED')` universal null replacement
