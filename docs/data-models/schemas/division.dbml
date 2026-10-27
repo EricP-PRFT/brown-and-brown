@@ -633,3 +633,96 @@ Table division.reconciliation_deliverable {
 
   Note: 'Transactional record capturing a client-facing reconciliation/audit deliverable produced under a division_engagement, tying one or more pbm_guarantee_result and/or rebate_payment reconciliation outcomes to an accountable consulting output.'
 }
+
+// --- Relationships ---
+// 62 relationships
+
+// division.division
+Ref: division.division.company_id > company.organization.organization_id
+Ref: division.division.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: division.division.organization_id > company.organization.organization_id
+
+// division.division_benefit_group
+Ref: division.division_benefit_group.benefit_plan_id > client.benefit_plan.benefit_plan_id
+Ref: division.division_benefit_group.client_benefit_group_id > client.client_benefit_group.client_benefit_group_id
+Ref: division.division_benefit_group.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: division.division_benefit_group.division_formulary_id > division.division_formulary.division_formulary_id
+Ref: division.division_benefit_group.employer_id > client.employer.employer_id
+Ref: division.division_benefit_group.pbm_contract_id > client.pbm_contract.pbm_contract_id
+Ref: division.division_benefit_group.pbm_division_id > division.division.division_id
+Ref: division.division_benefit_group.primary_division_id > division.division.division_id
+
+// division.division_formulary
+Ref: division.division_formulary.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: division.division_formulary.employer_id > client.employer.employer_id
+Ref: division.division_formulary.pbm_contract_id > client.pbm_contract.pbm_contract_id
+Ref: division.division_formulary.pbm_formulary_division_formulary_id > division.division_formulary.division_formulary_id
+
+// division.division_formulary_tier
+Ref: division.division_formulary_tier.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: division.division_formulary_tier.division_formulary_id > division.division_formulary.division_formulary_id
+Ref: division.division_formulary_tier.employer_id > client.employer.employer_id
+
+// division.division_pbm_contract
+Ref: division.division_pbm_contract.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: division.division_pbm_contract.division_id > division.division.division_id
+Ref: division.division_pbm_contract.employer_id > client.employer.employer_id
+Ref: division.division_pbm_contract.pbm_division_id > division.division.division_id
+
+// division.engagement
+Ref: division.engagement.division_id > division.division.division_id
+Ref: division.engagement.division_pbm_contract_id > division.division_pbm_contract.division_pbm_contract_id
+
+// division.formulary_drug_placement
+Ref: division.formulary_drug_placement.division_formulary_tier_id > division.division_formulary_tier.division_formulary_tier_id
+Ref: division.formulary_drug_placement.formulary_tier_id > division.division_formulary_tier.division_formulary_tier_id
+Ref: division.formulary_drug_placement.primary_division_formulary_id > division.division_formulary.division_formulary_id
+Ref: division.formulary_drug_placement.primary_formulary_division_formulary_id > division.division_formulary.division_formulary_id
+Ref: division.formulary_drug_placement.prior_auth_rule_id > division.prior_auth_rule.prior_auth_rule_id
+Ref: division.formulary_drug_placement.source_pbm_formulary_division_formulary_id > division.division_formulary.division_formulary_id
+
+// division.pbm_feed
+Ref: division.pbm_feed.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: division.pbm_feed.division_id > division.division.division_id
+Ref: division.pbm_feed.pbm_contract_id > client.pbm_contract.pbm_contract_id
+
+// division.pbm_guarantee_period
+Ref: division.pbm_guarantee_period.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: division.pbm_guarantee_period.division_pbm_contract_id > division.division_pbm_contract.division_pbm_contract_id
+Ref: division.pbm_guarantee_period.employer_id > client.employer.employer_id
+
+// division.pbm_guarantee_result
+Ref: division.pbm_guarantee_result.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: division.pbm_guarantee_result.employer_id > client.employer.employer_id
+Ref: division.pbm_guarantee_result.pbm_contract_id > client.pbm_contract.pbm_contract_id
+Ref: division.pbm_guarantee_result.pbm_guarantee_period_id > division.pbm_guarantee_period.pbm_guarantee_period_id
+Ref: division.pbm_guarantee_result.pbm_period_fk > division.pbm_guarantee_period.pbm_guarantee_period_id
+Ref: division.pbm_guarantee_result.primary_pbm_guarantee_period_id > division.pbm_guarantee_period.pbm_guarantee_period_id
+
+// division.prior_auth_request
+Ref: division.prior_auth_request.benefit_plan_id > client.benefit_plan.benefit_plan_id
+Ref: division.prior_auth_request.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: division.prior_auth_request.division_id > division.division.division_id
+Ref: division.prior_auth_request.employer_id > client.employer.employer_id
+Ref: division.prior_auth_request.linked_rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: division.prior_auth_request.prior_auth_rule_id > division.prior_auth_rule.prior_auth_rule_id
+
+// division.prior_auth_rule
+Ref: division.prior_auth_rule.client_benefit_group_id > client.client_benefit_group.client_benefit_group_id
+Ref: division.prior_auth_rule.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: division.prior_auth_rule.division_benefit_group_id > division.division_benefit_group.division_benefit_group_id
+Ref: division.prior_auth_rule.division_formulary_id > division.division_formulary.division_formulary_id
+Ref: division.prior_auth_rule.prior_version_rule_prior_auth_rule_id > division.prior_auth_rule.prior_auth_rule_id
+
+// division.rebate_payment
+Ref: division.rebate_payment.primary_rebate_contract_id > program.rebate_contract.rebate_contract_id
+Ref: division.rebate_payment.secondary_rebate_contract_id > program.rebate_contract.rebate_contract_id
+
+// division.reconciliation_deliverable
+Ref: division.reconciliation_deliverable.company_pbm_id > company.company_pbm.company_pbm_id
+Ref: division.reconciliation_deliverable.consulting_fee_id > company.consulting_fee.consulting_fee_id
+Ref: division.reconciliation_deliverable.employer_id > client.employer.employer_id
+Ref: division.reconciliation_deliverable.engagement_id > division.engagement.engagement_id
+Ref: division.reconciliation_deliverable.pbm_contract_id > client.pbm_contract.pbm_contract_id
+Ref: division.reconciliation_deliverable.pbm_guarantee_result_id > division.pbm_guarantee_result.pbm_guarantee_result_id
+Ref: division.reconciliation_deliverable.rebate_payment_id > program.rebate_payment.rebate_payment_id
