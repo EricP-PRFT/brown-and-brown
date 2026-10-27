@@ -702,55 +702,50 @@ Table client.pbm_contract {
 }
 
 // --- Relationships ---
-// 67 relationships
+// 67 relationships (50 intra-domain, 17 cross-domain)
 
 // client.audit_finding
 Ref: client.audit_finding.audit_client_consulting_engagement_id > client.client_consulting_engagement.client_consulting_engagement_id
 Ref: client.audit_finding.audit_pbm_contract_id > client.pbm_contract.pbm_contract_id
 Ref: client.audit_finding.client_engagement_deliverable_id > client.client_engagement_deliverable.client_engagement_deliverable_id
-
-// Cross-domain references (see pillarrx.dbml for resolved refs)
-// Ref: client.audit_finding.client_pbm_contract_id > company.client_pbm_contract.client_pbm_contract_id
 Ref: client.audit_finding.employer_id > client.employer.employer_id
 Ref: client.audit_finding.finding_client_consulting_engagement_id > client.client_consulting_engagement.client_consulting_engagement_id
-// Ref: client.audit_finding.ncpdp_id > drug.pharmacy.ncpdp_id
 Ref: client.audit_finding.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
 Ref: client.audit_finding.pbm_contract_id > client.pbm_contract.pbm_contract_id
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: client.audit_finding.client_pbm_contract_id > company.client_pbm_contract.client_pbm_contract_id
+// Ref: client.audit_finding.ncpdp_id > drug.pharmacy.ncpdp_id
 
 // client.benefit_plan
 Ref: client.benefit_plan.benefit_employer_id > client.employer.employer_id
 Ref: client.benefit_plan.benefit_pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
-
-// Cross-domain references (see pillarrx.dbml for resolved refs)
-// Ref: client.benefit_plan.company_pbm_id > company.company_pbm.company_pbm_id
-// Ref: client.benefit_plan.division_formulary_id > division.division_formulary.division_formulary_id
 Ref: client.benefit_plan.employer_id > client.employer.employer_id
 Ref: client.benefit_plan.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
 Ref: client.benefit_plan.plan_employer_id > client.employer.employer_id
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: client.benefit_plan.company_pbm_id > company.company_pbm.company_pbm_id
+// Ref: client.benefit_plan.division_formulary_id > division.division_formulary.division_formulary_id
 
 // client.cap_program_enrollment
 Ref: client.cap_program_enrollment.benefit_plan_id > client.benefit_plan.benefit_plan_id
 Ref: client.cap_program_enrollment.cap_employer_id > client.employer.employer_id
 Ref: client.cap_program_enrollment.client_consulting_engagement_id > client.client_consulting_engagement.client_consulting_engagement_id
-
+Ref: client.cap_program_enrollment.primary_employer_id > client.employer.employer_id
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: client.cap_program_enrollment.member_id > company.member.member_id
-Ref: client.cap_program_enrollment.primary_employer_id > client.employer.employer_id
 
 // client.client_benefit_group
 Ref: client.client_benefit_group.benefit_plan_id > client.benefit_plan.benefit_plan_id
-
+Ref: client.client_benefit_group.employer_id > client.employer.employer_id
+Ref: client.client_benefit_group.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: client.client_benefit_group.company_pbm_id > company.company_pbm.company_pbm_id
 // Ref: client.client_benefit_group.division_formulary_id > division.division_formulary.division_formulary_id
-Ref: client.client_benefit_group.employer_id > client.employer.employer_id
 // Ref: client.client_benefit_group.mac_list_id > drug.mac_list.mac_list_id
-Ref: client.client_benefit_group.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
 
 // client.client_consulting_engagement
 Ref: client.client_consulting_engagement.client_employer_id > client.employer.employer_id
 Ref: client.client_consulting_engagement.employer_id > client.employer.employer_id
-
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: client.client_consulting_engagement.renewal_of_engagement_id > division.engagement.engagement_id
 
@@ -771,27 +766,24 @@ Ref: client.contact.employer_id > client.employer.employer_id
 Ref: client.contact.salesforce_contact_id > client.contact.contact_id
 
 // client.data_feed_config
-
-// Cross-domain references (see pillarrx.dbml for resolved refs)
-// Ref: client.data_feed_config.company_pbm_id > company.company_pbm.company_pbm_id
 Ref: client.data_feed_config.data_assignment_fk > client.pbm_assignment.pbm_assignment_id
 Ref: client.data_feed_config.data_employer_id > client.employer.employer_id
 Ref: client.data_feed_config.data_pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
 Ref: client.data_feed_config.employer_id > client.employer.employer_id
 Ref: client.data_feed_config.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
 Ref: client.data_feed_config.primary_pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: client.data_feed_config.company_pbm_id > company.company_pbm.company_pbm_id
 
 // client.document
 Ref: client.document.client_consulting_engagement_id > client.client_consulting_engagement.client_consulting_engagement_id
-
-// Cross-domain references (see pillarrx.dbml for resolved refs)
-// Ref: client.document.company_pbm_id > company.company_pbm.company_pbm_id
 Ref: client.document.employer_id > client.employer.employer_id
 Ref: client.document.pbm_contract_id > client.pbm_contract.pbm_contract_id
 Ref: client.document.superseded_by_document_id > client.document.document_id
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: client.document.company_pbm_id > company.company_pbm.company_pbm_id
 
 // client.employer
-
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: client.employer.division_id > division.division.division_id
 // Ref: client.employer.organization_id > company.organization.organization_id
@@ -803,18 +795,16 @@ Ref: client.onboarding_event.onboarding_employer_id > client.employer.employer_i
 Ref: client.onboarding_event.primary_employer_id > client.employer.employer_id
 
 // client.pbm_assignment
-
+Ref: client.pbm_assignment.employer_id > client.employer.employer_id
+Ref: client.pbm_assignment.pbm_contract_id > client.pbm_contract.pbm_contract_id
+Ref: client.pbm_assignment.pbm_employer_id > client.employer.employer_id
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: client.pbm_assignment.company_pbm_id > company.company_pbm.company_pbm_id
 // Ref: client.pbm_assignment.division_formulary_id > division.division_formulary.division_formulary_id
-Ref: client.pbm_assignment.employer_id > client.employer.employer_id
 // Ref: client.pbm_assignment.mac_list_id > drug.mac_list.mac_list_id
-Ref: client.pbm_assignment.pbm_contract_id > client.pbm_contract.pbm_contract_id
-Ref: client.pbm_assignment.pbm_employer_id > client.employer.employer_id
 
 // client.pbm_contract
-
-// Cross-domain references (see pillarrx.dbml for resolved refs)
-// Ref: client.pbm_contract.company_pbm_id > company.company_pbm.company_pbm_id
 Ref: client.pbm_contract.employer_id > client.employer.employer_id
 Ref: client.pbm_contract.pbm_employer_id > client.employer.employer_id
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: client.pbm_contract.company_pbm_id > company.company_pbm.company_pbm_id

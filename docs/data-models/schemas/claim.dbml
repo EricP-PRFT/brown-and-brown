@@ -622,50 +622,28 @@ Table claim.rx_claim_line {
   specialty_drug_flag boolean [note: 'Indicates whether the dispensed drug is classified as a specialty medication (SMN). Specialty drugs require separate spend monitoring, trend reporting, and PBM channel management.']
   transaction_type varchar [note: 'Identifies the nature of the claim transaction at the individual grain: a new fill (dispensing event), a reversal (cancellation), or an adjustment (correction to a prior claim).. Valid values are `fill|reversal|adjustment`']
   vaccine_admin_fee decimal(18,4) [note: 'Fee charged for vaccine administration services when the dispensed drug is a vaccine. Tracked as a distinct line component per NCPDP adjudication standards.']
-  awp_discount_pct decimal(7,4) [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  awp_unit_price decimal(18,4) [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  claim_status varchar [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  daw_code varchar [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  days_supply bigint [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  deductible_applied decimal(18,4) [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  deductible_remaining decimal(18,4) [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  dispensing_fee decimal(18,4) [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  fill_number bigint [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  formulary_tier varchar [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  ingredient_cost decimal(18,4) [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  member_coinsurance decimal(18,4) [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  member_copay decimal(18,4) [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  ndc varchar [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  oop_applied decimal(18,4) [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  oop_remaining decimal(18,4) [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  other_payer_amount decimal(18,4) [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  plan_paid_amount decimal(18,4) [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  quantity decimal(18,4) [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
-  wac_unit_price decimal(18,4) [note: 'Deploy the 20 missing line-level pricing decomposition columns on claim.rx_claim_line to match the model. DEPLOY claim.rx_claim_line: awp_discount_pct (DECIMAL(7,4)), awp_unit_price (DECIMAL(18,4)), claim_status (STRING), daw_code (STRING), ADVISORY: duplicates the rx_claim header; deployed as-is for query performance. If denormalization is not intentional, drop and join through rx_claim via primary_rx_claim_id.']
 
   Note: 'ADVISORY (rx_claim_line denormalization): deploy as-is if denormalization intentional; otherwise keep only line-specific columns and join rest through header | line-specific columns: rx_claim_line_id, primary_rx_claim_id, line_number, line_type, line_amount, sales_tax, vaccine_admin_fee'
 }
 
 // --- Relationships ---
-// 107 relationships
+// 82 relationships (30 intra-domain, 52 cross-domain)
 
 // claim.adjustment
 Ref: claim.adjustment.adjustment_original_rx_claim_id > claim.rx_claim.rx_claim_id
 Ref: claim.adjustment.adjustment_rx_claim_id > claim.rx_claim.rx_claim_id
 Ref: claim.adjustment.claim_benefit_group_id > claim.claim_benefit_group.claim_benefit_group_id
-
+Ref: claim.adjustment.pbm_feed_batch_id > claim.pbm_feed_batch.pbm_feed_batch_id
+Ref: claim.adjustment.primary_rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.adjustment.to_rx_claim_id > claim.rx_claim.rx_claim_id
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: claim.adjustment.company_client_id > company.company_client.company_client_id
 // Ref: claim.adjustment.company_pbm_id > company.company_pbm.company_pbm_id
 // Ref: claim.adjustment.member_id > company.member.member_id
 // Ref: claim.adjustment.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
 // Ref: claim.adjustment.pbm_division_id > division.division.division_id
-Ref: claim.adjustment.pbm_feed_batch_id > claim.pbm_feed_batch.pbm_feed_batch_id
-Ref: claim.adjustment.primary_rx_claim_id > claim.rx_claim.rx_claim_id
-Ref: claim.adjustment.to_rx_claim_id > claim.rx_claim.rx_claim_id
 
 // claim.claim_benefit_group
-
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: claim.claim_benefit_group.client_benefit_group_id > client.client_benefit_group.client_benefit_group_id
 // Ref: claim.claim_benefit_group.company_pbm_id > company.company_pbm.company_pbm_id
@@ -674,32 +652,29 @@ Ref: claim.adjustment.to_rx_claim_id > claim.rx_claim.rx_claim_id
 // Ref: claim.claim_benefit_group.employer_id > client.employer.employer_id
 
 // claim.cob
-
+Ref: claim.cob.rx_claim_id > claim.rx_claim.rx_claim_id
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: claim.cob.benefit_plan_id > client.benefit_plan.benefit_plan_id
 // Ref: claim.cob.company_client_id > company.company_client.company_client_id
 // Ref: claim.cob.other_payer_company_pbm_id > company.company_pbm.company_pbm_id
 // Ref: claim.cob.pbm_division_id > division.division.division_id
-Ref: claim.cob.rx_claim_id > claim.rx_claim.rx_claim_id
 
 // claim.dur_event
 Ref: claim.dur_event.claim_prescriber_id > claim.claim_prescriber.claim_prescriber_id
-
+Ref: claim.dur_event.dur_rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.dur_event.pbm_feed_batch_id > claim.pbm_feed_batch.pbm_feed_batch_id
+Ref: claim.dur_event.prior_auth_id > claim.prior_auth.prior_auth_id
+Ref: claim.dur_event.rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.dur_event.to_rx_claim_id > claim.rx_claim.rx_claim_id
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: claim.dur_event.company_pbm_id > company.company_pbm.company_pbm_id
-Ref: claim.dur_event.dur_rx_claim_id > claim.rx_claim.rx_claim_id
 // Ref: claim.dur_event.employer_id > client.employer.employer_id
 // Ref: claim.dur_event.member_id > company.member.member_id
 // Ref: claim.dur_event.ncpdp_id > drug.pharmacy.ncpdp_id
 // Ref: claim.dur_event.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
 // Ref: claim.dur_event.pbm_division_id > division.division.division_id
-Ref: claim.dur_event.pbm_feed_batch_id > claim.pbm_feed_batch.pbm_feed_batch_id
-Ref: claim.dur_event.prior_auth_id > claim.prior_auth.prior_auth_id
-Ref: claim.dur_event.rx_claim_id > claim.rx_claim.rx_claim_id
-Ref: claim.dur_event.to_rx_claim_id > claim.rx_claim.rx_claim_id
 
 // claim.medical_claim
-
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: claim.medical_claim.benefit_plan_id > client.benefit_plan.benefit_plan_id
 // Ref: claim.medical_claim.employer_id > client.employer.employer_id
@@ -707,92 +682,62 @@ Ref: claim.dur_event.to_rx_claim_id > claim.rx_claim.rx_claim_id
 // Ref: claim.medical_claim.pbm_division_id > division.division.division_id
 
 // claim.member_oop_accumulator
-
+Ref: claim.member_oop_accumulator.claim_benefit_group_id > claim.claim_benefit_group.claim_benefit_group_id
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: claim.member_oop_accumulator.accumulator_program_id > program.accumulator_program.accumulator_program_id
 // Ref: claim.member_oop_accumulator.benefit_plan_id > client.benefit_plan.benefit_plan_id
-Ref: claim.member_oop_accumulator.claim_benefit_group_id > claim.claim_benefit_group.claim_benefit_group_id
 // Ref: claim.member_oop_accumulator.company_client_id > company.company_client.company_client_id
 // Ref: claim.member_oop_accumulator.company_pbm_id > company.company_pbm.company_pbm_id
 // Ref: claim.member_oop_accumulator.member_id > company.member.member_id
 // Ref: claim.member_oop_accumulator.pbm_division_id > division.division.division_id
-// Ref: claim.member_oop_accumulator.program_alternative_funding_program_id > program.alternative_funding_program.alternative_funding_program_id
-// Ref: claim.member_oop_accumulator.program_charitable_assistance_id > program.charitable_assistance.charitable_assistance_id
-// Ref: claim.member_oop_accumulator.program_claim_savings_attribution_id > program.claim_savings_attribution.claim_savings_attribution_id
-// Ref: claim.member_oop_accumulator.program_contract_pharmacy_340b_id > program.contract_pharmacy_340b.contract_pharmacy_340b_id
-// Ref: claim.member_oop_accumulator.program_copay_assistance_program_id > program.copay_assistance_program.copay_assistance_program_id
-// Ref: claim.member_oop_accumulator.program_covered_entity_340b_id > program.covered_entity_340b.covered_entity_340b_id
-// Ref: claim.member_oop_accumulator.program_government_benefit_rule_id > program.government_benefit_rule.government_benefit_rule_id
-// Ref: claim.member_oop_accumulator.program_member_accumulator_impact_id > program.member_accumulator_impact.member_accumulator_impact_id
-// Ref: claim.member_oop_accumulator.program_member_copay_enrollment_id > program.member_copay_enrollment.member_copay_enrollment_id
-// Ref: claim.member_oop_accumulator.program_patient_assistance_program_id > program.patient_assistance_program.patient_assistance_program_id
-// Ref: claim.member_oop_accumulator.program_program_type_id > program.program_type.program_type_id
-// Ref: claim.member_oop_accumulator.program_rebate_contract_id > program.rebate_contract.rebate_contract_id
-// Ref: claim.member_oop_accumulator.program_rebate_payment_id > program.rebate_payment.rebate_payment_id
 // Ref: claim.member_oop_accumulator.program_savings_program_id > program.savings_program.savings_program_id
 
 // claim.pbm_feed_batch
 Ref: claim.pbm_feed_batch.claim_pbm_id > claim.claim_pbm.claim_pbm_id
-
+Ref: claim.pbm_feed_batch.original_batch_pbm_feed_batch_id > claim.pbm_feed_batch.pbm_feed_batch_id
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: claim.pbm_feed_batch.employer_id > client.employer.employer_id
-Ref: claim.pbm_feed_batch.original_batch_pbm_feed_batch_id > claim.pbm_feed_batch.pbm_feed_batch_id
 // Ref: claim.pbm_feed_batch.pbm_batch_company_pbm_id > company.company_pbm.company_pbm_id
 // Ref: claim.pbm_feed_batch.pbm_division_id > division.division.division_id
 // Ref: claim.pbm_feed_batch.pbm_sender_company_pbm_id > company.company_pbm.company_pbm_id
 
 // claim.prior_auth
 Ref: claim.prior_auth.claim_prescriber_id > claim.claim_prescriber.claim_prescriber_id
-
+Ref: claim.prior_auth.prior_rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.prior_auth.rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.prior_auth.to_rx_claim_id > claim.rx_claim.rx_claim_id
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: claim.prior_auth.company_client_id > company.company_client.company_client_id
 // Ref: claim.prior_auth.company_pbm_id > company.company_pbm.company_pbm_id
 // Ref: claim.prior_auth.member_id > company.member.member_id
 // Ref: claim.prior_auth.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
 // Ref: claim.prior_auth.pbm_division_id > division.division.division_id
-Ref: claim.prior_auth.prior_rx_claim_id > claim.rx_claim.rx_claim_id
-Ref: claim.prior_auth.rx_claim_id > claim.rx_claim.rx_claim_id
-Ref: claim.prior_auth.to_rx_claim_id > claim.rx_claim.rx_claim_id
 
 // claim.rebate_record
 Ref: claim.rebate_record.claim_pbm_id > claim.claim_pbm.claim_pbm_id
-
+Ref: claim.rebate_record.rebate_rx_claim_id > claim.rx_claim.rx_claim_id
+Ref: claim.rebate_record.to_rx_claim_id > claim.rx_claim.rx_claim_id
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: claim.rebate_record.company_pbm_id > company.company_pbm.company_pbm_id
 // Ref: claim.rebate_record.employer_id > client.employer.employer_id
 // Ref: claim.rebate_record.pbm_assignment_id > client.pbm_assignment.pbm_assignment_id
-// Ref: claim.rebate_record.program_accumulator_program_id > program.accumulator_program.accumulator_program_id
-// Ref: claim.rebate_record.program_alternative_funding_program_id > program.alternative_funding_program.alternative_funding_program_id
-// Ref: claim.rebate_record.program_charitable_assistance_id > program.charitable_assistance.charitable_assistance_id
-// Ref: claim.rebate_record.program_claim_savings_attribution_id > program.claim_savings_attribution.claim_savings_attribution_id
-// Ref: claim.rebate_record.program_contract_pharmacy_340b_id > program.contract_pharmacy_340b.contract_pharmacy_340b_id
-// Ref: claim.rebate_record.program_copay_assistance_program_id > program.copay_assistance_program.copay_assistance_program_id
-// Ref: claim.rebate_record.program_covered_entity_340b_id > program.covered_entity_340b.covered_entity_340b_id
-// Ref: claim.rebate_record.program_government_benefit_rule_id > program.government_benefit_rule.government_benefit_rule_id
-// Ref: claim.rebate_record.program_member_accumulator_impact_id > program.member_accumulator_impact.member_accumulator_impact_id
-// Ref: claim.rebate_record.program_member_copay_enrollment_id > program.member_copay_enrollment.member_copay_enrollment_id
-// Ref: claim.rebate_record.program_patient_assistance_program_id > program.patient_assistance_program.patient_assistance_program_id
-// Ref: claim.rebate_record.program_program_type_id > program.program_type.program_type_id
 // Ref: claim.rebate_record.program_rebate_payment_id > program.rebate_payment.rebate_payment_id
 // Ref: claim.rebate_record.program_savings_program_id > program.savings_program.savings_program_id
 // Ref: claim.rebate_record.rebate_contract_id > program.rebate_contract.rebate_contract_id
 // Ref: claim.rebate_record.rebate_payment_id > program.rebate_payment.rebate_payment_id
-Ref: claim.rebate_record.rebate_rx_claim_id > claim.rx_claim.rx_claim_id
-Ref: claim.rebate_record.to_rx_claim_id > claim.rx_claim.rx_claim_id
 
 // claim.rx_claim
 Ref: claim.rx_claim.claim_benefit_group_id > claim.claim_benefit_group.claim_benefit_group_id
 Ref: claim.rx_claim.claim_pbm_id > claim.claim_pbm.claim_pbm_id
 Ref: claim.rx_claim.claim_prescriber_id > claim.claim_prescriber.claim_prescriber_id
-
+Ref: claim.rx_claim.rx_pbm_feed_batch_id > claim.pbm_feed_batch.pbm_feed_batch_id
+Ref: claim.rx_claim.source_pbm_feed_batch_id > claim.pbm_feed_batch.pbm_feed_batch_id
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: claim.rx_claim.company_pbm_id > company.company_pbm.company_pbm_id
 // Ref: claim.rx_claim.employer_id > client.employer.employer_id
 // Ref: claim.rx_claim.member_id > company.member.member_id
 // Ref: claim.rx_claim.ncpdp_id > drug.pharmacy.ncpdp_id
 // Ref: claim.rx_claim.pbm_division_id > division.division.division_id
-Ref: claim.rx_claim.rx_pbm_feed_batch_id > claim.pbm_feed_batch.pbm_feed_batch_id
-Ref: claim.rx_claim.source_pbm_feed_batch_id > claim.pbm_feed_batch.pbm_feed_batch_id
 
 // claim.rx_claim_line
 Ref: claim.rx_claim_line.primary_rx_claim_id > claim.rx_claim.rx_claim_id

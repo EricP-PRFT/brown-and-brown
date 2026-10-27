@@ -570,21 +570,19 @@ Table drug.pharmacy_network {
 }
 
 // --- Relationships ---
-// 27 relationships
+// 23 relationships (17 intra-domain, 6 cross-domain)
 
 // drug.drug_formulary
-
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: drug.drug_formulary.primary_drug_division_formulary_id > division.division_formulary.division_formulary_id
 
 // drug.drug_formulary_tier
-
-// Cross-domain references (see pillarrx.dbml for resolved refs)
-// Ref: drug.drug_formulary_tier.company_pbm_id > company.company_pbm.company_pbm_id
-// Ref: drug.drug_formulary_tier.division_formulary_id > division.division_formulary.division_formulary_id
 Ref: drug.drug_formulary_tier.drug_formulary_id > drug.drug_formulary.drug_formulary_id
 Ref: drug.drug_formulary_tier.drug_formulary_tier_formulary_fk > drug.drug_formulary.drug_formulary_id
 Ref: drug.drug_formulary_tier.primary_drug_formulary_id > drug.drug_formulary.drug_formulary_id
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: drug.drug_formulary_tier.company_pbm_id > company.company_pbm.company_pbm_id
+// Ref: drug.drug_formulary_tier.division_formulary_id > division.division_formulary.division_formulary_id
 
 // drug.formulary_drug
 Ref: drug.formulary_drug.assigned_drug_formulary_tier_id > drug.drug_formulary_tier.drug_formulary_tier_id
@@ -596,16 +594,11 @@ Ref: drug.formulary_drug.primary_drug_formulary_tier_id > drug.drug_formulary_ti
 Ref: drug.mac_pricing.mac_list_id > drug.mac_list.mac_list_id
 
 // drug.manufacturer
-
 // Cross-domain references (see pillarrx.dbml for resolved refs)
 // Ref: drug.manufacturer.organization_id > company.organization.organization_id
 
 // drug.ndc
 Ref: drug.ndc.labeler_manufacturer_id > drug.manufacturer.manufacturer_id
-Ref: drug.ndc.manufacturer_id > drug.manufacturer.manufacturer_id
-Ref: drug.ndc.ndc_labeler_code_fk > drug.manufacturer.manufacturer_id
-Ref: drug.ndc.ndc_labeler_fk > drug.manufacturer.manufacturer_id
-Ref: drug.ndc.ndc_manufacturer_id > drug.manufacturer.manufacturer_id
 
 // drug.ndc_price
 Ref: drug.ndc_price.mac_list_id > drug.mac_list.mac_list_id
@@ -616,11 +609,10 @@ Ref: drug.ndc_price.primary_mac_list_id > drug.mac_list.mac_list_id
 Ref: drug.pharmacy.pharmacy_network_id > drug.pharmacy_network.pharmacy_network_id
 
 // drug.pharmacy_network
-
-// Cross-domain references (see pillarrx.dbml for resolved refs)
-// Ref: drug.pharmacy_network.company_client_id > company.company_client.company_client_id
-// Ref: drug.pharmacy_network.company_pbm_id > company.company_pbm.company_pbm_id
 Ref: drug.pharmacy_network.mac_list_id > drug.mac_list.mac_list_id
 Ref: drug.pharmacy_network.pharmacy_mac_list_fk > drug.mac_list.mac_list_id
 Ref: drug.pharmacy_network.pharmacy_mac_list_id > drug.mac_list.mac_list_id
 Ref: drug.pharmacy_network.pharmacy_network_mac_list_fk > drug.mac_list.mac_list_id
+// Cross-domain references (see pillarrx.dbml for resolved refs)
+// Ref: drug.pharmacy_network.company_client_id > company.company_client.company_client_id
+// Ref: drug.pharmacy_network.company_pbm_id > company.company_pbm.company_pbm_id
