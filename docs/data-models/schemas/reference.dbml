@@ -1,0 +1,415 @@
+// DBML Schema for Business: Pillarrx
+// Domain: reference
+// Version: 23
+// Generated on: 2026-10-29
+
+Project {
+  database_type: 'Databricks Unity Catalog'
+  Note: 'Lakehouse data model for Pillarrx - Version 23 - Reference Domain'
+}
+
+// --- Tables ---
+
+Table reference.medispan_ndc {
+  medispan_ndc_id bigint [pk, note: 'Surrogate primary key for each Medi-Span NDC reference record. Supports Type-2 SCD versioning so each quarterly release snapshot has a unique row.']
+  application_number varchar [note: 'FDA New Drug Application (NDA), Abbreviated NDA (ANDA), or Biologics License Application (BLA) number as published by Medi-Span. Links the NDC to its regulatory approval pathway for biosimilar and generic analysis.']
+  awp_effective_date date [note: 'Date on which the AWP pricing published by Medi-Span became effective for this NDC. Used for point-in-time pricing lookups during PBM audit and claims repricing.']
+  awp_package_price decimal(12,4) [note: 'Average Wholesale Price for the full package (AWP unit price multiplied by package size) as published by Medi-Span. Used in package-level ingredient cost benchmarking.']
+  awp_unit_price decimal(12,4) [note: 'Average Wholesale Price per dispensing unit as published by Wolters Kluwer Medi-Span. Basis for AWP discount calculations in PBM contract audits and guarantee reconciliation.']
+  biosimilar_indicator boolean [note: 'True if Medi-Span classifies the drug as an FDA-approved biosimilar to a reference biologic. Used in biosimilar substitution opportunity analysis and specialty spend optimization.']
+  brand_name varchar [note: 'Manufacturer-assigned brand or trade name for the drug product (e.g., LIPITOR) as published by Medi-Span. Null for generic-only products. Used in brand versus generic spend analytics.']
+  dea_schedule varchar [note: 'DEA controlled substance schedule as published by Medi-Span. Drives DUR alerts, quantity limit rules, and regulatory compliance reporting for controlled substance utilization.. Valid values are `CI|CII|CIII|CIV|CV|UNSCHEDULED`']
+  discontinuation_date date [note: 'Date Medi-Span recorded the drug product as discontinued from the U.S. market. Null for active products. Used to identify claims dispensed after market withdrawal.']
+  dosage_form varchar [note: 'Physical form of the drug product (e.g., TABLET, CAPSULE, SOLUTION, INJECTION) as sourced from the Medi-Span MDDB. Used in formulary and utilization analysis.']
+  drug_name varchar [note: 'Full proprietary or established drug product name as published by Medi-Span (e.g., LIPITOR 10MG TABLET, ATORVASTATIN CALCIUM 10MG TAB). Primary display name for reporting.']
+  drug_status varchar [note: 'Current FDA market status of the NDC as tracked by Medi-Span. Drives formulary maintenance and claim adjudication validity checks.. Valid values are `ACTIVE|DISCONTINUED|RECALLED|PENDING|OBSOLETE`']
+  generic_indicator varchar [note: 'Medi-Span classification of the NDC as brand or generic product. Core driver of Generic Dispensing Rate (GDR) calculations and formulary tier assignment.. Valid values are `BRAND|GENERIC`']
+  generic_name varchar [note: 'International Nonproprietary Name (INN) or USAN generic name of the active ingredient(s) as published by Medi-Span (e.g., ATORVASTATIN CALCIUM). Used for generic substitution analysis.']
+  gpi14 varchar [note: 'Medi-Span 14-digit Generic Product Identifier classifying the drug by therapeutic category, group, class, name, name extension, dosage form, route, and strength. Core to therapeutic class analysis.. Valid values are `^[0-9]{14}$`']
+  labeler_code varchar [note: 'First 5 digits of the NDC identifying the manufacturer or labeler as registered with the FDA. Links to manufacturer reference for rebate and 340B analysis.. Valid values are `^[0-9]{5}$`']
+  labeler_name varchar [note: 'Name of the drug manufacturer or labeler as published by Medi-Span for this NDC. Used in manufacturer spend analysis, rebate tracking, and 340B program management.']
+  ldd_indicator boolean [note: 'True if Medi-Span classifies the drug as a Limited Distribution Drug available only through select specialty pharmacies. Used in specialty pharmacy network compliance and affordability analysis.']
+  maintenance_indicator boolean [note: 'True if Medi-Span classifies the drug as a maintenance medication for chronic, long-term use. Used in 90-day supply program analysis and mail-order versus retail dispensing analytics.']
+  market_date date [note: 'Date the drug product was first commercially available in the U.S. market as recorded by Medi-Span. Used in new-to-market drug trend analysis and formulary addition timing.']
+  medi_span_drug_code varchar [note: 'Wolters Kluwer Medi-Span internal drug identifier for this NDC. Supports cross-reference and reconciliation between Medi-Span and FDB drug reference feeds in the lakehouse.']
+  multisource_code varchar [note: 'Medi-Span multisource code indicating generic availability. M=multisource brand with generic available, O=originator brand, N=no generic available, Y=generic product. Drives MAC pricing applicability.. Valid values are `M|O|N|Y`']
+  ndc11 varchar [note: 'The 11-digit National Drug Code uniquely identifying the drug product in the Medi-Span MDDB. Business key for this reference table and cross-reference anchor to drug.ndc.. Valid values are `^[0-9]{11}$`']
+  orange_book_code varchar [note: 'FDA Orange Book therapeutic equivalence code (e.g., AB, AA, BX) as published by Medi-Span. Determines generic substitutability for DAW code validation and GDR analysis.']
+  otc_indicator boolean [note: 'True if Medi-Span classifies the drug as available over-the-counter without a prescription. Used to flag OTC claims for benefit exclusion review and formulary compliance.']
+  package_code varchar [note: 'Last 2 digits of the NDC identifying the package size and type (e.g., bottle, carton, vial). Part of the 5-4-2 NDC decomposition for package-level analysis.. Valid values are `^[0-9]{2}$`']
+  package_description varchar [note: 'Human-readable description of the package configuration as published by Medi-Span (e.g., BOTTLE 90 TABLETS, CARTON 2 PENS). Used in dispensing and packaging analysis.']
+  package_size decimal(12,4) [note: 'Number of dispensing units in the package as defined by Medi-Span (e.g., 90 for a 90-count bottle). Used in days-supply validation and unit-cost calculations.']
+  package_size_uom varchar [note: 'Unit of measure for the package size as published by Medi-Span (e.g., EA, ML, GM, TAB). Required to correctly interpret package_size in cost and utilization calculations.']
+  product_code varchar [note: 'Middle 4 digits of the NDC identifying the specific drug product within a labeler. Part of the 5-4-2 NDC decomposition.. Valid values are `^[0-9]{4}$`']
+  rems_indicator boolean [note: 'True if Medi-Span flags the drug as requiring an FDA Risk Evaluation and Mitigation Strategy (REMS). Flags drugs with mandatory safety protocols for prior authorization and utilization management.']
+  route_of_administration varchar [note: 'How the drug is administered (e.g., ORAL, INTRAVENOUS, TOPICAL, SUBCUTANEOUS) as sourced from Medi-Span. Used in specialty drug identification and medical versus pharmacy benefit determination.']
+  rx_otc_indicator varchar [note: 'Medi-Span indicator for whether the drug requires a prescription (Rx), is available OTC, or has dual Rx/OTC status. Complements the boolean OTC flag with the source-coded value.. Valid values are `RX|OTC|RX/OTC`']
+  specialty_indicator boolean [note: 'True if Medi-Span classifies the drug as a specialty medication requiring special handling, storage, or distribution. Drives specialty pharmacy spend monitoring and trend reporting.']
+  strength varchar [note: 'Active ingredient strength and unit as published by Medi-Span (e.g., 10 MG, 500 MG/5 ML). Used in clinical equivalence matching, step therapy analysis, and quantity limit validation.']
+  strength_uom varchar [note: 'Unit of measure for the drug strength (e.g., MG, MG/ML, MCG). Sourced from Medi-Span to support strength-based equivalence matching and dosing calculations.']
+  wac_effective_date date [note: 'Date on which the WAC pricing published by Medi-Span became effective for this NDC. Used for point-in-time WAC lookups in pass-through pricing audits.']
+  wac_unit_price decimal(12,4) [note: 'Wholesale Acquisition Cost per dispensing unit as published by Medi-Span. Used as an alternative pricing benchmark in pass-through PBM models and 340B ceiling price analysis.']
+  effective_date date [note: 'Start date of this SCD Type-2 version row. Combined with expiration_date to define the validity window for this Medi-Span NDC reference snapshot.']
+  expiration_date date [note: 'End date of this SCD Type-2 version row (9999-12-31 for the current active record). Enables point-in-time joins for historical claims repricing and PBM audit.']
+  is_current boolean [note: 'True if this row is the current active version of the Medi-Span NDC record. Simplifies current-state queries without requiring date-range filtering on the SCD columns.']
+  source_file_name varchar [note: 'Name of the Medi-Span MDDB source file from which this record was loaded (e.g., MDDB_NDC_MASTER_202501.dat). Supports data lineage tracing and audit of reference feed ingestion.']
+  source_version varchar [note: 'Medi-Span quarterly release version identifier (e.g., 2025Q1). Supports audit trail, reproducibility of historical analyses, and SCD version grouping.']
+  load_timestamp timestamp [note: 'Timestamp when this record was loaded from the Medi-Span source file into the PillarRx reference schema. Supports feed timeliness monitoring and ingestion audit.']
+  created_timestamp timestamp [note: 'Timestamp when this Medi-Span NDC record was first created in the PillarRx data platform. Supports data lineage and audit trail.']
+  updated_timestamp timestamp [note: 'Timestamp when this Medi-Span NDC record was last modified in the PillarRx data platform. Used for change detection and SCD Type-2 processing.']
+
+  Note: 'Authoritative vendor-supplied NDC drug product master from Wolters Kluwer Medi-Span Master Drug Data Base (MDDB). Each record represents one 11-digit National Drug Code with its drug attributes, GPI classification, AWP/WAC pricing, labeler identity, DEA schedule, and clinical flags (specialty, maintenance, LDD, biosimilar, REMS) as published quarterly by Medi-Span. This table preserves the vendor data in its delivered form and serves as the source-of-record from which the drug.ndc domain table derives its Medi-Span-sourced attributes.'
+}
+
+Table reference.medispan_gpi {
+  medispan_gpi_id bigint [pk, note: 'Surrogate primary key for each Medi-Span GPI classification record. Supports SCD Type-2 versioning across quarterly Medi-Span releases.']
+  gpi_code varchar [note: 'Medi-Span Generic Product Identifier code at the level indicated by gpi_level. Ranges from 2 characters (drug group) to 14 characters (strength). Business key for this reference table.. Valid values are `^[0-9]{2,14}$`']
+  gpi_description varchar [note: 'Human-readable description of the therapeutic classification at this GPI level as published by Medi-Span (e.g., ANTIHYPERLIPIDEMIC AGENTS, ATORVASTATIN CALCIUM 10MG TABLET).']
+  gpi_level bigint [note: 'Numeric level in the Medi-Span GPI hierarchy corresponding to the length of gpi_code. Determines the classification granularity from drug group down to individual strength.. Valid values are `2|4|6|8|10|12|14`']
+  gpi_level_name varchar [note: 'Named tier in the Medi-Span GPI hierarchy corresponding to gpi_level. Identifies what the classification level represents in the therapeutic hierarchy.. Valid values are `DRUG_GROUP|DRUG_CLASS|DRUG_SUBCLASS|DRUG_NAME|DRUG_NAME_EXT|DOSAGE_FORM_ROUTE|STRENGTH`']
+  parent_gpi_code varchar [note: 'GPI code of the parent classification in the hierarchy (e.g., the level-12 parent of a level-14 strength record). Null at the top level (level 2). Enables recursive hierarchy traversal.. Valid values are `^[0-9]{2,12}$`']
+  effective_date date [note: 'Start date of this SCD Type-2 version row for the GPI classification. Combined with expiration_date to define when this classification definition was active.']
+  expiration_date date [note: 'End date of this SCD Type-2 version row (9999-12-31 for the current active record). Enables point-in-time classification lookups for historical claim analysis.']
+  is_current boolean [note: 'True if this row is the current active version of the GPI classification record. Simplifies queries that need only the latest Medi-Span classification hierarchy.']
+  source_file_name varchar [note: 'Name of the Medi-Span GPI source file from which this record was loaded. Supports data lineage and ingestion audit.']
+  source_version varchar [note: 'Medi-Span quarterly release version identifier (e.g., 2025Q1). Groups all GPI records loaded from the same release for version tracking.']
+  load_timestamp timestamp [note: 'Timestamp when this record was loaded from the Medi-Span source file into the PillarRx reference schema.']
+  created_timestamp timestamp [note: 'Timestamp when this GPI classification record was first created in the PillarRx data platform.']
+  updated_timestamp timestamp [note: 'Timestamp when this GPI classification record was last modified in the PillarRx data platform.']
+
+  Note: 'Medi-Span Generic Product Identifier (GPI) therapeutic classification hierarchy as published quarterly by Wolters Kluwer. The GPI is a 14-digit code encoding seven levels of therapeutic classification: drug group (2), drug class (4), drug subclass (6), drug name (8), drug name extension (10), dosage form and route (12), and strength (14). Each row represents one node in this self-referential hierarchy with a parent pointer enabling recursive tree traversal. This table is the source-of-record for GPI classification data from which drug.classification derives its Medi-Span GPI columns.'
+}
+
+Table reference.medispan_price {
+  medispan_price_id bigint [pk, note: 'Surrogate primary key for each Medi-Span pricing update record. Each row captures one NDC pricing event from a periodic Medi-Span price file.']
+  awp_package_price decimal(12,4) [note: 'Average Wholesale Price for the full package as published in this Medi-Span pricing update. Used in package-level cost analysis and PBM audit reconciliation.']
+  awp_unit_price decimal(12,4) [note: 'Average Wholesale Price per dispensing unit as published in this Medi-Span pricing update. Basis for AWP discount calculations in PBM contract audits.']
+  change_percent decimal(7,4) [note: 'Percentage change in AWP from the prior pricing period, calculated by Medi-Span. Used in drug price trend analysis and manufacturer price increase monitoring for employer clients.']
+  change_type varchar [note: 'Nature of the pricing change that triggered this update record as classified by Medi-Span. Used in drug price trend analysis and manufacturer price increase monitoring.. Valid values are `NEW|INCREASE|DECREASE|CORRECTION|DISCONTINUE`']
+  drug_name varchar [note: 'Brand or generic drug name for this NDC as published by Medi-Span. Denormalized onto the pricing record to support reporting without joining to the NDC master.']
+  gpi14 varchar [note: 'Medi-Span 14-digit GPI code for the drug in this pricing record. Enables therapeutic class-level pricing trend analysis without joining to the NDC master.. Valid values are `^[0-9]{14}$`']
+  multisource_code varchar [note: 'Medi-Span multisource code at the time of this pricing update. Indicates generic availability and drives MAC pricing applicability.. Valid values are `M|O|N|Y`']
+  ndc11 varchar [note: 'The 11-digit NDC identifying the drug product in this pricing update. Business key linking to the Medi-Span NDC master for this reference domain.. Valid values are `^[0-9]{11}$`']
+  package_size decimal(12,4) [note: 'Number of dispensing units in the package for which package-level pricing is expressed in this update.']
+  package_size_uom varchar [note: 'Unit of measure for the package size in this pricing update (e.g., EA, ML, GM).']
+  price_effective_date date [note: 'Calendar date on which this AWP/WAC pricing became effective as published by Medi-Span. Part of the composite business key for this pricing event.']
+  price_type varchar [note: 'Primary pricing basis of this update record as categorized by Medi-Span. AWP is the standard benchmark for PBM contract discount calculations.. Valid values are `AWP|WAC|MAC`']
+  prior_awp_unit_price decimal(12,4) [note: 'AWP per unit from the immediately preceding Medi-Span pricing period for this NDC. Retained to enable direct price change calculations without joining to prior records.']
+  prior_wac_unit_price decimal(12,4) [note: 'WAC per unit from the immediately preceding Medi-Span pricing period for this NDC. Enables direct WAC change calculations for manufacturer price increase monitoring.']
+  wac_package_price decimal(12,4) [note: 'Wholesale Acquisition Cost for the full package as published in this Medi-Span pricing update. Used in package-level manufacturer pricing analysis.']
+  wac_unit_price decimal(12,4) [note: 'Wholesale Acquisition Cost per dispensing unit as published in this Medi-Span pricing update. WAC is the manufacturer list price before discounts, used in 340B and rebate analytics.']
+  effective_date date [note: 'Start date of this SCD Type-2 version row for the pricing record. Typically aligned with price_effective_date but managed independently for lakehouse versioning.']
+  expiration_date date [note: 'End date of this SCD Type-2 version row (9999-12-31 for the current active record). Supports point-in-time pricing lookups for historical claims repricing.']
+  is_current boolean [note: 'True if this row is the current active pricing record for this NDC in the reference schema. Simplifies current-price queries without date-range filtering.']
+  source_file_name varchar [note: 'Name of the Medi-Span pricing source file from which this record was loaded (e.g., MDDB_PRICE_202501.dat). Supports data lineage and pricing feed audit.']
+  source_version varchar [note: 'Medi-Span release version or monthly pricing file identifier. Supports audit trail and refresh cycle tracking for pricing data.']
+  load_timestamp timestamp [note: 'Timestamp when this pricing record was loaded from the Medi-Span source file into the PillarRx reference schema.']
+  created_timestamp timestamp [note: 'Timestamp when this pricing record was first created in the PillarRx data platform.']
+  updated_timestamp timestamp [note: 'Timestamp when this pricing record was last modified in the PillarRx data platform.']
+
+  Note: 'Time-versioned drug pricing records from Wolters Kluwer Medi-Span, capturing AWP (Average Wholesale Price), WAC (Wholesale Acquisition Cost), and prior-period pricing for each NDC as published in periodic Medi-Span price update files. Each row represents one pricing event for one NDC, including the change type, change percentage, and the prior AWP/WAC values for direct trend calculation. This table is the source-of-record for Medi-Span pricing data from which drug.ndc_price derives its Medi-Span-sourced pricing attributes.'
+}
+
+Table reference.medispan_equivalence {
+  medispan_equivalence_id bigint [pk, note: 'Surrogate primary key for each Medi-Span equivalence crosswalk record. Each row represents one source-to-equivalent NDC substitution relationship.']
+  dosage_form_match boolean [note: 'True if the source and equivalent NDCs share the same dosage form (e.g., both tablets). A mismatch may restrict substitution eligibility under state pharmacy law.']
+  equivalence_type varchar [note: 'Medi-Span classification of the substitution relationship. Determines whether the equivalent is a direct generic substitute or a biosimilar interchangeable product.. Valid values are `GENERIC_SUBSTITUTE|BIOSIMILAR_INTERCHANGEABLE|THERAPEUTIC_EQUIVALENT|PHARMACEUTICAL_ALTERNATIVE`']
+  equivalent_drug_name varchar [note: 'Drug name of the equivalent (target) NDC as published by Medi-Span. Supports reporting without joining to the NDC master.']
+  equivalent_generic_indicator varchar [note: 'Medi-Span brand/generic classification for the equivalent NDC. Confirms the substitution direction (e.g., brand-to-generic) for GDR and savings opportunity reporting.. Valid values are `BRAND|GENERIC|BIOSIMILAR`']
+  equivalent_gpi14 varchar [note: 'Medi-Span 14-digit GPI code of the equivalent NDC. Enables GPI-level therapeutic grouping independent of specific NDC packaging variants.. Valid values are `^[0-9]{14}$`']
+  equivalent_multisource_code varchar [note: 'Medi-Span multisource code for the equivalent NDC. Confirms the equivalent is a true generic (Y) or multisource brand (M) for substitution purposes.. Valid values are `M|O|N|Y`']
+  equivalent_ndc11 varchar [note: 'The 11-digit NDC of the therapeutically equivalent or generic substitute drug. Target side of the substitution crosswalk used in formulary analysis and claims auditing.. Valid values are `^[0-9]{11}$`']
+  gpi10_match boolean [note: 'True if the source and equivalent NDCs share the same 10-digit GPI prefix, confirming same drug, strength, and dosage form.']
+  gpi12_match boolean [note: 'True if the source and equivalent NDCs share the same 12-digit GPI prefix, confirming same drug, strength, dosage form, and route. Finer equivalence than GPI10.']
+  orange_book_code varchar [note: 'FDA Orange Book therapeutic equivalence code (e.g., AB, AA, BX) for the equivalent NDC relative to the source. AB-rated products are considered therapeutically equivalent and substitutable.']
+  route_match boolean [note: 'True if the source and equivalent NDCs share the same route of administration (e.g., both oral). Route mismatches typically disqualify automatic substitution.']
+  source_drug_name varchar [note: 'Drug name of the source (originator) NDC as published by Medi-Span. Supports reporting without joining to the NDC master.']
+  source_generic_indicator varchar [note: 'Medi-Span brand/generic classification for the source NDC. Used in generic dispensing rate (GDR) analysis and substitution opportunity identification.. Valid values are `BRAND|GENERIC`']
+  source_gpi14 varchar [note: 'Medi-Span 14-digit GPI code of the source NDC. Represents the therapeutic classification of the originator drug in the substitution pair.. Valid values are `^[0-9]{14}$`']
+  source_multisource_code varchar [note: 'Medi-Span multisource code for the source NDC. O=originator brand, M=multisource brand, N=single-source. Drives substitution eligibility logic.. Valid values are `M|O|N|Y`']
+  source_ndc11 varchar [note: 'The 11-digit NDC of the source (originator) drug in the substitution pair. Business key (with equivalent_ndc11) for this crosswalk table.. Valid values are `^[0-9]{11}$`']
+  strength_match boolean [note: 'True if the source and equivalent NDCs have the same drug strength. Strength mismatches require prescriber authorization before substitution.']
+  substitution_allowed boolean [note: 'True if the equivalent NDC is permitted as a generic substitute for the source under applicable pharmacy law and formulary policy. Core flag for DAW code analysis.']
+  effective_date date [note: 'Start date of this SCD Type-2 version row for the equivalence record. Indicates when this substitution relationship became effective in the Medi-Span data.']
+  expiration_date date [note: 'End date of this SCD Type-2 version row (9999-12-31 for the current active record). Supports time-bounded formulary analysis and historical claims auditing.']
+  is_current boolean [note: 'True if this row is the current active version of the equivalence crosswalk record. Simplifies current-state substitution queries.']
+  source_file_name varchar [note: 'Name of the Medi-Span equivalence source file from which this record was loaded. Supports data lineage and audit.']
+  source_version varchar [note: 'Medi-Span quarterly release version from which this equivalence record was sourced.']
+  load_timestamp timestamp [note: 'Timestamp when this record was loaded from the Medi-Span source file into the PillarRx reference schema.']
+  created_timestamp timestamp [note: 'Timestamp when this equivalence record was first created in the PillarRx data platform.']
+  updated_timestamp timestamp [note: 'Timestamp when this equivalence record was last modified in the PillarRx data platform.']
+
+  Note: 'NDC-to-NDC therapeutic equivalence and generic substitution crosswalk from Wolters Kluwer Medi-Span. Each row maps a source NDC (typically the originator brand) to an equivalent NDC (generic substitute or interchangeable biosimilar) with Orange Book codes and attribute-match flags for dosage form, strength, route, and GPI precision. This table is the source-of-record for Medi-Span substitution data from which drug.equivalence derives its Medi-Span-sourced equivalence attributes.'
+}
+
+Table reference.fdb_ndc {
+  fdb_ndc_id bigint [pk, note: 'Surrogate primary key for each First DataBank NDC reference record. Supports SCD Type-2 versioning across FDB MedKnowledge releases.']
+  application_number varchar [note: 'FDA NDA/ANDA/BLA number as published by FDB. Cross-references to the same application_number in medispan_ndc for dual-source validation.']
+  brand_name varchar [note: 'Manufacturer-assigned brand or trade name as published by FDB. Null for generic-only products.']
+  dea_schedule varchar [note: 'DEA controlled substance schedule as published by FDB. Blank when the drug is not a controlled substance.. Valid values are `CII|CIII|CIV|CV`']
+  desi_indicator boolean [note: 'True if the Drug Efficacy Study Implementation (DESI) review found the drug less than effective. Used in formulary coverage decisions for legacy products.']
+  dosage_form varchar [note: 'Physical form of the drug product (e.g., TABLET, CAPSULE, SOLUTION) as sourced from FDB MedKnowledge.']
+  drug_name varchar [note: 'Full drug product name as published by FDB (e.g., LIPITOR 10MG TABLET). May differ slightly from Medi-Span naming for the same NDC.']
+  drug_status varchar [note: 'Current market status of the NDC as tracked by FDB. Used alongside Medi-Span drug_status for cross-source validation.. Valid values are `ACTIVE|DISCONTINUED|OBSOLETE`']
+  fdb_drug_id varchar [note: 'First DataBank internal drug identifier for this NDC. Primary business key in the FDB system and the anchor for FDB-specific cross-references.']
+  generic_drug_name_id bigint [note: 'FDB internal identifier for the generic drug name entity. Groups all NDCs with the same active ingredient(s) regardless of dosage form or strength.']
+  generic_indicator varchar [note: 'FDB classification of the NDC as brand or generic product.. Valid values are `BRAND|GENERIC`']
+  generic_name varchar [note: 'Generic name of the active ingredient(s) as published by FDB (e.g., ATORVASTATIN CALCIUM).']
+  hic_code varchar [note: 'FDB Hierarchical Ingredient Code identifying the active ingredient. Links to fdb_therapeutic_class and fdb_drug_interaction for classification and screening lookups.. Valid values are `^[0-9]{6}$`']
+  hic_description varchar [note: 'Human-readable description of the HIC code as published by FDB (e.g., ATORVASTATIN CALCIUM).']
+  hicl_sequence_number bigint [note: 'FDB Hierarchical Ingredient Code List sequence number. Internal FDB hierarchy identifier for the ingredient-level grouping.']
+  innovator_indicator boolean [note: 'True if FDB identifies this NDC as the innovator (original brand) product. Used to distinguish originator brands from authorized generics and repackagers.']
+  labeler_code varchar [note: 'First 5 digits of the NDC identifying the manufacturer as published by FDB. Cross-references to medispan_ndc.labeler_code for dual-source validation.. Valid values are `^[0-9]{5}$`']
+  labeler_name varchar [note: 'Name of the drug manufacturer or labeler as published by FDB for this NDC.']
+  med_id bigint [note: 'FDB Medication Identifier (MEDID) representing a specific drug at the ingredient-strength-dosage form-route level. Core FDB grouping concept for clinical decision support.']
+  ndc11 varchar [note: 'The 11-digit NDC uniquely identifying the drug product in the FDB MedKnowledge database. Cross-reference anchor to medispan_ndc.ndc11 and drug.ndc.. Valid values are `^[0-9]{11}$`']
+  obsolete_date date [note: 'Date FDB marked this NDC as obsolete. Null if still active. Used alongside discontinuation tracking to prevent claims matching to withdrawn products.']
+  package_size bigint [note: 'Number of dispensing units in the package as published by FDB.']
+  package_size_uom varchar [note: 'Unit of measure for the package size as published by FDB (e.g., EA, ML, GM).']
+  repackaged_indicator boolean [note: 'True if FDB identifies this NDC as belonging to a repackager rather than the original manufacturer. Repackaged NDCs may have different pricing.']
+  route varchar [note: 'Route of administration (e.g., ORAL, SUBCUTANEOUS, INTRAVENOUS) as sourced from FDB MedKnowledge.']
+  routed_dosage_form_id bigint [note: 'FDB internal identifier for the dosage-form-plus-route combination. Groups NDCs that share the same physical form and administration route.']
+  routed_med_id bigint [note: 'FDB Routed Medication Identifier grouping NDCs at the ingredient-strength-dosage form-route level with route specificity. Used in FDB clinical screening.']
+  rx_otc_indicator varchar [note: 'FDB indicator for prescription versus over-the-counter status.. Valid values are `RX|OTC`']
+  single_multi_source varchar [note: 'FDB source availability code. S=single source (no generic), M=multi-source (generic available). Drives MAC pricing applicability.. Valid values are `S|M`']
+  strength varchar [note: 'Active ingredient strength as published by FDB (e.g., 10 MG, 40 MG/0.8ML).']
+  strength_uom varchar [note: 'Unit of measure for the drug strength as published by FDB (e.g., MG, MG/ML).']
+  effective_date date [note: 'Start date of this SCD Type-2 version row for the FDB NDC record.']
+  expiration_date date [note: 'End date of this SCD Type-2 version row (9999-12-31 for the current active record).']
+  is_current boolean [note: 'True if this row is the current active version of the FDB NDC record.']
+  source_file_name varchar [note: 'Name of the FDB MedKnowledge source file from which this record was loaded. Supports data lineage.']
+  source_version varchar [note: 'FDB MedKnowledge release version identifier. Supports audit trail and refresh cycle tracking.']
+  load_timestamp timestamp [note: 'Timestamp when this record was loaded from the FDB source file into the PillarRx reference schema.']
+  created_timestamp timestamp [note: 'Timestamp when this FDB NDC record was first created in the PillarRx data platform.']
+  updated_timestamp timestamp [note: 'Timestamp when this FDB NDC record was last modified in the PillarRx data platform.']
+
+  Note: 'NDC drug product reference from First DataBank (FDB) MedKnowledge database. Each record represents one 11-digit NDC with FDB-specific internal identifiers (FDB Drug ID, HIC, HICL, Routed Med ID, MEDID, Generic Drug Name ID) alongside standard drug attributes. These FDB identifiers enable drug interaction screening, therapeutic classification, and clinical decision support through the FDB product suite. This table preserves the vendor data in its delivered form and serves as the source-of-record for FDB-sourced attributes in drug.ndc and drug.classification.'
+}
+
+Table reference.fdb_therapeutic_class {
+  fdb_therapeutic_class_id bigint [pk, note: 'Surrogate primary key for each FDB therapeutic classification record.']
+  drug_count bigint [note: 'Number of distinct drug entities classified under this therapeutic class node at the time of the FDB release. Used in formulary breadth benchmarking.']
+  fdb_tc_code varchar [note: 'FDB therapeutic class code using colon-delimited hierarchical notation (e.g., 04:39:00). Business key for this reference table. Level depth indicated by the number of colon-separated segments.']
+  fdb_tc_level bigint [note: 'Numeric level in the FDB therapeutic class hierarchy. Level 1 is the broadest therapeutic area, level 3 is the most specific subclass.. Valid values are `1|2|3`']
+  fdb_tc_name varchar [note: 'Human-readable name of the therapeutic class at this level as published by FDB (e.g., HMG-CoA REDUCTASE INHIBITORS).']
+  hic_code varchar [note: 'FDB Hierarchical Ingredient Code linked to this therapeutic class at level 3. Bridges from classification to specific drug products in fdb_ndc.. Valid values are `^[0-9]{6}$`']
+  hic_description varchar [note: 'Human-readable description of the HIC code associated with this therapeutic class node.']
+  ndc_count bigint [note: 'Number of distinct NDCs classified under this therapeutic class node at the time of the FDB release.']
+  parent_tc_code varchar [note: 'FDB therapeutic class code of the parent node in the hierarchy. Null at level 1 (top-level therapeutic areas). Enables recursive hierarchy traversal.']
+  effective_date date [note: 'Start date of this SCD Type-2 version row for the FDB therapeutic class record.']
+  expiration_date date [note: 'End date of this SCD Type-2 version row (9999-12-31 for the current active record).']
+  is_current boolean [note: 'True if this row is the current active version of the FDB therapeutic class record.']
+  source_file_name varchar [note: 'Name of the FDB therapeutic class source file from which this record was loaded.']
+  source_version varchar [note: 'FDB MedKnowledge release version identifier.']
+  load_timestamp timestamp [note: 'Timestamp when this record was loaded from the FDB source file into the PillarRx reference schema.']
+  created_timestamp timestamp [note: 'Timestamp when this therapeutic class record was first created in the PillarRx data platform.']
+  updated_timestamp timestamp [note: 'Timestamp when this therapeutic class record was last modified in the PillarRx data platform.']
+
+  Note: 'FDB MedKnowledge therapeutic classification hierarchy. A three-level self-referential tree where level 1 represents broad therapeutic areas (e.g., Cardiovascular Agents), level 2 represents drug classes (e.g., Antihyperlipidemic Agents), and level 3 represents specific subclasses (e.g., HMG-CoA Reductase Inhibitors). Codes use colon-delimited notation. Each level-3 node links to an HIC code that bridges to individual drug products in fdb_ndc. This table is the source-of-record for FDB classification data from which drug.classification derives its fdb_therapeutic_class_code and fdb_therapeutic_class_name columns.'
+}
+
+Table reference.fdb_drug_interaction {
+  fdb_drug_interaction_id bigint [pk, note: 'Surrogate primary key for each FDB drug-drug interaction screening record.']
+  clinical_effect varchar [note: 'Narrative description of the clinical consequence of the drug interaction as published by FDB (e.g., increased risk of myopathy/rhabdomyolysis). Used in DUR alert clinical detail reporting.']
+  clinical_significance bigint [note: 'Numeric clinical significance rating assigned by FDB (1=most significant to 5=least significant). Used to prioritize DUR alerts in PBM adjudication and clinical review.. Valid values are `1|2|3|4|5`']
+  documentation varchar [note: 'Level of clinical evidence supporting the interaction as rated by FDB (e.g., ESTABLISHED, PROBABLE, SUSPECTED). Informs confidence level in DUR alert management.. Valid values are `ESTABLISHED|PROBABLE|SUSPECTED|POSSIBLE|UNLIKELY`']
+  drug1_hic_code varchar [note: 'FDB Hierarchical Ingredient Code for the first drug in the interaction pair. Links to fdb_ndc.hic_code for drug-level resolution.. Valid values are `^[0-9]{6}$`']
+  drug1_name varchar [note: 'Generic name of the first drug in the interaction pair as published by FDB.']
+  drug2_hic_code varchar [note: 'FDB Hierarchical Ingredient Code for the second drug in the interaction pair. Links to fdb_ndc.hic_code for drug-level resolution.. Valid values are `^[0-9]{6}$`']
+  drug2_name varchar [note: 'Generic name of the second drug in the interaction pair as published by FDB.']
+  interaction_id varchar [note: 'FDB-assigned unique identifier for this drug-drug interaction record. Business key for this reference table.']
+  management varchar [note: 'Clinical management recommendation from FDB for handling the interaction (e.g., dose reduction, monitoring, avoidance). Used in pharmacist intervention reporting.']
+  mechanism varchar [note: 'Pharmacological mechanism of the interaction as described by FDB (e.g., CYP3A4 inhibition, additive pharmacodynamic effects). Supports clinical review and DUR analysis.']
+  monograph_id varchar [note: 'FDB clinical monograph identifier linking to the detailed drug interaction monograph. Provides extended clinical reference for pharmacists reviewing DUR alerts.']
+  onset varchar [note: 'Expected speed of onset of the interaction effect as classified by FDB. Informs urgency of clinical intervention.. Valid values are `RAPID|DELAYED`']
+  severity_description varchar [note: 'Human-readable label for the severity level of the drug interaction as classified by FDB.. Valid values are `CONTRAINDICATED|SEVERE|MODERATE|MINOR`']
+  severity_level bigint [note: 'Numeric severity level of the drug interaction as classified by FDB. 1=contraindicated (most severe) through 4=minor (least severe). Drives DUR alert priority in PBM adjudication.. Valid values are `1|2|3|4`']
+  effective_date date [note: 'Start date of this SCD Type-2 version row for the interaction record.']
+  expiration_date date [note: 'End date of this SCD Type-2 version row (9999-12-31 for the current active record).']
+  is_current boolean [note: 'True if this row is the current active version of the drug interaction record.']
+  source_file_name varchar [note: 'Name of the FDB drug interaction source file from which this record was loaded.']
+  source_version varchar [note: 'FDB MedKnowledge release version identifier.']
+  load_timestamp timestamp [note: 'Timestamp when this record was loaded from the FDB source file into the PillarRx reference schema.']
+  created_timestamp timestamp [note: 'Timestamp when this drug interaction record was first created in the PillarRx data platform.']
+  updated_timestamp timestamp [note: 'Timestamp when this drug interaction record was last modified in the PillarRx data platform.']
+
+  Note: 'Drug-drug interaction screening data from First DataBank (FDB) MedKnowledge. Each record represents a clinically significant interaction between two drugs identified by their HIC codes, with severity classification, clinical effect narrative, pharmacological mechanism, management recommendations, and evidence documentation level. This data powers the Drug Utilization Review (DUR) alerts generated at pharmacy claim adjudication. It serves as the source-of-record for FDB interaction data referenced by claim.dur_event when drug_reference_source is FDB.'
+}
+
+Table reference.ncpdp_pharmacy {
+  ncpdp_pharmacy_id bigint [pk, note: 'Surrogate primary key for each NCPDP pharmacy reference record. Supports SCD Type-2 versioning across NCPDP dataQ file extracts.']
+  accreditation_code varchar [note: 'Accreditation body code for the pharmacy as published by NCPDP (e.g., URAC, ACHC, JCAHO). Specialty pharmacies require accreditation for network participation.. Valid values are `URAC|ACHC|JCAHO|PCAB`']
+  address_line1 varchar [note: 'Primary street address of the dispensing pharmacy location as registered with NCPDP.']
+  address_line2 varchar [note: 'Secondary address detail (suite, floor, unit) for the pharmacy location as registered with NCPDP.']
+  chain_code varchar [note: 'NCPDP-assigned chain code identifying the pharmacy chain affiliation (e.g., 070=CVS Health, 005=Walgreens). Null for independent pharmacies.']
+  chain_name varchar [note: 'Name of the pharmacy chain associated with chain_code as published by NCPDP (e.g., CVS HEALTH, WALGREENS CO). Null for independent pharmacies.']
+  city varchar [note: 'City in which the pharmacy is physically located as registered with NCPDP.']
+  compounding boolean [note: 'True if the pharmacy offers compounding services as reported to NCPDP. Used in specialty and custom medication dispensing analysis.']
+  dba_name varchar [note: 'Trade or doing-business-as name of the pharmacy as registered with NCPDP, when it differs from the legal pharmacy name.']
+  dea_number varchar [note: 'DEA registration number authorizing the pharmacy to dispense controlled substances as recorded in the NCPDP file.. Valid values are `^[A-Z]{2}[0-9]{7}$`']
+  deactivation_date date [note: 'Date the pharmacy was deactivated in the NCPDP provider database. Null if the pharmacy is currently active.']
+  dispensing_class_code varchar [note: 'NCPDP dispensing class code classifying the pharmacy channel (e.g., 01=Retail, 02=Independent, 03=Specialty, 05=Mail Order).']
+  dispensing_class_description varchar [note: 'Human-readable description of the NCPDP dispensing class code (e.g., RETAIL, INDEPENDENT, SPECIALTY, MAIL ORDER).']
+  dispensing_language1 varchar [note: 'Primary language in which the pharmacy provides counseling and dispensing services (e.g., ENGLISH).']
+  dispensing_language2 varchar [note: 'Secondary language in which the pharmacy provides counseling and dispensing services (e.g., SPANISH, MANDARIN).']
+  drive_through boolean [note: 'True if the pharmacy offers drive-through dispensing as reported to NCPDP. Used in member-facing network directory and access reporting.']
+  email varchar [note: 'Contact email address for the pharmacy as registered with NCPDP.']
+  fax varchar [note: 'Fax number for the pharmacy as registered with NCPDP. Used for prior authorization transmissions.. Valid values are `^[0-9]{10}$`']
+  handicap_accessible boolean [note: 'True if the pharmacy is handicap-accessible as reported to NCPDP. Used in network adequacy and member access reporting.']
+  home_infusion boolean [note: 'True if the pharmacy provides home infusion therapy services as reported to NCPDP.']
+  hours_of_operation varchar [note: 'Free-text operating hours for the pharmacy as registered with NCPDP (e.g., MON-FRI 0800-2100 SAT 0900-1800).']
+  is_340b boolean [note: 'True if the pharmacy participates in the federal 340B drug discount program as reported to NCPDP. Critical for 340B dispensing event identification.']
+  latitude decimal(12,4) [note: 'Geographic latitude of the pharmacy location in decimal degrees. Used for member proximity analysis and network adequacy mapping.']
+  long_term_care boolean [note: 'True if the pharmacy is designated as a long-term care pharmacy as reported to NCPDP.']
+  longitude decimal(12,4) [note: 'Geographic longitude of the pharmacy location in decimal degrees. Used alongside latitude for network adequacy mapping.']
+  mail_order boolean [note: 'True if the pharmacy operates as a mail-order dispensing facility as reported to NCPDP. Mail-order pharmacies typically dispense 90-day supplies.']
+  ncpdp_provider_id varchar [note: 'The 7-digit NCPDP provider identifier assigned to the dispensing pharmacy. Business key for this reference table and cross-reference anchor to drug.pharmacy.ncpdp_number.. Valid values are `^[0-9]{7}$`']
+  npi varchar [note: 'The 10-digit NPI assigned to the pharmacy by CMS/NPPES, as recorded in the NCPDP provider file. Cross-references to nppes_provider.npi.. Valid values are `^[0-9]{10}$`']
+  nuclear_pharmacy boolean [note: 'True if the pharmacy is a nuclear pharmacy handling radiopharmaceuticals as reported to NCPDP.']
+  open_24_hours boolean [note: 'True if the pharmacy operates 24 hours per day as reported to NCPDP. Used in network adequacy assessments.']
+  pharmacy_name varchar [note: 'Legal business name of the pharmacy as registered with NCPDP and state boards of pharmacy.']
+  pharmacy_type_code varchar [note: 'NCPDP pharmacy type code classifying the dispensing channel (e.g., 01=Community/Retail, 02=Mail Order, 06=Long-Term Care, 07=Specialty).']
+  pharmacy_type_description varchar [note: 'Human-readable description of the NCPDP pharmacy type code (e.g., COMMUNITY/RETAIL, MAIL ORDER, SPECIALTY, LONG-TERM CARE).']
+  phone varchar [note: 'Primary telephone number for the pharmacy as registered with NCPDP.. Valid values are `^[0-9]{10}$`']
+  record_change_date date [note: 'Date the pharmacy record was last changed in the NCPDP provider database. Used for change detection and SCD processing.']
+  record_status varchar [note: 'Lifecycle status of this pharmacy record in the NCPDP provider database. A=Active, I=Inactive, T=Terminated.. Valid values are `A|I|T`']
+  specialty_code1 varchar [note: 'Primary NCPDP specialty code for the pharmacy (e.g., 08=Community Health Education, 40=Specialty Pharmacy).']
+  specialty_code2 varchar [note: 'Secondary NCPDP specialty code for the pharmacy, if applicable.']
+  specialty_description1 varchar [note: 'Human-readable description of the primary NCPDP specialty code.']
+  specialty_description2 varchar [note: 'Human-readable description of the secondary NCPDP specialty code.']
+  specialty_pharmacy boolean [note: 'True if the pharmacy is designated as a specialty pharmacy as reported to NCPDP. Specialty pharmacies dispense high-cost complex medications.']
+  state_code varchar [note: 'Two-letter USPS state abbreviation for the pharmacy location as registered with NCPDP.. Valid values are `^[A-Z]{2}$`']
+  state_license_number varchar [note: 'State board of pharmacy license number as recorded in the NCPDP provider file.']
+  store_number varchar [note: 'Chain-assigned store number for the pharmacy location. Null for independent pharmacies.']
+  zip_code varchar [note: 'ZIP code for the pharmacy location as registered with NCPDP.. Valid values are `^[0-9]{5}(-[0-9]{4})?$`']
+  effective_date date [note: 'Start date of this SCD Type-2 version row for the NCPDP pharmacy record.']
+  expiration_date date [note: 'End date of this SCD Type-2 version row (9999-12-31 for the current active record).']
+  is_current boolean [note: 'True if this row is the current active version of the NCPDP pharmacy record.']
+  source_file_name varchar [note: 'Name of the NCPDP dataQ file extract from which this record was loaded. Supports data lineage.']
+  source_version varchar [note: 'NCPDP provider file extract date or version identifier.']
+  load_timestamp timestamp [note: 'Timestamp when this record was loaded from the NCPDP source file into the PillarRx reference schema.']
+  created_timestamp timestamp [note: 'Timestamp when this NCPDP pharmacy record was first created in the PillarRx data platform.']
+  updated_timestamp timestamp [note: 'Timestamp when this NCPDP pharmacy record was last modified in the PillarRx data platform.']
+
+  Note: 'Dispensing pharmacy master from the NCPDP (National Council for Prescription Drug Programs) Provider Database and dataQ file. Each record represents one dispensing pharmacy identified by its 7-digit NCPDP Provider ID, with pharmacy type, chain affiliation, dispensing class, specialty designations, 340B participation, accreditation, geographic coordinates, and service capability flags (mail order, specialty, LTC, home infusion, compounding, nuclear, drive-through, 24-hour). This table preserves the NCPDP data in its delivered form and serves as the source-of-record from which drug.pharmacy derives its NCPDP-sourced attributes.'
+}
+
+Table reference.nppes_provider {
+  nppes_provider_id bigint [pk, note: 'Surrogate primary key for each NPPES provider record. Supports SCD Type-2 versioning across monthly CMS NPPES data dissemination files.']
+  authorized_official_first_name varchar [note: 'First name of the authorized official for organizational (Type 2) NPI records as registered in NPPES. Null for individual providers.']
+  authorized_official_last_name varchar [note: 'Last name of the authorized official for organizational (Type 2) NPI records as registered in NPPES. Null for individual providers.']
+  authorized_official_middle_name varchar [note: 'Middle name of the authorized official for organizational NPI records as registered in NPPES.']
+  authorized_official_phone varchar [note: 'Telephone number for the authorized official of organizational NPI records.. Valid values are `^[0-9]{10}$`']
+  authorized_official_title varchar [note: 'Title or position of the authorized official for organizational NPI records (e.g., PHARMACY DIRECTOR, CEO).']
+  credential varchar [note: 'Professional credential or degree suffix of the provider (e.g., M.D., D.O., N.P., Pharm.D., D.P.M.) as registered in NPPES. Indicates prescribing authority type.']
+  deactivation_date date [note: 'Date the NPI was deactivated in NPPES (e.g., provider retired, deceased, license revoked). Null if the NPI is currently active.']
+  deactivation_reason_code varchar [note: 'CMS reason code for NPI deactivation as recorded in NPPES. Identifies why the provider NPI was deactivated.']
+  employer_identification_number varchar [note: 'IRS Employer Identification Number (EIN) for organizational (Type 2) NPI records. Null for individual providers. Used for entity resolution.']
+  entity_type_code varchar [note: 'NPPES entity type distinguishing individual providers from organizations. 1=Individual (person), 2=Organization.. Valid values are `1|2`']
+  enumeration_date date [note: 'Date the NPI was first assigned to the provider by CMS via NPPES. Indicates when the provider was first registered in the national provider registry.']
+  first_name varchar [note: 'Legal first name (given name) of the provider as registered in NPPES. Populated for individual (Type 1) providers only.']
+  gender_code varchar [note: 'Gender of the provider as registered in NPPES. Populated for individual providers only. Null for organizations.. Valid values are `M|F`']
+  is_organization_subpart boolean [note: 'True if this organizational NPI is a subpart of a parent organization as indicated in NPPES. Used in organizational hierarchy resolution.']
+  is_sole_proprietor boolean [note: 'True if this individual provider is a sole proprietor as indicated in NPPES. Affects organizational affiliation and billing relationships.']
+  last_name varchar [note: 'Legal last name (family name) of the provider as registered in NPPES. Populated for individual (Type 1) providers only.']
+  last_update_date date [note: 'Date the NPPES record was last updated by the provider or CMS. Used to detect stale records and trigger refresh from the NPPES data feed.']
+  mailing_address_line1 varchar [note: 'Primary mailing address of the provider as registered in NPPES. May differ from the practice location address.']
+  mailing_address_line2 varchar [note: 'Secondary mailing address line (suite, floor, PO Box) as registered in NPPES.']
+  mailing_city varchar [note: 'City of the provider mailing address as registered in NPPES.']
+  mailing_country_code varchar [note: 'Country code of the provider mailing address (e.g., US) as registered in NPPES.']
+  mailing_fax varchar [note: 'Fax number associated with the provider mailing address.. Valid values are `^[0-9]{10}$`']
+  mailing_phone varchar [note: 'Telephone number associated with the provider mailing address.. Valid values are `^[0-9]{10}$`']
+  mailing_postal_code varchar [note: 'ZIP code of the provider mailing address as registered in NPPES.. Valid values are `^[0-9]{5,9}$`']
+  mailing_state varchar [note: 'Two-letter state abbreviation of the provider mailing address.. Valid values are `^[A-Z]{2}$`']
+  middle_name varchar [note: 'Middle name or initial of the provider as registered in NPPES.']
+  name_prefix varchar [note: 'Honorific prefix for the provider (e.g., Dr., Prof.) as registered in NPPES.']
+  name_suffix varchar [note: 'Name suffix for the provider (e.g., Jr., III) as registered in NPPES.']
+  npi varchar [note: 'The 10-digit National Provider Identifier assigned by CMS via NPPES. Business key for this reference table and cross-reference anchor to drug.drug_prescriber.npi and drug.pharmacy.npi.. Valid values are `^[0-9]{10}$`']
+  organization_name varchar [note: 'Legal business name for organizational (Type 2) NPI records as registered in NPPES. Null for individual providers.']
+  other_first_name varchar [note: 'Other or former first name of the provider as registered in NPPES, if applicable.']
+  other_last_name varchar [note: 'Other or former last name of the provider as registered in NPPES, if applicable.']
+  other_organization_name varchar [note: 'Other or former organization name as registered in NPPES, if applicable.']
+  parent_organization_name varchar [note: 'Legal business name of the parent organization for organizational subpart NPI records as registered in NPPES.']
+  parent_organization_tin varchar [note: 'Taxpayer Identification Number (TIN) of the parent organization for organizational subpart NPI records.']
+  practice_address_line1 varchar [note: 'Primary street address of the provider practice location as registered in NPPES. Used for geographic prescribing analysis.']
+  practice_address_line2 varchar [note: 'Secondary practice address line (suite, floor, unit) as registered in NPPES.']
+  practice_city varchar [note: 'City of the provider practice location as registered in NPPES. Used for geographic segmentation in prescribing analytics.']
+  practice_country_code varchar [note: 'Country code of the provider practice location (e.g., US) as registered in NPPES.']
+  practice_fax varchar [note: 'Fax number for the provider practice location as registered in NPPES.. Valid values are `^[0-9]{10}$`']
+  practice_phone varchar [note: 'Telephone number for the provider practice location as registered in NPPES. Used for provider outreach and prior authorization coordination.. Valid values are `^[0-9]{10}$`']
+  practice_postal_code varchar [note: 'ZIP code of the provider practice location as registered in NPPES. Supports geographic clustering and regional prescribing analysis.. Valid values are `^[0-9]{5,9}$`']
+  practice_state varchar [note: 'Two-letter state abbreviation of the provider practice location. Used for state-level prescribing analytics.. Valid values are `^[A-Z]{2}$`']
+  reactivation_date date [note: 'Date a previously deactivated NPI was reactivated in NPPES. Null if the NPI has never been deactivated or has not been reactivated.']
+  replacement_npi varchar [note: 'NPI that replaces this deactivated NPI, if a replacement was designated in NPPES. Used for provider identity continuity tracking.. Valid values are `^[0-9]{10}$`']
+  effective_date date [note: 'Start date of this SCD Type-2 version row for the NPPES provider record.']
+  expiration_date date [note: 'End date of this SCD Type-2 version row (9999-12-31 for the current active record).']
+  is_current boolean [note: 'True if this row is the current active version of the NPPES provider record.']
+  source_file_name varchar [note: 'Name of the CMS NPPES data dissemination file from which this record was loaded (e.g., npidata_pfile_20250301-20250307.csv).']
+  source_version varchar [note: 'CMS NPPES dissemination file date or version identifier (e.g., March 2025 weekly).']
+  load_timestamp timestamp [note: 'Timestamp when this record was loaded from the NPPES dissemination file into the PillarRx reference schema.']
+  created_timestamp timestamp [note: 'Timestamp when this NPPES provider record was first created in the PillarRx data platform.']
+  updated_timestamp timestamp [note: 'Timestamp when this NPPES provider record was last modified in the PillarRx data platform.']
+
+  Note: 'Provider registry from the CMS National Plan and Provider Enumeration System (NPPES) data dissemination file. Each record represents one NPI (National Provider Identifier) for either an individual provider (Type 1: physician, NP, PA, pharmacist, dentist) or an organization (Type 2: hospital, pharmacy, group practice). Contains demographics, credentials, mailing and practice addresses, enumeration and deactivation dates, gender, and authorized official information for organizations. Taxonomy and license data is normalized into the nppes_provider_taxonomy child table. This is the source-of-record for NPPES data from which drug.drug_prescriber and drug.pharmacy derive their NPI-sourced attributes.'
+}
+
+Table reference.nppes_provider_taxonomy {
+  nppes_provider_taxonomy_id bigint [pk, note: 'Surrogate primary key for each provider taxonomy assignment record. One provider may have multiple taxonomy assignments.']
+  is_primary_taxonomy boolean [note: 'True if this taxonomy code is designated as the providers primary specialty in NPPES. Each provider has exactly one primary taxonomy.']
+  license_number varchar [note: 'State-issued professional license number associated with this taxonomy assignment. Used for prescribing authority validation and PBM audit.']
+  license_state_code varchar [note: 'Two-letter state abbreviation where the license associated with this taxonomy was issued.. Valid values are `^[A-Z]{2}$`']
+  npi varchar [note: 'The 10-digit NPI of the provider to whom this taxonomy is assigned. FK to nppes_provider.npi. One NPI may have multiple taxonomy assignments.. Valid values are `^[0-9]{10}$`']
+  taxonomy_code varchar [note: 'NUCC Health Care Provider Taxonomy code identifying the provider specialty and classification (e.g., 207R00000X = Internal Medicine). FK to nucc_taxonomy.taxonomy_code.. Valid values are `^[0-9A-Z]{10}$`']
+  taxonomy_sequence bigint [note: 'Ordinal position of this taxonomy assignment within the provider NPPES record (1 = first/primary, 2 = secondary, etc.). Part of the composite business key with NPI.']
+  effective_date date [note: 'Start date of this SCD Type-2 version row for the taxonomy assignment.']
+  expiration_date date [note: 'End date of this SCD Type-2 version row (9999-12-31 for the current active record).']
+  is_current boolean [note: 'True if this row is the current active version of the taxonomy assignment.']
+  source_file_name varchar [note: 'Name of the CMS NPPES dissemination file from which this taxonomy assignment was extracted.']
+  source_version varchar [note: 'CMS NPPES dissemination file date or version identifier.']
+  load_timestamp timestamp [note: 'Timestamp when this record was loaded from the NPPES dissemination file into the PillarRx reference schema.']
+  created_timestamp timestamp [note: 'Timestamp when this taxonomy assignment record was first created in the PillarRx data platform.']
+  updated_timestamp timestamp [note: 'Timestamp when this taxonomy assignment record was last modified in the PillarRx data platform.']
+
+  Note: 'Normalized provider-to-taxonomy assignment records extracted from the repeating taxonomy/license groups in the CMS NPPES data dissemination file. Each row represents one taxonomy code assigned to one provider NPI, with the associated license number, license state, and primary taxonomy flag. A single NPI may have up to 15 taxonomy assignments in NPPES. This child table of nppes_provider enables efficient querying and joining to the nucc_taxonomy reference table without requiring a 300+ column wide table.'
+}
+
+Table reference.nucc_taxonomy {
+  nucc_taxonomy_id bigint [pk, note: 'Surrogate primary key for each NUCC taxonomy code record. Supports SCD Type-2 versioning across NUCC code set releases.']
+  classification_name varchar [note: 'NUCC classification within the grouping (e.g., Internal Medicine, Nurse Practitioner, Pharmacy). Second level of the three-level NUCC hierarchy.']
+  definition varchar [note: 'Full text definition of the taxonomy code as published by NUCC. Describes the scope of practice, qualifications, and typical services for this provider type.']
+  grouping_name varchar [note: 'Top-level NUCC provider grouping (e.g., Allopathic & Osteopathic Physicians, Physician Assistants & Advanced Practice Nursing Providers, Pharmacy Service Providers).']
+  notes varchar [note: 'Additional notes or clarifications for the taxonomy code as published by NUCC. Often provides supplemental context on scope-of-practice or recent taxonomy changes.']
+  specialization_name varchar [note: 'NUCC specialization within the classification (e.g., Cardiovascular Disease, Medical Oncology, Adult Health). Third and most granular level. Null when the taxonomy has no sub-specialization.']
+  taxonomy_code varchar [note: 'The 10-character NUCC Health Care Provider Taxonomy code (e.g., 207R00000X). Business key for this reference table and the standard provider specialty identifier used across NPPES and PBM claims.. Valid values are `^[0-9A-Z]{10}$`']
+  effective_date date [note: 'Start date of this SCD Type-2 version row for the NUCC taxonomy record.']
+  expiration_date date [note: 'End date of this SCD Type-2 version row (9999-12-31 for the current active record).']
+  is_current boolean [note: 'True if this row is the current active version of the NUCC taxonomy code record.']
+  source_file_name varchar [note: 'Name of the NUCC taxonomy code set file from which this record was loaded (e.g., nucc_taxonomy_250101.csv).']
+  source_version varchar [note: 'NUCC code set release date or version identifier (e.g., January 2025).']
+  load_timestamp timestamp [note: 'Timestamp when this record was loaded from the NUCC source file into the PillarRx reference schema.']
+  created_timestamp timestamp [note: 'Timestamp when this NUCC taxonomy record was first created in the PillarRx data platform.']
+  updated_timestamp timestamp [note: 'Timestamp when this NUCC taxonomy record was last modified in the PillarRx data platform.']
+
+  Note: 'NUCC (National Uniform Claim Committee) Health Care Provider Taxonomy Code Set. Each record represents one 10-character taxonomy code with its three-level classification hierarchy: Grouping (e.g., Allopathic & Osteopathic Physicians), Classification (e.g., Internal Medicine), and Specialization (e.g., Cardiovascular Disease). This is the authoritative code set for provider specialty identification used by NPPES, CMS, and PBM claims systems. It serves as the source-of-record for taxonomy data from which drug.drug_prescriber derives its taxonomy_code and taxonomy_description columns.'
+}
+
+// --- Intra-domain References ---
+
+Ref: reference.medispan_ndc.gpi14 > reference.medispan_gpi.gpi_code
+Ref: reference.medispan_gpi.parent_gpi_code > reference.medispan_gpi.gpi_code
+Ref: reference.medispan_price.ndc11 > reference.medispan_ndc.ndc11
+Ref: reference.medispan_equivalence.source_ndc11 > reference.medispan_ndc.ndc11
+Ref: reference.medispan_equivalence.equivalent_ndc11 > reference.medispan_ndc.ndc11
+Ref: reference.fdb_ndc.hic_code > reference.fdb_therapeutic_class.hic_code
+Ref: reference.fdb_drug_interaction.drug1_hic_code > reference.fdb_ndc.hic_code
+Ref: reference.fdb_drug_interaction.drug2_hic_code > reference.fdb_ndc.hic_code
+Ref: reference.nppes_provider_taxonomy.npi > reference.nppes_provider.npi
+Ref: reference.nppes_provider_taxonomy.taxonomy_code > reference.nucc_taxonomy.taxonomy_code
+
+// --- Cross-domain References (see pillarrx.dbml for resolved refs) ---
+// Ref: reference.medispan_ndc.ndc11 > drug.ndc.ndc11_formatted
+// Ref: reference.fdb_ndc.ndc11 > drug.ndc.ndc11_formatted
+// Ref: reference.ncpdp_pharmacy.ncpdp_provider_id > drug.pharmacy.ncpdp_number
+// Ref: reference.nppes_provider.npi > drug.drug_prescriber.npi
+// Ref: reference.nppes_provider.npi > drug.pharmacy.npi
+// Ref: reference.nucc_taxonomy.taxonomy_code > drug.drug_prescriber.taxonomy_code
