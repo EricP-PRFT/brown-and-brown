@@ -1,0 +1,152 @@
+NDC Column Naming Standardization
+==================================
+
+Goal
+----
+Standardize all NDC-related column names across the pillarrx catalog so that:
+  1. String columns holding an NDC code value end in _ndc_code
+  2. LONG surrogate FK columns pointing to drug.ndc use _ndc_id
+  3. All _ndc_code columns are STRING(13) to accommodate feeds that include
+     hyphens (5-4-2 format: 12345-6789-01 = 13 chars)
+  4. Columns that are NOT NDC code values (ndc_status, ndc11, ndc11_formatted,
+     ndc_price_id, ndc_mac_list_id, ndc_labeler_*, ndc_manufacturer_id) are
+     left unchanged
+
+Source of truth: pillarrx physical Databricks catalog
+Queried: 2026-10-29
+
+
+Current state (live catalog, 23 NDC-related columns)
+--------------------------------------------------
+
+  schema    | table                      | column                        | type
+  ----------|----------------------------|-------------------------------|------
+  claim     | dur_event                  | ndc                           | LONG
+  claim     | dur_event                  | coagent_ndc                   | STRING
+  claim     | prior_auth                 | ndc                           | STRING
+  claim     | rebate_record              | ndc_code                      | STRING
+  client    | audit_finding              | ndc                           | STRING
+  client    | cap_program_enrollment     | ndc                           | STRING
+  division  | formulary_drug_placement   | formulary_alternative_ndc     | STRING
+  division  | formulary_drug_placement   | ndc                           | STRING
+  division  | prior_auth_rule            | step_therapy_predecessor_ndc  | STRING
+  division  | prior_auth_rule            | target_ndc                    | STRING
+  drug      | classification             | ndc11                         | STRING
+  drug      | classification             | ndc_status                    | STRING
+  drug      | equivalence                | equivalent_ndc11              | STRING
+  drug      | formulary_drug             | preferred_alternative_ndc     | STRING
+  drug      | ndc                        | ndc_id                        | LONG
+  drug      | ndc                        | ndc_labeler_code_fk           | LONG
+  drug      | ndc                        | ndc_labeler_fk                | LONG
+  drug      | ndc                        | ndc_manufacturer_id           | LONG
+  drug      | ndc                        | ndc11_formatted               | STRING
+  drug      | ndc_price                  | ndc_price_id                  | LONG
+  drug      | ndc_price                  | ndc_mac_list_id               | LONG
+  program   | copay_assistance_program   | ndc_id                        | LONG
+  program   | patient_assistance_program | ndc_id                        | LONG
+
+
+Renames: bare "ndc" STRING columns -> ndc_code
+--------------------------------------------------
+
+These STRING columns hold an NDC code value but are named just "ndc". Rename to
+ndc_code to make the content unambiguous.
+
+  claim.prior_auth.ndc             -> claim.prior_auth.ndc_code
+  client.audit_finding.ndc         -> client.audit_finding.ndc_code
+  client.cap_program_enrollment.ndc -> client.cap_program_enrollment.ndc_code
+  division.formulary_drug_placement.ndc -> division.formulary_drug_placement.ndc_code
+
+
+Renames: qualified STRING columns -> *_ndc_code
+--------------------------------------------------
+
+These STRING columns hold an NDC code value with a qualifying prefix but omit
+the _code suffix. Rename to *_ndc_code for consistency.
+
+  claim.dur_event.coagent_ndc                        -> claim.dur_event.coagent_ndc_code
+  division.formulary_drug_placement.formulary_alternative_ndc -> division.formulary_drug_placement.formulary_alternative_ndc_code
+  division.prior_auth_rule.step_therapy_predecessor_ndc       -> division.prior_auth_rule.step_therapy_predecessor_ndc_code
+  division.prior_auth_rule.target_ndc                         -> division.prior_auth_rule.target_ndc_code
+  drug.formulary_drug.preferred_alternative_ndc               -> drug.formulary_drug.preferred_alternative_ndc_code
+
+
+Note: claim.dur_event.ndc is LONG (surrogate)
+--------------------------------------------------
+
+claim.dur_event.ndc is typed LONG in the live catalog, not STRING. This means it
+is a surrogate key, not a code value. It should be renamed to ndc_id to match
+the surrogate FK convention.
+
+  claim.dur_event.ndc              -> claim.dur_event.ndc_id
+
+
+Already correct -- no changes needed
+--------------------------------------------------
+
+String columns already following the _ndc_code convention:
+  claim.rebate_record.ndc_code           (STRING)
+
+LONG surrogate FKs already following the _ndc_id convention:
+  drug.ndc.ndc_id                        (LONG, surrogate PK)
+  program.copay_assistance_program.ndc_id    (LONG, surrogate FK)
+  program.patient_assistance_program.ndc_id  (LONG, surrogate FK)
+
+
+Not in scope -- these are NOT NDC code values
+--------------------------------------------------
+
+  drug.ndc.ndc_labeler_code_fk     (LONG, FK to labeler)
+  drug.ndc.ndc_labeler_fk          (LONG, FK to labeler)
+  drug.ndc.ndc_manufacturer_id     (LONG, FK to manufacturer)
+  drug.ndc.ndc11_formatted         (STRING, display-formatted NDC)
+  drug.classification.ndc11        (STRING, 11-digit NDC on classification)
+  drug.classification.ndc_status   (STRING, status flag)
+  drug.equivalence.equivalent_ndc11 (STRING, 11-digit NDC on equivalence)
+  drug.ndc_price.ndc_price_id      (LONG, PK of ndc_price table)
+  drug.ndc_price.ndc_mac_list_id   (LONG, FK to MAC list)
+
+
+Column length: all _ndc_code columns -> STRING(13)
+--------------------------------------------------
+
+All _ndc_code columns must be STRING(13) to accommodate data feeds that include
+hyphens in the 5-4-2 NDC format (e.g., "12345-6789-01" = 13 characters).
+
+This applies to every column being renamed to _ndc_code AND every column already
+correctly named. Full list of columns to set to STRING(13):
+
+  claim.rebate_record.ndc_code                               (already named correctly)
+  claim.prior_auth.ndc_code                                  (after rename)
+  claim.dur_event.coagent_ndc_code                           (after rename)
+  client.audit_finding.ndc_code                              (after rename)
+  client.cap_program_enrollment.ndc_code                     (after rename)
+  division.formulary_drug_placement.ndc_code                 (after rename)
+  division.formulary_drug_placement.formulary_alternative_ndc_code  (after rename)
+  division.prior_auth_rule.step_therapy_predecessor_ndc_code (after rename)
+  division.prior_auth_rule.target_ndc_code                   (after rename)
+  drug.formulary_drug.preferred_alternative_ndc_code         (after rename)
+
+
+Execution notes
+--------------------------------------------------
+
+Step 1 -- Rename columns:
+
+  ALTER TABLE pillarrx.{schema}.{table} RENAME COLUMN {old_name} TO {new_name};
+
+Step 2 -- Set column length to STRING(13) on all _ndc_code columns:
+
+  ALTER TABLE pillarrx.{schema}.{table} ALTER COLUMN {col_name} TYPE STRING(13);
+
+Step 3 -- Update any views, notebooks, or downstream queries that reference
+the old column names.
+
+Total changes:
+  - 10 column renames across 8 tables in 5 schemas
+  - 10 columns set to STRING(13)
+  - claim schema:    3 renames (dur_event.coagent_ndc, dur_event.ndc, prior_auth.ndc)
+  - client schema:   2 renames (audit_finding.ndc, cap_program_enrollment.ndc)
+  - division schema: 3 renames (formulary_drug_placement x2, prior_auth_rule x2)
+  - drug schema:     1 rename  (formulary_drug.preferred_alternative_ndc)
+  - 1 surrogate rename: claim.dur_event.ndc (LONG) -> ndc_id

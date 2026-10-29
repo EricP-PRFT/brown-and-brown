@@ -252,3 +252,38 @@ The PCT is the central fact table. Key column groups:
 - Multiple PBMs send the same conceptual data in wildly different formats (891 raw columns -> 113 canonical columns)
 - Drug, pharmacy, and provider reference data comes from external standards bodies, not from B&B
 - Always use the physical Databricks catalog pillarrx rather than text or json artifacts to determine the current state of the database
+- To query the catalog, see "Querying the Databricks Catalog" below
+
+---
+
+## Querying the Databricks Catalog
+
+The Databricks CLI (v0.288.0) does not have a `sql execute` command. To run SQL
+against the catalog, use the REST API via PowerShell (not Git Bash -- Bash
+mangles `/api/...` paths).
+
+1. Write the query payload to a temp JSON file:
+
+```json
+{
+  "warehouse_id": "000000000000000d",
+  "statement": "SELECT ... FROM pillarrx.information_schema.columns WHERE ...",
+  "wait_timeout": "30s",
+  "format": "JSON_ARRAY"
+}
+```
+
+2. Execute via PowerShell:
+
+```powershell
+databricks api post /api/2.0/sql/statements --profile brown_and_brown --json "@tmp_query.json"
+```
+
+3. Clean up the temp file after use.
+
+Key details:
+- Warehouse `000000000000000d` (Reyden Warehouse) is usually RUNNING
+- `"format": "JSON_ARRAY"` returns readable results; the default is Arrow binary
+- Results come back in `result.data_array` as arrays of values
+- Always use PowerShell for this command. Git Bash rewrites `/api/2.0/...` to
+  `/Program Files/Git/api/2.0/...`

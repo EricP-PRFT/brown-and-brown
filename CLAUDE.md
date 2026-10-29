@@ -19,6 +19,16 @@ Databricks, data modeling documentation, and project management.
 - `sql/` — Standalone SQL files
 - `tasks/` — Lessons learned and task tracking
 
+## Data Model Source of Truth
+
+When determining the current state of the data model, always query the physical
+Databricks catalog directly rather than relying on text files, JSON artifacts, or
+DBML files in this repo. Those files may be stale. The live catalog is the
+authoritative source.
+
+Default catalog: `pillarrx`. If there is any ambiguity about which catalog to
+use, ask Eric before proceeding.
+
 ## Commands
 
 ```bash
