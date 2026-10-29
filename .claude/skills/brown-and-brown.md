@@ -251,3 +251,4 @@ The PCT is the central fact table. Key column groups:
 - Expect to handle reversals and adjustments (paid/reversed/adjusted/rejected status)
 - Multiple PBMs send the same conceptual data in wildly different formats (891 raw columns -> 113 canonical columns)
 - Drug, pharmacy, and provider reference data comes from external standards bodies, not from B&B
+- Always use the physical Databricks catalog pillarrx rather than text or json artifacts to determine the current state of the database

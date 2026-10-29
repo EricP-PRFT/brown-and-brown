@@ -1,0 +1,66 @@
+CURRENT PHYSICAL vs v22 MODEL - Gap Analysis
+======================================================================
+Physical: 3082 columns across 85 tables
+Model: 3090 columns across 85 tables
+Tables matching perfectly: 78
+======================================================================
+
+=== COLUMNS IN PHYSICAL BUT NOT MODEL (22) ===
+
+KEEP (intentional additions post-v22, do NOT drop):
+
+  claim.rx_claim.ndc_id (bigint)
+    — Surrogate FK to drug.ndc.ndc_id, deployed by v22_followup_vibe.
+      Intentional. Model will pick it up in the next VOV.
+
+  claim.dur_event.dispensed_ndc_code (string)
+    — FK to drug.ndc.ndc_code, deployed by program_vibe_step3.
+      Intentional. Model will pick it up in the next VOV.
+
+DROP CANDIDATES (20 denormalized rx_claim_line columns):
+
+  claim.rx_claim_line:
+    - awp_discount_pct (decimal(7,4))
+    - awp_unit_price (decimal(18,4))
+    - claim_status (string)
+    - daw_code (string)
+    - days_supply (bigint)
+    - deductible_applied (decimal(18,4))
+    - deductible_remaining (decimal(18,4))
+    - dispensing_fee (decimal(18,4))
+    - fill_number (bigint)
+    - formulary_tier (string)
+    - ingredient_cost (decimal(18,4))
+    - member_coinsurance (decimal(18,4))
+    - member_copay (decimal(18,4))
+    - ndc (string)
+    - oop_applied (decimal(18,4))
+    - oop_remaining (decimal(18,4))
+    - other_payer_amount (decimal(18,4))
+    - plan_paid_amount (decimal(18,4))
+    - quantity (decimal(18,4))
+    - wac_unit_price (decimal(18,4))
+
+  These were deployed by an earlier vibe but the v22 model removed them.
+  They are denormalized copies of rx_claim header columns that belong on
+  the header, not the line-level pricing decomposition. The line table
+  should only have: rx_claim_line_id, primary_rx_claim_id, to_rx_claim_id,
+  line_number, line_type, line_amount, plus line-specific fields (bin_number,
+  compound_code, dos, sales_tax, vaccine_admin_fee, etc.).
+
+=== COLUMNS IN MODEL BUT NOT PHYSICAL (30) ===
+
+These are STALE MODEL entries — already pruned from the physical catalog.
+The model will catch up in the next VOV. No action needed.
+
+  claim.member_oop_accumulator (13 over-wired program FKs):
+    Already pruned from physical by v22_followup_vibe.
+
+  claim.rebate_record (12 over-wired program FKs):
+    Already pruned from physical by v22_followup_vibe.
+
+  drug.ndc (4 legacy manufacturer FKs):
+    Already dropped from physical between v15 and v22.
+
+  drug.pharmacy (1 redundant column):
+    ncpdp_number — already dropped from physical between v15 and v22.

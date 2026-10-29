@@ -32,3 +32,5 @@ docs/B&B Notes.txt
 # Project shared files
 data/synthetic_data.tar
 docs/data-models/vibes
+
+scripts/*

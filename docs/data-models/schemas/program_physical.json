@@ -1,0 +1,2336 @@
+﻿[
+    {
+        "comment":  "Copay accumulator and maximizer rules governing how manufacturer assistance counts toward member deductible and out-of-pocket.",
+        "name":  "accumulator_program",
+        "columns":  [
+                        {
+                            "comment":  "Surrogate primary key for accumulator program.",
+                            "name":  "accumulator_program_id",
+                            "nullable":  false,
+                            "position":  0,
+                            "type_json":  "{\"name\":\"accumulator_program_id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{\"comment\":\"Surrogate primary key for accumulator program.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Foreign key to the parent savings program.",
+                            "name":  "savings_program_id",
+                            "nullable":  true,
+                            "position":  1,
+                            "type_json":  "{\"name\":\"savings_program_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Foreign key to the parent savings program.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "ADD column program.accumulator_program.pbm_assignment_id (BIGINT) as FK to client.pbm_assignment.pbm_assignment_id. ADD column program.accumulator_program.pbm_assignment_id (BIGINT) FK to client.pbm_assignment.pbm_assignment_id.",
+                            "name":  "pbm_assignment_id",
+                            "nullable":  true,
+                            "position":  2,
+                            "type_json":  "{\"name\":\"pbm_assignment_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"ADD column program.accumulator_program.pbm_assignment_id (BIGINT) as FK to client.pbm_assignment.pbm_assignment_id. ADD column program.accumulator_program.pbm_assignment_id (BIGINT) FK to client.pbm_assignment.pbm_assignment_id.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "ADD column program.accumulator_program.client_id (BIGINT) as FK to client.employer.employer_id. ADD column program.accumulator_program.client_id (BIGINT) FK to client.employer.employer_id.",
+                            "name":  "client_id",
+                            "nullable":  true,
+                            "position":  3,
+                            "type_json":  "{\"name\":\"client_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"ADD column program.accumulator_program.client_id (BIGINT) as FK to client.employer.employer_id. ADD column program.accumulator_program.client_id (BIGINT) FK to client.employer.employer_id.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "",
+                            "name":  "employer_id",
+                            "nullable":  true,
+                            "position":  4,
+                            "type_json":  "{\"name\":\"employer_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "",
+                            "name":  "division_id",
+                            "nullable":  true,
+                            "position":  5,
+                            "type_json":  "{\"name\":\"division_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Type of accumulator or maximizer arrangement.",
+                            "name":  "accumulator_type",
+                            "nullable":  true,
+                            "position":  6,
+                            "type_json":  "{\"name\":\"accumulator_type\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Type of accumulator or maximizer arrangement.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Drug list scope the program applies to.",
+                            "name":  "applicable_drug_list",
+                            "nullable":  true,
+                            "position":  7,
+                            "type_json":  "{\"name\":\"applicable_drug_list\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Drug list scope the program applies to.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was created.",
+                            "name":  "created_timestamp",
+                            "nullable":  true,
+                            "position":  8,
+                            "type_json":  "{\"name\":\"created_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was created.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        },
+                        {
+                            "comment":  "End date of the records effective period for Type-2 history.",
+                            "name":  "effective_end_date",
+                            "nullable":  true,
+                            "position":  9,
+                            "type_json":  "{\"name\":\"effective_end_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"End date of the records effective period for Type-2 history.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Start date of the records effective period for Type-2 history.",
+                            "name":  "effective_start_date",
+                            "nullable":  true,
+                            "position":  10,
+                            "type_json":  "{\"name\":\"effective_start_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Start date of the records effective period for Type-2 history.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Indicates whether this is the current version of the record.",
+                            "name":  "is_current",
+                            "nullable":  true,
+                            "position":  11,
+                            "type_json":  "{\"name\":\"is_current\",\"type\":\"boolean\",\"nullable\":true,\"metadata\":{\"comment\":\"Indicates whether this is the current version of the record.\"}}",
+                            "type_name":  "BOOLEAN",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "boolean"
+                        },
+                        {
+                            "comment":  "Indicates whether manufacturer assistance counts toward the member deductible.",
+                            "name":  "manufacturer_assistance_counts_toward_deductible",
+                            "nullable":  true,
+                            "position":  12,
+                            "type_json":  "{\"name\":\"manufacturer_assistance_counts_toward_deductible\",\"type\":\"boolean\",\"nullable\":true,\"metadata\":{\"comment\":\"Indicates whether manufacturer assistance counts toward the member deductible.\"}}",
+                            "type_name":  "BOOLEAN",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "boolean"
+                        },
+                        {
+                            "comment":  "Indicates whether manufacturer assistance counts toward member out-of-pocket.",
+                            "name":  "manufacturer_assistance_counts_toward_oop",
+                            "nullable":  true,
+                            "position":  13,
+                            "type_json":  "{\"name\":\"manufacturer_assistance_counts_toward_oop\",\"type\":\"boolean\",\"nullable\":true,\"metadata\":{\"comment\":\"Indicates whether manufacturer assistance counts toward member out-of-pocket.\"}}",
+                            "type_name":  "BOOLEAN",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "boolean"
+                        },
+                        {
+                            "comment":  "Name of the maximizer vendor administering the program.",
+                            "name":  "maximizer_vendor_name",
+                            "nullable":  true,
+                            "position":  14,
+                            "type_json":  "{\"name\":\"maximizer_vendor_name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Name of the maximizer vendor administering the program.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Indicates whether a state-level override is required.",
+                            "name":  "state_override_required",
+                            "nullable":  true,
+                            "position":  15,
+                            "type_json":  "{\"name\":\"state_override_required\",\"type\":\"boolean\",\"nullable\":true,\"metadata\":{\"comment\":\"Indicates whether a state-level override is required.\"}}",
+                            "type_name":  "BOOLEAN",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "boolean"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was last updated.",
+                            "name":  "updated_timestamp",
+                            "nullable":  true,
+                            "position":  16,
+                            "type_json":  "{\"name\":\"updated_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was last updated.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        }
+                    ]
+    },
+    {
+        "comment":  "Third-party Alternative Funding Programs (AFPs) that redirect specialty drug procurement through manufacturer patient-assistance, charitable-foundation, international-sourcing, or copay-optimization channels to reduce plan-sponsor drug spend.",
+        "name":  "alternative_funding_program",
+        "columns":  [
+                        {
+                            "comment":  "Surrogate primary key for alternative funding program.",
+                            "name":  "alternative_funding_program_id",
+                            "nullable":  false,
+                            "position":  0,
+                            "type_json":  "{\"name\":\"alternative_funding_program_id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{\"comment\":\"Surrogate primary key for alternative funding program.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Foreign key to the parent savings program.",
+                            "name":  "savings_program_id",
+                            "nullable":  true,
+                            "position":  1,
+                            "type_json":  "{\"name\":\"savings_program_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Foreign key to the parent savings program.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "ADD column program.alternative_funding_program.client_id (BIGINT) as FK to client.employer.employer_id. ADD column program.alternative_funding_program.client_id (BIGINT) FK to client.employer.employer_id.",
+                            "name":  "client_id",
+                            "nullable":  true,
+                            "position":  2,
+                            "type_json":  "{\"name\":\"client_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"ADD column program.alternative_funding_program.client_id (BIGINT) as FK to client.employer.employer_id. ADD column program.alternative_funding_program.client_id (BIGINT) FK to client.employer.employer_id.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "",
+                            "name":  "employer_id",
+                            "nullable":  true,
+                            "position":  3,
+                            "type_json":  "{\"name\":\"employer_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Name of the alternative funding program vendor.",
+                            "name":  "afp_vendor_name",
+                            "nullable":  true,
+                            "position":  4,
+                            "type_json":  "{\"name\":\"afp_vendor_name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Name of the alternative funding program vendor.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Drug list scope the program applies to.",
+                            "name":  "applicable_drug_list",
+                            "nullable":  true,
+                            "position":  5,
+                            "type_json":  "{\"name\":\"applicable_drug_list\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Drug list scope the program applies to.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was created.",
+                            "name":  "created_timestamp",
+                            "nullable":  true,
+                            "position":  6,
+                            "type_json":  "{\"name\":\"created_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was created.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        },
+                        {
+                            "comment":  "Estimated annual savings generated by the program.",
+                            "name":  "estimated_annual_savings",
+                            "nullable":  true,
+                            "position":  7,
+                            "type_json":  "{\"name\":\"estimated_annual_savings\",\"type\":\"decimal(14,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Estimated annual savings generated by the program.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(14,2)"
+                        },
+                        {
+                            "comment":  "Funding source used by the alternative funding program.",
+                            "name":  "funding_source",
+                            "nullable":  true,
+                            "position":  8,
+                            "type_json":  "{\"name\":\"funding_source\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Funding source used by the alternative funding program.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Indicates whether member consent is required.",
+                            "name":  "member_consent_required",
+                            "nullable":  true,
+                            "position":  9,
+                            "type_json":  "{\"name\":\"member_consent_required\",\"type\":\"boolean\",\"nullable\":true,\"metadata\":{\"comment\":\"Indicates whether member consent is required.\"}}",
+                            "type_name":  "BOOLEAN",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "boolean"
+                        },
+                        {
+                            "comment":  "Date the program ends.",
+                            "name":  "program_end_date",
+                            "nullable":  true,
+                            "position":  10,
+                            "type_json":  "{\"name\":\"program_end_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the program ends.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Date the program becomes effective.",
+                            "name":  "program_start_date",
+                            "nullable":  true,
+                            "position":  11,
+                            "type_json":  "{\"name\":\"program_start_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the program becomes effective.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Current lifecycle status of the program.",
+                            "name":  "program_status",
+                            "nullable":  true,
+                            "position":  12,
+                            "type_json":  "{\"name\":\"program_status\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Current lifecycle status of the program.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was last updated.",
+                            "name":  "updated_timestamp",
+                            "nullable":  true,
+                            "position":  13,
+                            "type_json":  "{\"name\":\"updated_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was last updated.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        }
+                    ]
+    },
+    {
+        "comment":  "Charitable foundation assistance programs that provide copay, premium, travel, or combined financial support to eligible members based on disease state and federal poverty level income thresholds.",
+        "name":  "charitable_assistance",
+        "columns":  [
+                        {
+                            "comment":  "Surrogate primary key for charitable assistance.",
+                            "name":  "charitable_assistance_id",
+                            "nullable":  false,
+                            "position":  0,
+                            "type_json":  "{\"name\":\"charitable_assistance_id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{\"comment\":\"Surrogate primary key for charitable assistance.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Foreign key to the parent savings program.",
+                            "name":  "savings_program_id",
+                            "nullable":  true,
+                            "position":  1,
+                            "type_json":  "{\"name\":\"savings_program_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Foreign key to the parent savings program.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Indicates whether a formal application is required.",
+                            "name":  "application_required",
+                            "nullable":  true,
+                            "position":  2,
+                            "type_json":  "{\"name\":\"application_required\",\"type\":\"boolean\",\"nullable\":true,\"metadata\":{\"comment\":\"Indicates whether a formal application is required.\"}}",
+                            "type_name":  "BOOLEAN",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "boolean"
+                        },
+                        {
+                            "comment":  "Type of charitable assistance provided.",
+                            "name":  "assistance_type",
+                            "nullable":  true,
+                            "position":  3,
+                            "type_json":  "{\"name\":\"assistance_type\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Type of charitable assistance provided.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was created.",
+                            "name":  "created_timestamp",
+                            "nullable":  true,
+                            "position":  4,
+                            "type_json":  "{\"name\":\"created_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was created.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        },
+                        {
+                            "comment":  "Disease state the assistance program targets.",
+                            "name":  "disease_state",
+                            "nullable":  true,
+                            "position":  5,
+                            "type_json":  "{\"name\":\"disease_state\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Disease state the assistance program targets.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Name of the charitable foundation.",
+                            "name":  "foundation_name",
+                            "nullable":  true,
+                            "position":  6,
+                            "type_json":  "{\"name\":\"foundation_name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Name of the charitable foundation.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Current funding status of the assistance fund.",
+                            "name":  "fund_status",
+                            "nullable":  true,
+                            "position":  7,
+                            "type_json":  "{\"name\":\"fund_status\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Current funding status of the assistance fund.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Income eligibility threshold as a percentage of the Federal Poverty Level.",
+                            "name":  "income_threshold_fpl_pct",
+                            "nullable":  true,
+                            "position":  8,
+                            "type_json":  "{\"name\":\"income_threshold_fpl_pct\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Income eligibility threshold as a percentage of the Federal Poverty Level.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Insurance status required for eligibility.",
+                            "name":  "insurance_requirement",
+                            "nullable":  true,
+                            "position":  9,
+                            "type_json":  "{\"name\":\"insurance_requirement\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Insurance status required for eligibility.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Maximum annual award the foundation provides.",
+                            "name":  "max_annual_award",
+                            "nullable":  true,
+                            "position":  10,
+                            "type_json":  "{\"name\":\"max_annual_award\",\"type\":\"decimal(10,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Maximum annual award the foundation provides.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(10,2)"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was last updated.",
+                            "name":  "updated_timestamp",
+                            "nullable":  true,
+                            "position":  11,
+                            "type_json":  "{\"name\":\"updated_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was last updated.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        }
+                    ]
+    },
+    {
+        "comment":  "Claim-level decomposition attributing savings to rebates, copay assistance, 340B discounts, and other sources.",
+        "name":  "claim_savings_attribution",
+        "columns":  [
+                        {
+                            "comment":  "Surrogate primary key for claim savings attribution.",
+                            "name":  "claim_savings_attribution_id",
+                            "nullable":  false,
+                            "position":  0,
+                            "type_json":  "{\"name\":\"claim_savings_attribution_id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{\"comment\":\"Surrogate primary key for claim savings attribution.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Reference to program.savings_program.savings_program_id.",
+                            "name":  "savings_program_id",
+                            "nullable":  true,
+                            "position":  1,
+                            "type_json":  "{\"name\":\"savings_program_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Reference to program.savings_program.savings_program_id.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "ADD column program.claim_savings_attribution.rx_claim_id (BIGINT) as FK to claim.rx_claim.rx_claim_id. ADD column program.claim_savings_attribution.rx_claim_id (BIGINT) FK to claim.rx_claim.rx_claim_id.",
+                            "name":  "rx_claim_id",
+                            "nullable":  true,
+                            "position":  2,
+                            "type_json":  "{\"name\":\"rx_claim_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"ADD column program.claim_savings_attribution.rx_claim_id (BIGINT) as FK to claim.rx_claim.rx_claim_id. ADD column program.claim_savings_attribution.rx_claim_id (BIGINT) FK to claim.rx_claim.rx_claim_id.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "",
+                            "name":  "member_id",
+                            "nullable":  true,
+                            "position":  3,
+                            "type_json":  "{\"name\":\"member_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Amount of savings attributed.",
+                            "name":  "attributed_savings_amount",
+                            "nullable":  true,
+                            "position":  4,
+                            "type_json":  "{\"name\":\"attributed_savings_amount\",\"type\":\"decimal(12,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Amount of savings attributed.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(12,2)"
+                        },
+                        {
+                            "comment":  "Date the savings attribution was recorded.",
+                            "name":  "attribution_date",
+                            "nullable":  true,
+                            "position":  5,
+                            "type_json":  "{\"name\":\"attribution_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the savings attribution was recorded.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Type of savings attributed to the claim.",
+                            "name":  "attribution_type",
+                            "nullable":  true,
+                            "position":  6,
+                            "type_json":  "{\"name\":\"attribution_type\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Type of savings attributed to the claim.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Party that benefits from the attributed savings.",
+                            "name":  "beneficiary",
+                            "nullable":  true,
+                            "position":  7,
+                            "type_json":  "{\"name\":\"beneficiary\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Party that benefits from the attributed savings.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Method used to calculate the attributed savings.",
+                            "name":  "calculation_method",
+                            "nullable":  true,
+                            "position":  8,
+                            "type_json":  "{\"name\":\"calculation_method\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Method used to calculate the attributed savings.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was created.",
+                            "name":  "created_timestamp",
+                            "nullable":  true,
+                            "position":  9,
+                            "type_json":  "{\"name\":\"created_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was created.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was last updated.",
+                            "name":  "updated_timestamp",
+                            "nullable":  true,
+                            "position":  10,
+                            "type_json":  "{\"name\":\"updated_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was last updated.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        }
+                    ]
+    },
+    {
+        "comment":  "Contract pharmacy arrangements linked to 340B covered entities, including third-party administrators.",
+        "name":  "contract_pharmacy_340b",
+        "columns":  [
+                        {
+                            "comment":  "Surrogate primary key for contract pharmacy 340b.",
+                            "name":  "contract_pharmacy_340b_id",
+                            "nullable":  false,
+                            "position":  0,
+                            "type_json":  "{\"name\":\"contract_pharmacy_340b_id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{\"comment\":\"Surrogate primary key for contract pharmacy 340b.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Foreign key to the parent 340B covered entity.",
+                            "name":  "covered_entity_340b_id",
+                            "nullable":  true,
+                            "position":  1,
+                            "type_json":  "{\"name\":\"covered_entity_340b_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Foreign key to the parent 340B covered entity.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Date the rebate contract ends.",
+                            "name":  "contract_end_date",
+                            "nullable":  true,
+                            "position":  2,
+                            "type_json":  "{\"name\":\"contract_end_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the rebate contract ends.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Date the rebate contract begins.",
+                            "name":  "contract_start_date",
+                            "nullable":  true,
+                            "position":  3,
+                            "type_json":  "{\"name\":\"contract_start_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the rebate contract begins.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Current status of the contract.",
+                            "name":  "contract_status",
+                            "nullable":  true,
+                            "position":  4,
+                            "type_json":  "{\"name\":\"contract_status\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Current status of the contract.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was created.",
+                            "name":  "created_timestamp",
+                            "nullable":  true,
+                            "position":  5,
+                            "type_json":  "{\"name\":\"created_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was created.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        },
+                        {
+                            "comment":  "Name of the third-party administrator managing the contract pharmacy.",
+                            "name":  "third_party_administrator",
+                            "nullable":  true,
+                            "position":  6,
+                            "type_json":  "{\"name\":\"third_party_administrator\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Name of the third-party administrator managing the contract pharmacy.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was last updated.",
+                            "name":  "updated_timestamp",
+                            "nullable":  true,
+                            "position":  7,
+                            "type_json":  "{\"name\":\"updated_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was last updated.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        }
+                    ]
+    },
+    {
+        "comment":  "Manufacturer copay card and eVoucher program details including benefit maximums and channel restrictions.",
+        "name":  "copay_assistance_program",
+        "columns":  [
+                        {
+                            "comment":  "Surrogate primary key for copay assistance program.",
+                            "name":  "copay_assistance_program_id",
+                            "nullable":  false,
+                            "position":  0,
+                            "type_json":  "{\"name\":\"copay_assistance_program_id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{\"comment\":\"Surrogate primary key for copay assistance program.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Foreign key to the parent savings program.",
+                            "name":  "savings_program_id",
+                            "nullable":  true,
+                            "position":  1,
+                            "type_json":  "{\"name\":\"savings_program_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Foreign key to the parent savings program.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "ADD column program.copay_assistance_program.manufacturer_id (BIGINT) as FK to drug.manufacturer.manufacturer_id. ADD column program.copay_assistance_program.manufacturer_id (BIGINT) FK to drug.manufacturer.manufacturer_id.",
+                            "name":  "manufacturer_id",
+                            "nullable":  true,
+                            "position":  2,
+                            "type_json":  "{\"name\":\"manufacturer_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"ADD column program.copay_assistance_program.manufacturer_id (BIGINT) as FK to drug.manufacturer.manufacturer_id. ADD column program.copay_assistance_program.manufacturer_id (BIGINT) FK to drug.manufacturer.manufacturer_id.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "",
+                            "name":  "ndc_id",
+                            "nullable":  true,
+                            "position":  3,
+                            "type_json":  "{\"name\":\"ndc_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Pharmacy channel restriction for the program.",
+                            "name":  "channel_restriction",
+                            "nullable":  true,
+                            "position":  4,
+                            "type_json":  "{\"name\":\"channel_restriction\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Pharmacy channel restriction for the program.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was created.",
+                            "name":  "created_timestamp",
+                            "nullable":  true,
+                            "position":  5,
+                            "type_json":  "{\"name\":\"created_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was created.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        },
+                        {
+                            "comment":  "URL where members can enroll in the program.",
+                            "name":  "enrollment_url",
+                            "nullable":  true,
+                            "position":  6,
+                            "type_json":  "{\"name\":\"enrollment_url\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"URL where members can enroll in the program.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "14-digit Generic Product Identifier for the targeted drug.",
+                            "name":  "gpi14",
+                            "nullable":  true,
+                            "position":  7,
+                            "type_json":  "{\"name\":\"gpi14\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"14-digit Generic Product Identifier for the targeted drug.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Target member copay after assistance is applied.",
+                            "name":  "member_target_copay",
+                            "nullable":  true,
+                            "position":  8,
+                            "type_json":  "{\"name\":\"member_target_copay\",\"type\":\"decimal(10,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Target member copay after assistance is applied.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(10,2)"
+                        },
+                        {
+                            "comment":  "Date the program expires.",
+                            "name":  "program_expiration_date",
+                            "nullable":  true,
+                            "position":  9,
+                            "type_json":  "{\"name\":\"program_expiration_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the program expires.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Maximum annual benefit the program will pay.",
+                            "name":  "program_max_annual_benefit",
+                            "nullable":  true,
+                            "position":  10,
+                            "type_json":  "{\"name\":\"program_max_annual_benefit\",\"type\":\"decimal(10,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Maximum annual benefit the program will pay.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(10,2)"
+                        },
+                        {
+                            "comment":  "Maximum benefit the program will pay per fill.",
+                            "name":  "program_max_per_fill",
+                            "nullable":  true,
+                            "position":  11,
+                            "type_json":  "{\"name\":\"program_max_per_fill\",\"type\":\"decimal(10,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Maximum benefit the program will pay per fill.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(10,2)"
+                        },
+                        {
+                            "comment":  "Date the program becomes effective.",
+                            "name":  "program_start_date",
+                            "nullable":  true,
+                            "position":  12,
+                            "type_json":  "{\"name\":\"program_start_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the program becomes effective.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Indicates whether member enrollment is required.",
+                            "name":  "requires_enrollment",
+                            "nullable":  true,
+                            "position":  13,
+                            "type_json":  "{\"name\":\"requires_enrollment\",\"type\":\"boolean\",\"nullable\":true,\"metadata\":{\"comment\":\"Indicates whether member enrollment is required.\"}}",
+                            "type_name":  "BOOLEAN",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "boolean"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was last updated.",
+                            "name":  "updated_timestamp",
+                            "nullable":  true,
+                            "position":  14,
+                            "type_json":  "{\"name\":\"updated_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was last updated.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        }
+                    ]
+    },
+    {
+        "comment":  "Registry of 340B covered entities such as DSH hospitals, FQHCs, and Ryan White clinics with HRSA identifiers.",
+        "name":  "covered_entity_340b",
+        "columns":  [
+                        {
+                            "comment":  "Surrogate primary key for covered entity 340b.",
+                            "name":  "covered_entity_340b_id",
+                            "nullable":  false,
+                            "position":  0,
+                            "type_json":  "{\"name\":\"covered_entity_340b_id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{\"comment\":\"Surrogate primary key for covered entity 340b.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Foreign key to the parent savings program.",
+                            "name":  "savings_program_id",
+                            "nullable":  true,
+                            "position":  1,
+                            "type_json":  "{\"name\":\"savings_program_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Foreign key to the parent savings program.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "",
+                            "name":  "employer_id",
+                            "nullable":  true,
+                            "position":  2,
+                            "type_json":  "{\"name\":\"employer_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was created.",
+                            "name":  "created_timestamp",
+                            "nullable":  true,
+                            "position":  3,
+                            "type_json":  "{\"name\":\"created_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was created.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        },
+                        {
+                            "comment":  "City of the covered entitys address.",
+                            "name":  "entity_address_city",
+                            "nullable":  true,
+                            "position":  4,
+                            "type_json":  "{\"name\":\"entity_address_city\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"City of the covered entitys address.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "State of the covered entitys address.",
+                            "name":  "entity_address_state",
+                            "nullable":  true,
+                            "position":  5,
+                            "type_json":  "{\"name\":\"entity_address_state\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"State of the covered entitys address.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Name of the 340B covered entity.",
+                            "name":  "entity_name",
+                            "nullable":  true,
+                            "position":  6,
+                            "type_json":  "{\"name\":\"entity_name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Name of the 340B covered entity.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "National Provider Identifier of the covered entity.",
+                            "name":  "entity_npi",
+                            "nullable":  true,
+                            "position":  7,
+                            "type_json":  "{\"name\":\"entity_npi\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"National Provider Identifier of the covered entity.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Current 340B participation status of the entity.",
+                            "name":  "entity_status",
+                            "nullable":  true,
+                            "position":  8,
+                            "type_json":  "{\"name\":\"entity_status\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Current 340B participation status of the entity.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Type of 340B covered entity.",
+                            "name":  "entity_type",
+                            "nullable":  true,
+                            "position":  9,
+                            "type_json":  "{\"name\":\"entity_type\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Type of 340B covered entity.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "HRSA-assigned 340B identifier for the entity.",
+                            "name":  "hrsa_identifier",
+                            "nullable":  true,
+                            "position":  10,
+                            "type_json":  "{\"name\":\"hrsa_identifier\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"HRSA-assigned 340B identifier for the entity.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Date the entity registered for the 340B program.",
+                            "name":  "registration_date",
+                            "nullable":  true,
+                            "position":  11,
+                            "type_json":  "{\"name\":\"registration_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the entity registered for the 340B program.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Date the entitys 340B participation terminated.",
+                            "name":  "termination_date",
+                            "nullable":  true,
+                            "position":  12,
+                            "type_json":  "{\"name\":\"termination_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the entitys 340B participation terminated.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was last updated.",
+                            "name":  "updated_timestamp",
+                            "nullable":  true,
+                            "position":  13,
+                            "type_json":  "{\"name\":\"updated_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was last updated.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        }
+                    ]
+    },
+    {
+        "comment":  "Government-mandated cost-sharing rules for Medicare Part D, Medicaid, VA, TRICARE, and IHP market segments used to model member out-of-pocket liability and plan financial exposure.",
+        "name":  "government_benefit_rule",
+        "columns":  [
+                        {
+                            "comment":  "Surrogate primary key for government benefit rule.",
+                            "name":  "government_benefit_rule_id",
+                            "nullable":  false,
+                            "position":  0,
+                            "type_json":  "{\"name\":\"government_benefit_rule_id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{\"comment\":\"Surrogate primary key for government benefit rule.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Foreign key to the parent savings program.",
+                            "name":  "savings_program_id",
+                            "nullable":  true,
+                            "position":  1,
+                            "type_json":  "{\"name\":\"savings_program_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Foreign key to the parent savings program.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Annual out-of-pocket cap mandated by the rule.",
+                            "name":  "annual_oop_cap",
+                            "nullable":  true,
+                            "position":  2,
+                            "type_json":  "{\"name\":\"annual_oop_cap\",\"type\":\"decimal(10,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Annual out-of-pocket cap mandated by the rule.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(10,2)"
+                        },
+                        {
+                            "comment":  "Benefit phase the rule governs.",
+                            "name":  "benefit_phase",
+                            "nullable":  true,
+                            "position":  3,
+                            "type_json":  "{\"name\":\"benefit_phase\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Benefit phase the rule governs.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was created.",
+                            "name":  "created_timestamp",
+                            "nullable":  true,
+                            "position":  4,
+                            "type_json":  "{\"name\":\"created_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was created.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        },
+                        {
+                            "comment":  "Legislative source authorizing the rule.",
+                            "name":  "legislative_source",
+                            "nullable":  true,
+                            "position":  5,
+                            "type_json":  "{\"name\":\"legislative_source\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Legislative source authorizing the rule.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Mandated manufacturer discount percentage.",
+                            "name":  "manufacturer_discount_pct",
+                            "nullable":  true,
+                            "position":  6,
+                            "type_json":  "{\"name\":\"manufacturer_discount_pct\",\"type\":\"decimal(5,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Mandated manufacturer discount percentage.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(5,2)"
+                        },
+                        {
+                            "comment":  "Government market segment the rule applies to.",
+                            "name":  "market_segment",
+                            "nullable":  true,
+                            "position":  7,
+                            "type_json":  "{\"name\":\"market_segment\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Government market segment the rule applies to.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Member coinsurance percentage in the benefit phase.",
+                            "name":  "member_coinsurance_pct",
+                            "nullable":  true,
+                            "position":  8,
+                            "type_json":  "{\"name\":\"member_coinsurance_pct\",\"type\":\"decimal(5,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Member coinsurance percentage in the benefit phase.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(5,2)"
+                        },
+                        {
+                            "comment":  "Monthly cost cap mandated by the rule.",
+                            "name":  "monthly_cost_cap",
+                            "nullable":  true,
+                            "position":  9,
+                            "type_json":  "{\"name\":\"monthly_cost_cap\",\"type\":\"decimal(10,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Monthly cost cap mandated by the rule.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(10,2)"
+                        },
+                        {
+                            "comment":  "Plan liability percentage in the benefit phase.",
+                            "name":  "plan_liability_pct",
+                            "nullable":  true,
+                            "position":  10,
+                            "type_json":  "{\"name\":\"plan_liability_pct\",\"type\":\"decimal(5,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Plan liability percentage in the benefit phase.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(5,2)"
+                        },
+                        {
+                            "comment":  "Date the rule becomes effective.",
+                            "name":  "rule_effective_date",
+                            "nullable":  true,
+                            "position":  11,
+                            "type_json":  "{\"name\":\"rule_effective_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the rule becomes effective.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Date the rule expires.",
+                            "name":  "rule_expiration_date",
+                            "nullable":  true,
+                            "position":  12,
+                            "type_json":  "{\"name\":\"rule_expiration_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the rule expires.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Name of the government benefit rule.",
+                            "name":  "rule_name",
+                            "nullable":  true,
+                            "position":  13,
+                            "type_json":  "{\"name\":\"rule_name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Name of the government benefit rule.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was last updated.",
+                            "name":  "updated_timestamp",
+                            "nullable":  true,
+                            "position":  14,
+                            "type_json":  "{\"name\":\"updated_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was last updated.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        }
+                    ]
+    },
+    {
+        "comment":  "Per-member per-benefit-year tracking of manufacturer assistance credited to or excluded from member accumulators.",
+        "name":  "member_accumulator_impact",
+        "columns":  [
+                        {
+                            "comment":  "Surrogate primary key for member accumulator impact.",
+                            "name":  "member_accumulator_impact_id",
+                            "nullable":  false,
+                            "position":  0,
+                            "type_json":  "{\"name\":\"member_accumulator_impact_id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{\"comment\":\"Surrogate primary key for member accumulator impact.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Foreign key to the parent accumulator program.",
+                            "name":  "accumulator_program_id",
+                            "nullable":  true,
+                            "position":  1,
+                            "type_json":  "{\"name\":\"accumulator_program_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Foreign key to the parent accumulator program.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "ADD column program.member_accumulator_impact.member_id (BIGINT) as FK to company.member.member_id. ADD column program.member_accumulator_impact.member_id (BIGINT) FK to company.member.member_id.",
+                            "name":  "member_id",
+                            "nullable":  true,
+                            "position":  2,
+                            "type_json":  "{\"name\":\"member_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"ADD column program.member_accumulator_impact.member_id (BIGINT) as FK to company.member.member_id. ADD column program.member_accumulator_impact.member_id (BIGINT) FK to company.member.member_id.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Assistance amount credited to the member deductible.",
+                            "name":  "assistance_credited_to_deductible",
+                            "nullable":  true,
+                            "position":  3,
+                            "type_json":  "{\"name\":\"assistance_credited_to_deductible\",\"type\":\"decimal(10,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Assistance amount credited to the member deductible.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(10,2)"
+                        },
+                        {
+                            "comment":  "Assistance amount credited to member out-of-pocket.",
+                            "name":  "assistance_credited_to_oop",
+                            "nullable":  true,
+                            "position":  4,
+                            "type_json":  "{\"name\":\"assistance_credited_to_oop\",\"type\":\"decimal(10,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Assistance amount credited to member out-of-pocket.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(10,2)"
+                        },
+                        {
+                            "comment":  "Assistance amount excluded from member accumulators.",
+                            "name":  "assistance_excluded_from_accumulators",
+                            "nullable":  true,
+                            "position":  5,
+                            "type_json":  "{\"name\":\"assistance_excluded_from_accumulators\",\"type\":\"decimal(10,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Assistance amount excluded from member accumulators.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(10,2)"
+                        },
+                        {
+                            "comment":  "Benefit year for the accumulator impact record.",
+                            "name":  "benefit_year",
+                            "nullable":  true,
+                            "position":  6,
+                            "type_json":  "{\"name\":\"benefit_year\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Benefit year for the accumulator impact record.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Copay amount the member faces at the copay cliff.",
+                            "name":  "copay_cliff_amount",
+                            "nullable":  true,
+                            "position":  7,
+                            "type_json":  "{\"name\":\"copay_cliff_amount\",\"type\":\"decimal(10,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Copay amount the member faces at the copay cliff.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(10,2)"
+                        },
+                        {
+                            "comment":  "Date the member hits the copay cliff when assistance is exhausted.",
+                            "name":  "copay_cliff_date",
+                            "nullable":  true,
+                            "position":  8,
+                            "type_json":  "{\"name\":\"copay_cliff_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the member hits the copay cliff when assistance is exhausted.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was created.",
+                            "name":  "created_timestamp",
+                            "nullable":  true,
+                            "position":  9,
+                            "type_json":  "{\"name\":\"created_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was created.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        },
+                        {
+                            "comment":  "Members true out-of-pocket spend after accumulator treatment.",
+                            "name":  "member_true_oop_spend",
+                            "nullable":  true,
+                            "position":  10,
+                            "type_json":  "{\"name\":\"member_true_oop_spend\",\"type\":\"decimal(10,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Members true out-of-pocket spend after accumulator treatment.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(10,2)"
+                        },
+                        {
+                            "comment":  "Total manufacturer assistance received in the benefit year.",
+                            "name":  "total_manufacturer_assistance_received",
+                            "nullable":  true,
+                            "position":  11,
+                            "type_json":  "{\"name\":\"total_manufacturer_assistance_received\",\"type\":\"decimal(10,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Total manufacturer assistance received in the benefit year.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(10,2)"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was last updated.",
+                            "name":  "updated_timestamp",
+                            "nullable":  true,
+                            "position":  12,
+                            "type_json":  "{\"name\":\"updated_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was last updated.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        }
+                    ]
+    },
+    {
+        "comment":  "Member enrollment records in copay assistance programs with year-to-date manufacturer paid amounts and remaining benefit.",
+        "name":  "member_copay_enrollment",
+        "columns":  [
+                        {
+                            "comment":  "Surrogate primary key for member copay enrollment.",
+                            "name":  "member_copay_enrollment_id",
+                            "nullable":  false,
+                            "position":  0,
+                            "type_json":  "{\"name\":\"member_copay_enrollment_id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{\"comment\":\"Surrogate primary key for member copay enrollment.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Foreign key to the parent copay assistance program.",
+                            "name":  "copay_assistance_program_id",
+                            "nullable":  true,
+                            "position":  1,
+                            "type_json":  "{\"name\":\"copay_assistance_program_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Foreign key to the parent copay assistance program.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "ADD column program.member_copay_enrollment.member_id (BIGINT) as FK to company.member.member_id. ADD column program.member_copay_enrollment.member_id (BIGINT) FK to company.member.member_id.",
+                            "name":  "member_id",
+                            "nullable":  true,
+                            "position":  2,
+                            "type_json":  "{\"name\":\"member_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"ADD column program.member_copay_enrollment.member_id (BIGINT) as FK to company.member.member_id. ADD column program.member_copay_enrollment.member_id (BIGINT) FK to company.member.member_id.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was created.",
+                            "name":  "created_timestamp",
+                            "nullable":  true,
+                            "position":  3,
+                            "type_json":  "{\"name\":\"created_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was created.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        },
+                        {
+                            "comment":  "Date the member disenrolled from the program.",
+                            "name":  "disenrollment_date",
+                            "nullable":  true,
+                            "position":  4,
+                            "type_json":  "{\"name\":\"disenrollment_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the member disenrolled from the program.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Date the member enrolled in the program.",
+                            "name":  "enrollment_date",
+                            "nullable":  true,
+                            "position":  5,
+                            "type_json":  "{\"name\":\"enrollment_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the member enrolled in the program.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Current enrollment status of the member.",
+                            "name":  "enrollment_status",
+                            "nullable":  true,
+                            "position":  6,
+                            "type_json":  "{\"name\":\"enrollment_status\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Current enrollment status of the member.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Remaining annual benefit available to the member.",
+                            "name":  "remaining_annual_benefit",
+                            "nullable":  true,
+                            "position":  7,
+                            "type_json":  "{\"name\":\"remaining_annual_benefit\",\"type\":\"decimal(10,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Remaining annual benefit available to the member.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(10,2)"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was last updated.",
+                            "name":  "updated_timestamp",
+                            "nullable":  true,
+                            "position":  8,
+                            "type_json":  "{\"name\":\"updated_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was last updated.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        },
+                        {
+                            "comment":  "Year-to-date count of fills assisted by the program.",
+                            "name":  "ytd_fills_assisted",
+                            "nullable":  true,
+                            "position":  9,
+                            "type_json":  "{\"name\":\"ytd_fills_assisted\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Year-to-date count of fills assisted by the program.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Year-to-date amount paid by the manufacturer on the members behalf.",
+                            "name":  "ytd_manufacturer_paid",
+                            "nullable":  true,
+                            "position":  10,
+                            "type_json":  "{\"name\":\"ytd_manufacturer_paid\",\"type\":\"decimal(10,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Year-to-date amount paid by the manufacturer on the members behalf.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(10,2)"
+                        }
+                    ]
+    },
+    {
+        "comment":  "Manufacturer free-drug and bridge-supply programs with income thresholds and insurance status requirements.",
+        "name":  "patient_assistance_program",
+        "columns":  [
+                        {
+                            "comment":  "Surrogate primary key for patient assistance program.",
+                            "name":  "patient_assistance_program_id",
+                            "nullable":  false,
+                            "position":  0,
+                            "type_json":  "{\"name\":\"patient_assistance_program_id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{\"comment\":\"Surrogate primary key for patient assistance program.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Foreign key to the parent savings program.",
+                            "name":  "savings_program_id",
+                            "nullable":  true,
+                            "position":  1,
+                            "type_json":  "{\"name\":\"savings_program_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Foreign key to the parent savings program.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "ADD column program.patient_assistance_program.manufacturer_id (BIGINT) as FK to drug.manufacturer.manufacturer_id. ADD column program.patient_assistance_program.manufacturer_id (BIGINT) FK to drug.manufacturer.manufacturer_id.",
+                            "name":  "manufacturer_id",
+                            "nullable":  true,
+                            "position":  2,
+                            "type_json":  "{\"name\":\"manufacturer_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"ADD column program.patient_assistance_program.manufacturer_id (BIGINT) as FK to drug.manufacturer.manufacturer_id. ADD column program.patient_assistance_program.manufacturer_id (BIGINT) FK to drug.manufacturer.manufacturer_id.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "",
+                            "name":  "ndc_id",
+                            "nullable":  true,
+                            "position":  3,
+                            "type_json":  "{\"name\":\"ndc_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Indicates whether a formal application is required.",
+                            "name":  "application_required",
+                            "nullable":  true,
+                            "position":  4,
+                            "type_json":  "{\"name\":\"application_required\",\"type\":\"boolean\",\"nullable\":true,\"metadata\":{\"comment\":\"Indicates whether a formal application is required.\"}}",
+                            "type_name":  "BOOLEAN",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "boolean"
+                        },
+                        {
+                            "comment":  "Number of days of bridge drug supply the program provides.",
+                            "name":  "bridge_supply_days",
+                            "nullable":  true,
+                            "position":  5,
+                            "type_json":  "{\"name\":\"bridge_supply_days\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Number of days of bridge drug supply the program provides.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was created.",
+                            "name":  "created_timestamp",
+                            "nullable":  true,
+                            "position":  6,
+                            "type_json":  "{\"name\":\"created_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was created.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        },
+                        {
+                            "comment":  "14-digit Generic Product Identifier for the targeted drug.",
+                            "name":  "gpi14",
+                            "nullable":  true,
+                            "position":  7,
+                            "type_json":  "{\"name\":\"gpi14\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"14-digit Generic Product Identifier for the targeted drug.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Income eligibility threshold as a percentage of the Federal Poverty Level.",
+                            "name":  "income_threshold_fpl_pct",
+                            "nullable":  true,
+                            "position":  8,
+                            "type_json":  "{\"name\":\"income_threshold_fpl_pct\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Income eligibility threshold as a percentage of the Federal Poverty Level.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Insurance status required for eligibility.",
+                            "name":  "insurance_status_required",
+                            "nullable":  true,
+                            "position":  9,
+                            "type_json":  "{\"name\":\"insurance_status_required\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Insurance status required for eligibility.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Portion of cost the program covers.",
+                            "name":  "program_covers",
+                            "nullable":  true,
+                            "position":  10,
+                            "type_json":  "{\"name\":\"program_covers\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Portion of cost the program covers.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Date the program expires.",
+                            "name":  "program_expiration_date",
+                            "nullable":  true,
+                            "position":  11,
+                            "type_json":  "{\"name\":\"program_expiration_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the program expires.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Date the program becomes effective.",
+                            "name":  "program_start_date",
+                            "nullable":  true,
+                            "position":  12,
+                            "type_json":  "{\"name\":\"program_start_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the program becomes effective.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was last updated.",
+                            "name":  "updated_timestamp",
+                            "nullable":  true,
+                            "position":  13,
+                            "type_json":  "{\"name\":\"updated_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was last updated.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        }
+                    ]
+    },
+    {
+        "comment":  "Reference table classifying savings programs into business categories such as manufacturer rebate, patient assistance, and accumulator or maximizer arrangements.",
+        "name":  "program_type",
+        "columns":  [
+                        {
+                            "comment":  "Surrogate primary key for program type.",
+                            "name":  "program_type_id",
+                            "nullable":  false,
+                            "position":  0,
+                            "type_json":  "{\"name\":\"program_type_id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{\"comment\":\"Surrogate primary key for program type.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "",
+                            "name":  "savings_program_id",
+                            "nullable":  true,
+                            "position":  1,
+                            "type_json":  "{\"name\":\"savings_program_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was created.",
+                            "name":  "created_timestamp",
+                            "nullable":  true,
+                            "position":  2,
+                            "type_json":  "{\"name\":\"created_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was created.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        },
+                        {
+                            "comment":  "Ordinal used to sort program types for display.",
+                            "name":  "display_order",
+                            "nullable":  true,
+                            "position":  3,
+                            "type_json":  "{\"name\":\"display_order\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Ordinal used to sort program types for display.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Business category of the savings program.",
+                            "name":  "program_category",
+                            "nullable":  true,
+                            "position":  4,
+                            "type_json":  "{\"name\":\"program_category\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Business category of the savings program.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Narrative description of the program category.",
+                            "name":  "program_category_description",
+                            "nullable":  true,
+                            "position":  5,
+                            "type_json":  "{\"name\":\"program_category_description\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Narrative description of the program category.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Unique natural key code identifying the savings program type.",
+                            "name":  "program_type_code",
+                            "nullable":  true,
+                            "position":  6,
+                            "type_json":  "{\"name\":\"program_type_code\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Unique natural key code identifying the savings program type.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Human-readable name of the savings program type.",
+                            "name":  "program_type_name",
+                            "nullable":  true,
+                            "position":  7,
+                            "type_json":  "{\"name\":\"program_type_name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Human-readable name of the savings program type.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Indicates whether this program reduces member out-of-pocket cost.",
+                            "name":  "reduces_member_oop",
+                            "nullable":  true,
+                            "position":  8,
+                            "type_json":  "{\"name\":\"reduces_member_oop\",\"type\":\"boolean\",\"nullable\":true,\"metadata\":{\"comment\":\"Indicates whether this program reduces member out-of-pocket cost.\"}}",
+                            "type_name":  "BOOLEAN",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "boolean"
+                        },
+                        {
+                            "comment":  "Indicates whether this program reduces plan sponsor cost.",
+                            "name":  "reduces_plan_cost",
+                            "nullable":  true,
+                            "position":  9,
+                            "type_json":  "{\"name\":\"reduces_plan_cost\",\"type\":\"boolean\",\"nullable\":true,\"metadata\":{\"comment\":\"Indicates whether this program reduces plan sponsor cost.\"}}",
+                            "type_name":  "BOOLEAN",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "boolean"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was last updated.",
+                            "name":  "updated_timestamp",
+                            "nullable":  true,
+                            "position":  10,
+                            "type_json":  "{\"name\":\"updated_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was last updated.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        }
+                    ]
+    },
+    {
+        "comment":  "Rebate contract terms negotiated with manufacturers or aggregators, including guaranteed effective rates and pass-through percentages.",
+        "name":  "rebate_contract",
+        "columns":  [
+                        {
+                            "comment":  "Surrogate primary key for rebate contract.",
+                            "name":  "rebate_contract_id",
+                            "nullable":  false,
+                            "position":  0,
+                            "type_json":  "{\"name\":\"rebate_contract_id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{\"comment\":\"Surrogate primary key for rebate contract.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Foreign key to the parent savings program.",
+                            "name":  "savings_program_id",
+                            "nullable":  true,
+                            "position":  1,
+                            "type_json":  "{\"name\":\"savings_program_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Foreign key to the parent savings program.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "ADD column program.rebate_contract.division_id (BIGINT) as nullable FK to division.division.division_id (null means client-wide contract). ADD column program.rebate_contract.division_id (BIGINT) FK to division.division.division_id. Nullable",
+                            "name":  "division_id",
+                            "nullable":  true,
+                            "position":  2,
+                            "type_json":  "{\"name\":\"division_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"ADD column program.rebate_contract.division_id (BIGINT) as nullable FK to division.division.division_id (null means client-wide contract). ADD column program.rebate_contract.division_id (BIGINT) FK to division.division.division_id. Nullable\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "ADD column program.rebate_contract.client_id (BIGINT) as FK to client.employer.employer_id. ADD column program.rebate_contract.client_id (BIGINT) FK to client.employer.employer_id.",
+                            "name":  "client_id",
+                            "nullable":  true,
+                            "position":  3,
+                            "type_json":  "{\"name\":\"client_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"ADD column program.rebate_contract.client_id (BIGINT) as FK to client.employer.employer_id. ADD column program.rebate_contract.client_id (BIGINT) FK to client.employer.employer_id.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "ADD column program.rebate_contract.pbm_assignment_id (BIGINT) as FK to client.pbm_assignment.pbm_assignment_id. ADD column program.rebate_contract.pbm_assignment_id (BIGINT) FK to client.pbm_assignment.pbm_assignment_id.",
+                            "name":  "pbm_assignment_id",
+                            "nullable":  true,
+                            "position":  4,
+                            "type_json":  "{\"name\":\"pbm_assignment_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"ADD column program.rebate_contract.pbm_assignment_id (BIGINT) as FK to client.pbm_assignment.pbm_assignment_id. ADD column program.rebate_contract.pbm_assignment_id (BIGINT) FK to client.pbm_assignment.pbm_assignment_id.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "ADD column program.rebate_contract.manufacturer_id (BIGINT) as nullable FK to drug.manufacturer.manufacturer_id (nullable for aggregator contracts). ADD column program.rebate_contract.manufacturer_id (BIGINT) FK to drug.manufacturer.manufac",
+                            "name":  "manufacturer_id",
+                            "nullable":  true,
+                            "position":  5,
+                            "type_json":  "{\"name\":\"manufacturer_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"ADD column program.rebate_contract.manufacturer_id (BIGINT) as nullable FK to drug.manufacturer.manufacturer_id (nullable for aggregator contracts). ADD column program.rebate_contract.manufacturer_id (BIGINT) FK to drug.manufacturer.manufac\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Date the rebate contract ends.",
+                            "name":  "contract_end_date",
+                            "nullable":  true,
+                            "position":  6,
+                            "type_json":  "{\"name\":\"contract_end_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the rebate contract ends.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Date the rebate contract begins.",
+                            "name":  "contract_start_date",
+                            "nullable":  true,
+                            "position":  7,
+                            "type_json":  "{\"name\":\"contract_start_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the rebate contract begins.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Current status of the contract.",
+                            "name":  "contract_status",
+                            "nullable":  true,
+                            "position":  8,
+                            "type_json":  "{\"name\":\"contract_status\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Current status of the contract.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Type of rebate contract arrangement.",
+                            "name":  "contract_type",
+                            "nullable":  true,
+                            "position":  9,
+                            "type_json":  "{\"name\":\"contract_type\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Type of rebate contract arrangement.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was created.",
+                            "name":  "created_timestamp",
+                            "nullable":  true,
+                            "position":  10,
+                            "type_json":  "{\"name\":\"created_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was created.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        },
+                        {
+                            "comment":  "End date of the records effective period for Type-2 history.",
+                            "name":  "effective_end_date",
+                            "nullable":  true,
+                            "position":  11,
+                            "type_json":  "{\"name\":\"effective_end_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"End date of the records effective period for Type-2 history.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Start date of the records effective period for Type-2 history.",
+                            "name":  "effective_start_date",
+                            "nullable":  true,
+                            "position":  12,
+                            "type_json":  "{\"name\":\"effective_start_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Start date of the records effective period for Type-2 history.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Guaranteed brand effective rebate rate.",
+                            "name":  "guaranteed_brand_effective_rate",
+                            "nullable":  true,
+                            "position":  13,
+                            "type_json":  "{\"name\":\"guaranteed_brand_effective_rate\",\"type\":\"decimal(8,4)\",\"nullable\":true,\"metadata\":{\"comment\":\"Guaranteed brand effective rebate rate.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(8,4)"
+                        },
+                        {
+                            "comment":  "Guaranteed generic effective rebate rate.",
+                            "name":  "guaranteed_generic_effective_rate",
+                            "nullable":  true,
+                            "position":  14,
+                            "type_json":  "{\"name\":\"guaranteed_generic_effective_rate\",\"type\":\"decimal(8,4)\",\"nullable\":true,\"metadata\":{\"comment\":\"Guaranteed generic effective rebate rate.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(8,4)"
+                        },
+                        {
+                            "comment":  "Indicates whether this is the current version of the record.",
+                            "name":  "is_current",
+                            "nullable":  true,
+                            "position":  15,
+                            "type_json":  "{\"name\":\"is_current\",\"type\":\"boolean\",\"nullable\":true,\"metadata\":{\"comment\":\"Indicates whether this is the current version of the record.\"}}",
+                            "type_name":  "BOOLEAN",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "boolean"
+                        },
+                        {
+                            "comment":  "Percentage of rebate value passed through to the plan sponsor.",
+                            "name":  "pass_through_pct",
+                            "nullable":  true,
+                            "position":  16,
+                            "type_json":  "{\"name\":\"pass_through_pct\",\"type\":\"decimal(5,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Percentage of rebate value passed through to the plan sponsor.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(5,2)"
+                        },
+                        {
+                            "comment":  "Name of the rebate aggregator managing the contract.",
+                            "name":  "rebate_aggregator_name",
+                            "nullable":  true,
+                            "position":  17,
+                            "type_json":  "{\"name\":\"rebate_aggregator_name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Name of the rebate aggregator managing the contract.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was last updated.",
+                            "name":  "updated_timestamp",
+                            "nullable":  true,
+                            "position":  18,
+                            "type_json":  "{\"name\":\"updated_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was last updated.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        }
+                    ]
+    },
+    {
+        "comment":  "Actual rebate payments received per contract per period, with gross, admin fee, and net amounts and reconciliation status.",
+        "name":  "rebate_payment",
+        "columns":  [
+                        {
+                            "comment":  "Surrogate primary key for rebate payment.",
+                            "name":  "rebate_payment_id",
+                            "nullable":  false,
+                            "position":  0,
+                            "type_json":  "{\"name\":\"rebate_payment_id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{\"comment\":\"Surrogate primary key for rebate payment.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Foreign key to the parent rebate contract.",
+                            "name":  "rebate_contract_id",
+                            "nullable":  true,
+                            "position":  1,
+                            "type_json":  "{\"name\":\"rebate_contract_id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Foreign key to the parent rebate contract.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Actual realized brand effective rebate rate.",
+                            "name":  "actual_brand_effective_rate",
+                            "nullable":  true,
+                            "position":  2,
+                            "type_json":  "{\"name\":\"actual_brand_effective_rate\",\"type\":\"decimal(8,4)\",\"nullable\":true,\"metadata\":{\"comment\":\"Actual realized brand effective rebate rate.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(8,4)"
+                        },
+                        {
+                            "comment":  "Actual realized generic effective rebate rate.",
+                            "name":  "actual_generic_effective_rate",
+                            "nullable":  true,
+                            "position":  3,
+                            "type_json":  "{\"name\":\"actual_generic_effective_rate\",\"type\":\"decimal(8,4)\",\"nullable\":true,\"metadata\":{\"comment\":\"Actual realized generic effective rebate rate.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(8,4)"
+                        },
+                        {
+                            "comment":  "Administrative fee deducted from the gross rebate.",
+                            "name":  "admin_fee_amount",
+                            "nullable":  true,
+                            "position":  4,
+                            "type_json":  "{\"name\":\"admin_fee_amount\",\"type\":\"decimal(14,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Administrative fee deducted from the gross rebate.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(14,2)"
+                        },
+                        {
+                            "comment":  "Portion of the rebate attributable to brand drugs.",
+                            "name":  "brand_rebate_amount",
+                            "nullable":  true,
+                            "position":  5,
+                            "type_json":  "{\"name\":\"brand_rebate_amount\",\"type\":\"decimal(14,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Portion of the rebate attributable to brand drugs.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(14,2)"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was created.",
+                            "name":  "created_timestamp",
+                            "nullable":  true,
+                            "position":  6,
+                            "type_json":  "{\"name\":\"created_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was created.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        },
+                        {
+                            "comment":  "Count of claims eligible for the rebate payment.",
+                            "name":  "eligible_claim_count",
+                            "nullable":  true,
+                            "position":  7,
+                            "type_json":  "{\"name\":\"eligible_claim_count\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"comment\":\"Count of claims eligible for the rebate payment.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Portion of the rebate attributable to generic drugs.",
+                            "name":  "generic_rebate_amount",
+                            "nullable":  true,
+                            "position":  8,
+                            "type_json":  "{\"name\":\"generic_rebate_amount\",\"type\":\"decimal(14,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Portion of the rebate attributable to generic drugs.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(14,2)"
+                        },
+                        {
+                            "comment":  "Gross rebate amount before admin fees.",
+                            "name":  "gross_rebate_amount",
+                            "nullable":  true,
+                            "position":  9,
+                            "type_json":  "{\"name\":\"gross_rebate_amount\",\"type\":\"decimal(14,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Gross rebate amount before admin fees.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(14,2)"
+                        },
+                        {
+                            "comment":  "Net rebate amount after admin fees.",
+                            "name":  "net_rebate_amount",
+                            "nullable":  true,
+                            "position":  10,
+                            "type_json":  "{\"name\":\"net_rebate_amount\",\"type\":\"decimal(14,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Net rebate amount after admin fees.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(14,2)"
+                        },
+                        {
+                            "comment":  "End date of the rebate payment period.",
+                            "name":  "payment_period_end",
+                            "nullable":  true,
+                            "position":  11,
+                            "type_json":  "{\"name\":\"payment_period_end\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"End date of the rebate payment period.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Start date of the rebate payment period.",
+                            "name":  "payment_period_start",
+                            "nullable":  true,
+                            "position":  12,
+                            "type_json":  "{\"name\":\"payment_period_start\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Start date of the rebate payment period.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Date the rebate payment was received.",
+                            "name":  "payment_received_date",
+                            "nullable":  true,
+                            "position":  13,
+                            "type_json":  "{\"name\":\"payment_received_date\",\"type\":\"date\",\"nullable\":true,\"metadata\":{\"comment\":\"Date the rebate payment was received.\"}}",
+                            "type_name":  "DATE",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "date"
+                        },
+                        {
+                            "comment":  "Rebate amount allocated per eligible claim.",
+                            "name":  "rebate_per_claim",
+                            "nullable":  true,
+                            "position":  14,
+                            "type_json":  "{\"name\":\"rebate_per_claim\",\"type\":\"decimal(10,4)\",\"nullable\":true,\"metadata\":{\"comment\":\"Rebate amount allocated per eligible claim.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(10,4)"
+                        },
+                        {
+                            "comment":  "Reconciliation status of the rebate payment.",
+                            "name":  "reconciliation_status",
+                            "nullable":  true,
+                            "position":  15,
+                            "type_json":  "{\"name\":\"reconciliation_status\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Reconciliation status of the rebate payment.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Portion of the rebate attributable to specialty drugs.",
+                            "name":  "specialty_rebate_amount",
+                            "nullable":  true,
+                            "position":  16,
+                            "type_json":  "{\"name\":\"specialty_rebate_amount\",\"type\":\"decimal(14,2)\",\"nullable\":true,\"metadata\":{\"comment\":\"Portion of the rebate attributable to specialty drugs.\"}}",
+                            "type_name":  "DECIMAL",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "decimal(14,2)"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was last updated.",
+                            "name":  "updated_timestamp",
+                            "nullable":  true,
+                            "position":  17,
+                            "type_json":  "{\"name\":\"updated_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was last updated.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        }
+                    ]
+    },
+    {
+        "comment":  "Master registry of all cost-saving and cost-sharing programs that reduce drug costs for members, plan sponsors, or both.",
+        "name":  "savings_program",
+        "columns":  [
+                        {
+                            "comment":  "Surrogate primary key for savings program.",
+                            "name":  "savings_program_id",
+                            "nullable":  false,
+                            "position":  0,
+                            "type_json":  "{\"name\":\"savings_program_id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{\"comment\":\"Surrogate primary key for savings program.\"}}",
+                            "type_name":  "LONG",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "bigint"
+                        },
+                        {
+                            "comment":  "Indicates whether the program is restricted under anti-kickback rules.",
+                            "name":  "anti_kickback_restricted",
+                            "nullable":  true,
+                            "position":  1,
+                            "type_json":  "{\"name\":\"anti_kickback_restricted\",\"type\":\"boolean\",\"nullable\":true,\"metadata\":{\"comment\":\"Indicates whether the program is restricted under anti-kickback rules.\"}}",
+                            "type_name":  "BOOLEAN",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "boolean"
+                        },
+                        {
+                            "comment":  "Market segment the program applies to.",
+                            "name":  "applicable_market_segment",
+                            "nullable":  true,
+                            "position":  2,
+                            "type_json":  "{\"name\":\"applicable_market_segment\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Market segment the program applies to.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was created.",
+                            "name":  "created_timestamp",
+                            "nullable":  true,
+                            "position":  3,
+                            "type_json":  "{\"name\":\"created_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was created.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        },
+                        {
+                            "comment":  "Identifier for the program in an external source system.",
+                            "name":  "external_program_code",
+                            "nullable":  true,
+                            "position":  4,
+                            "type_json":  "{\"name\":\"external_program_code\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Identifier for the program in an external source system.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Narrative description of the program.",
+                            "name":  "program_description",
+                            "nullable":  true,
+                            "position":  5,
+                            "type_json":  "{\"name\":\"program_description\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Narrative description of the program.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Name of the savings program.",
+                            "name":  "program_name",
+                            "nullable":  true,
+                            "position":  6,
+                            "type_json":  "{\"name\":\"program_name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Name of the savings program.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Current lifecycle status of the program.",
+                            "name":  "program_status",
+                            "nullable":  true,
+                            "position":  7,
+                            "type_json":  "{\"name\":\"program_status\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Current lifecycle status of the program.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Finer-grained subtype classification of the program.",
+                            "name":  "program_subtype",
+                            "nullable":  true,
+                            "position":  8,
+                            "type_json":  "{\"name\":\"program_subtype\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Finer-grained subtype classification of the program.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Name of the sponsoring entity.",
+                            "name":  "sponsor_name",
+                            "nullable":  true,
+                            "position":  9,
+                            "type_json":  "{\"name\":\"sponsor_name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Name of the sponsoring entity.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Type of entity sponsoring the program.",
+                            "name":  "sponsor_type",
+                            "nullable":  true,
+                            "position":  10,
+                            "type_json":  "{\"name\":\"sponsor_type\",\"type\":\"string\",\"nullable\":true,\"metadata\":{\"comment\":\"Type of entity sponsoring the program.\"}}",
+                            "type_name":  "STRING",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "string"
+                        },
+                        {
+                            "comment":  "Timestamp when the record was last updated.",
+                            "name":  "updated_timestamp",
+                            "nullable":  true,
+                            "position":  11,
+                            "type_json":  "{\"name\":\"updated_timestamp\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{\"comment\":\"Timestamp when the record was last updated.\"}}",
+                            "type_name":  "TIMESTAMP",
+                            "type_precision":  0,
+                            "type_scale":  0,
+                            "type_text":  "timestamp"
+                        }
+                    ]
+    }
+]
