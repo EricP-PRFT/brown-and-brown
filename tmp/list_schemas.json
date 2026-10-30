@@ -1,0 +1,6 @@
+{
+  "warehouse_id": "000000000000000d",
+  "statement": "SHOW SCHEMAS IN pillarrx",
+  "wait_timeout": "30s",
+  "format": "JSON_ARRAY"
+}

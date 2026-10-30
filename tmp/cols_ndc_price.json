@@ -1,0 +1,6 @@
+{
+  "warehouse_id": "000000000000000d",
+  "statement": "DESCRIBE TABLE pillarrx.drug.ndc_price",
+  "wait_timeout": "30s",
+  "format": "JSON_ARRAY"
+}
