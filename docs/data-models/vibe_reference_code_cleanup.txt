@@ -1,0 +1,272 @@
+rx_claim NDC Code + drug.ndc Cleanup
+=====================================
+
+Goal
+----
+1. Add ndc_code STRING(13) to claim.rx_claim so claims can join to drug
+   reference and program tables by the natural NDC key
+2. Retain drug.ndc.ndc11_formatted STRING as-is (11-char, hyphenated display)
+3. Consolidate the 5 duplicate manufacturer FK columns on drug.ndc down to one
+4. Add FK from claim.claim_prescriber.npi to reference.nppes_provider.npi
+5. Change all ncpdp_id columns from LONG to STRING across all tables where
+   they appear -- NCPDP IDs are 7-digit string identifiers, not surrogates
+6. Change all npi columns from LONG to STRING across all tables where
+   they appear -- NPIs are 10-digit string identifiers, not surrogates
+7. Change taxonomy_code and taxonomy_assignment_code from LONG to STRING
+   across all tables where they appear -- these are NUCC alphanumeric codes
+8. Add unique constraint on reference.nppes_provider.npi so the agent can
+   wire natural-key FK references to it from other schemas
+
+Source of truth: pillarrx physical Databricks catalog
+Queried: 2026-11-02
+
+
+1. Add ndc_code to claim.rx_claim
+--------------------------------------------------
+
+claim.rx_claim currently has NO NDC column -- no string code, no surrogate FK.
+The central claims fact table cannot join to drug.ndc, reference.fdb_drug,
+reference.medispan_drug, or program tables by NDC.
+
+Add:
+
+  claim.rx_claim.ndc_code  STRING(13)
+    -- 11-digit FDA National Drug Code of the dispensed drug product.
+    -- STRING(13) accommodates feeds that include hyphens in 5-4-2 format
+    --   (e.g., "12345-6789-01" = 13 characters).
+    -- Enables direct natural-key joins to drug.ndc, reference.fdb_drug,
+    --   and all tables following the _ndc_code naming convention.
+    -- NOT NULL for paid/reversed claims; nullable for rejected claims
+    --   where the NDC may not be adjudicated.
+
+
+2. Retain drug.ndc.ndc11_formatted
+--------------------------------------------------
+
+drug.ndc.ndc11_formatted is a STRING column holding the hyphenated 5-4-2
+display format (e.g., "12345-6789-01"). This column is correct as-is.
+Do NOT rename, remove, or resize it.
+
+
+3. Consolidate duplicate manufacturer FKs on drug.ndc
+--------------------------------------------------
+
+drug.ndc currently has 5 LONG columns that ALL point to
+drug.manufacturer.manufacturer_id:
+
+  labeler_manufacturer_id    LONG  FK -> drug.manufacturer.manufacturer_id
+  manufacturer_id            LONG  FK -> drug.manufacturer.manufacturer_id
+  ndc_labeler_code_fk        LONG  FK -> drug.manufacturer.manufacturer_id
+  ndc_labeler_fk             LONG  FK -> drug.manufacturer.manufacturer_id
+  ndc_manufacturer_id        LONG  FK -> drug.manufacturer.manufacturer_id
+
+These are duplicates created across successive vibe iterations. Each NDC is
+produced by exactly one manufacturer (identified by the labeler code, the first
+5 digits of the NDC). There should be exactly ONE FK column.
+
+Action:
+  - KEEP:   manufacturer_id  (LONG, FK -> drug.manufacturer.manufacturer_id)
+  - REMOVE: labeler_manufacturer_id
+  - REMOVE: ndc_labeler_code_fk
+  - REMOVE: ndc_labeler_fk
+  - REMOVE: ndc_manufacturer_id
+
+manufacturer_id is the standard naming convention (matches the PK name on the
+target table). The other four are redundant and use inconsistent naming.
+
+
+4. Add FK: claim.claim_prescriber.npi -> reference.nppes_provider.npi
+--------------------------------------------------
+
+claim.claim_prescriber carries an npi STRING column identifying the prescribing
+provider. reference.nppes_provider carries an npi STRING column as its natural
+key (PK constraint: pk_nppes_provider). Both columns exist and can be joined by
+value, but there is no physical FK constraint declared in the catalog.
+
+reference.nppes_provider_taxonomy already has a physical FK to
+reference.nppes_provider via fk_reference_nppes_provider_taxonomy_npi, so the
+pattern is established within the reference schema. This extends it across
+schemas so claim prescribers are linked to the authoritative NPPES provider
+registry.
+
+Add:
+
+  ALTER TABLE pillarrx.claim.claim_prescriber
+    ADD CONSTRAINT fk_claim_claim_prescriber_npi
+    FOREIGN KEY (npi) REFERENCES pillarrx.reference.nppes_provider (npi);
+
+
+5. Change ncpdp_id / ncpdp_number from LONG to STRING
+--------------------------------------------------
+
+NCPDP Provider IDs are 7-digit string identifiers (e.g., "0123456") that can
+have leading zeros. Storing them as LONG drops leading zeros and prevents
+natural-key joins to the reference.ncpdp_pharmacy table. Every ncpdp_id and
+ncpdp_number column that is currently LONG must be changed to STRING.
+
+Current state (from pillarrx physical catalog, 2026-11-02):
+
+  Already STRING (no change needed):
+    drug.pharmacy.ncpdp_id                          STRING
+    reference.ncpdp_pharmacy.ncpdp_number            STRING
+
+  Must change from LONG to STRING:
+    claim.rx_claim.ncpdp_id                          LONG -> STRING
+    claim.dur_event.ncpdp_id                         LONG -> STRING
+    client.audit_finding.ncpdp_id                    LONG -> STRING
+    drug.pharmacy.ncpdp_number                       LONG -> STRING
+    drug.pharmacy_network.ncpdp_id                   LONG -> STRING
+    drug.pharmacy_network.pharmacy_ncpdp_id          LONG -> STRING
+    reference.ncpdp_pharmacy_service.ncpdp_number    LONG -> STRING
+
+Total: 7 columns changed from LONG to STRING across 6 tables in 4 schemas.
+
+
+6. Change npi columns from LONG to STRING
+--------------------------------------------------
+
+NPIs are 10-digit string identifiers (e.g., "1234567890") assigned by CMS.
+They include a Luhn check digit and always start with 1 or 2. Storing them as
+LONG drops leading characters and prevents natural-key joins to the
+reference.nppes_provider table.
+
+Current state (from pillarrx physical catalog, 2026-11-02):
+
+  Already STRING (no change needed):
+    claim.claim_pbm.npi                              STRING
+    claim.claim_prescriber.npi                       STRING
+    claim.medical_claim.billing_provider_npi          STRING
+    claim.medical_claim.rendering_provider_npi        STRING
+    claim.prior_auth.prescriber_npi                  STRING
+    company.company_pbm.npi                          STRING
+    division.prior_auth_request.prescriber_npi       STRING
+    drug.pharmacy.npi                                STRING
+    program.covered_entity_340b.entity_npi           STRING
+    reference.ncpdp_pharmacy.npi                     STRING
+    reference.nppes_provider.npi                     STRING
+
+  Must change from LONG to STRING:
+    drug.drug_prescriber.npi                         LONG -> STRING
+    reference.nppes_other_identifier.npi             LONG -> STRING
+    reference.nppes_provider_taxonomy.npi            LONG -> STRING
+
+Total: 3 columns changed from LONG to STRING across 3 tables in 2 schemas.
+
+Note: reference.nppes_provider_taxonomy already has a physical FK
+(fk_reference_nppes_provider_taxonomy_npi) to reference.nppes_provider.npi.
+That FK references a STRING PK, so the source column must also be STRING for
+the constraint to remain valid after type correction.
+
+
+7. Change taxonomy_code and taxonomy_assignment_code from LONG to STRING
+--------------------------------------------------
+
+NUCC taxonomy codes are 10-character alphanumeric identifiers (e.g.,
+"207RC0000X"). They contain letters and cannot be stored as LONG.
+The authoritative source (reference.nucc_taxonomy.taxonomy_code) is already
+STRING. Columns that join to it must also be STRING.
+
+Current state (from pillarrx physical catalog, 2026-11-02):
+
+  Already STRING (no change needed):
+    reference.nucc_taxonomy.taxonomy_code            STRING  (PK natural key)
+    reference.nucc_taxonomy.taxonomy_version         STRING
+    drug.drug_prescriber.taxonomy_description        STRING
+
+  Surrogate PKs -- leave as LONG (no change needed):
+    reference.nucc_taxonomy.nucc_taxonomy_id                LONG
+    reference.nppes_provider_taxonomy.nppes_provider_taxonomy_id  LONG
+    reference.nppes_provider_taxonomy.nppes_taxonomy_assignment_id  LONG
+
+  Must change from LONG to STRING:
+    drug.drug_prescriber.taxonomy_code                       LONG -> STRING
+    reference.nppes_provider_taxonomy.taxonomy_code          LONG -> STRING
+    reference.nppes_provider_taxonomy.nppes_taxonomy_assignment_code  LONG -> STRING
+
+Total: 3 columns changed from LONG to STRING across 2 tables in 2 schemas.
+
+
+8. Add unique constraint on reference.nppes_provider.npi
+--------------------------------------------------
+
+The vibe modeling agent can only wire FK constraints to a table's declared
+primary key. reference.nppes_provider's PK is the surrogate nppes_provider_id
+(LONG), not the natural key npi (STRING). This caused 4 VREQ rejections in the
+v31 dry run -- every VREQ that asked for a natural-key NPI join was rejected
+with: "the foreign key target reference.nppes_provider.npi is not the primary
+key of its table (nppes_provider_id)".
+
+Adding a unique constraint on npi allows the agent to wire FKs to it as an
+alternate key, unblocking natural-key NPI joins from claim.claim_prescriber,
+drug.drug_prescriber, and any future table that references a provider by NPI.
+
+Add:
+
+  ALTER TABLE pillarrx.reference.nppes_provider
+    ADD CONSTRAINT uq_nppes_provider_npi UNIQUE (npi);
+
+Note: this must be executed AFTER step 6 (npi LONG -> STRING) so that the
+constraint is declared on the correct STRING type. NPI is guaranteed unique
+per the NPPES registry -- each provider gets exactly one NPI.
+
+
+Execution notes
+--------------------------------------------------
+
+Step 1 -- Add ndc_code to rx_claim:
+
+  ALTER TABLE pillarrx.claim.rx_claim ADD COLUMN ndc_code STRING
+    COMMENT '11-digit FDA National Drug Code of the dispensed drug. STRING(13) for hyphenated 5-4-2 feeds.';
+
+Step 2 -- Drop duplicate manufacturer FK columns from drug.ndc:
+
+  ALTER TABLE pillarrx.drug.ndc DROP COLUMN labeler_manufacturer_id;
+  ALTER TABLE pillarrx.drug.ndc DROP COLUMN ndc_labeler_code_fk;
+  ALTER TABLE pillarrx.drug.ndc DROP COLUMN ndc_labeler_fk;
+  ALTER TABLE pillarrx.drug.ndc DROP COLUMN ndc_manufacturer_id;
+
+Step 3 -- Update any views, notebooks, or downstream queries that reference
+the dropped column names to use manufacturer_id instead.
+
+Step 4 -- Add FK from claim_prescriber to nppes_provider:
+
+  ALTER TABLE pillarrx.claim.claim_prescriber
+    ADD CONSTRAINT fk_claim_claim_prescriber_npi
+    FOREIGN KEY (npi) REFERENCES pillarrx.reference.nppes_provider (npi);
+
+Step 5 -- Change ncpdp_id / ncpdp_number columns from LONG to STRING:
+
+  ALTER TABLE pillarrx.claim.rx_claim ALTER COLUMN ncpdp_id TYPE STRING;
+  ALTER TABLE pillarrx.claim.dur_event ALTER COLUMN ncpdp_id TYPE STRING;
+  ALTER TABLE pillarrx.client.audit_finding ALTER COLUMN ncpdp_id TYPE STRING;
+  ALTER TABLE pillarrx.drug.pharmacy ALTER COLUMN ncpdp_number TYPE STRING;
+  ALTER TABLE pillarrx.drug.pharmacy_network ALTER COLUMN ncpdp_id TYPE STRING;
+  ALTER TABLE pillarrx.drug.pharmacy_network ALTER COLUMN pharmacy_ncpdp_id TYPE STRING;
+  ALTER TABLE pillarrx.reference.ncpdp_pharmacy_service ALTER COLUMN ncpdp_number TYPE STRING;
+
+Step 6 -- Change npi columns from LONG to STRING:
+
+  ALTER TABLE pillarrx.drug.drug_prescriber ALTER COLUMN npi TYPE STRING;
+  ALTER TABLE pillarrx.reference.nppes_other_identifier ALTER COLUMN npi TYPE STRING;
+  ALTER TABLE pillarrx.reference.nppes_provider_taxonomy ALTER COLUMN npi TYPE STRING;
+
+Step 7 -- Change taxonomy_code and taxonomy_assignment_code from LONG to STRING:
+
+  ALTER TABLE pillarrx.drug.drug_prescriber ALTER COLUMN taxonomy_code TYPE STRING;
+  ALTER TABLE pillarrx.reference.nppes_provider_taxonomy ALTER COLUMN taxonomy_code TYPE STRING;
+  ALTER TABLE pillarrx.reference.nppes_provider_taxonomy ALTER COLUMN nppes_taxonomy_assignment_code TYPE STRING;
+
+Step 8 -- Add unique constraint on nppes_provider.npi (after step 6):
+
+  ALTER TABLE pillarrx.reference.nppes_provider
+    ADD CONSTRAINT uq_nppes_provider_npi UNIQUE (npi);
+
+Total changes:
+  - 1 column added to claim.rx_claim
+  - 4 columns removed from drug.ndc
+  - 1 FK constraint added (claim.claim_prescriber -> reference.nppes_provider)
+  - 1 unique constraint added (reference.nppes_provider.npi)
+  - 7 columns changed from LONG to STRING (ncpdp_id / ncpdp_number)
+  - 3 columns changed from LONG to STRING (npi)
+  - 3 columns changed from LONG to STRING (taxonomy_code / taxonomy_assignment_code)
+  - 0 renames
